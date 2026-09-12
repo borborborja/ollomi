@@ -1,0 +1,8 @@
+**
+!backend/
+!backend/selfhost/
+!backend/selfhost/**
+!deploy/
+!deploy/Dockerfile
+**/__pycache__
+**/.pytest_cache

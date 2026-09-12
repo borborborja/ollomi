@@ -1,0 +1,139 @@
+# Ollomi: instalación y operación
+
+Ollomi es un fork local de Omi. El servicio activo es `selfhost.main:app`; el backend comercial original no entra en la imagen Docker. La aplicación Android funciona solo con el micrófono del teléfono: no busca, empareja ni conecta dispositivos Omi por Bluetooth. Incluye autenticación local, servidor configurable e importación MP3. Véanse [investigación](OLLomi_RESEARCH.es.md) y [validación y límites](OLLomi_VALIDATION.md).
+
+## Instalación preparada en este equipo
+
+Workspace: `/opt/projects/ollomi/ollomi.code-workspace`. El backend preparado escucha en `http://127.0.0.1:18080`, porque el puerto 8080 ya estaba ocupado. La cuenta `admin@ollomi.local` y su contraseña aleatoria están en `artifacts/initial-admin.txt` (permisos 600, fuera de Git). No vuelva a inicializar ni a crear esa cuenta. La APK está en `artifacts/ollomi-dev.apk` y su suma de verificación en `artifacts/SHA256SUMS`. La copia privada inicial de datos y claves está en `artifacts/backup-initial/`; conserve esos archivos fuera de repositorios públicos.
+
+Esta instalación ya tiene Whisper `tiny`, Ollama `qwen3:0.6b`, `embeddinggemma` y la voz Piper `es_ES-davefx-medium`. Los perfiles predeterminados se han ajustado a esos modelos. La cuenta y perfiles usados para las pruebas están deshabilitados; sus audios son sintéticos. Las instrucciones siguientes sirven también para instalar desde cero en otra máquina.
+
+## Requisitos
+
+Docker Engine con Compose v2, Linux, almacenamiento persistente y un navegador o Android. Para desarrollar Android: Flutter 3.44.5, Java 21, SDK Android 36 y NDK 29.0.14206865. Las imágenes y los pesos se descargan durante la instalación; el funcionamiento posterior puede permanecer sin salida a Internet.
+
+Reserve al menos 25 GB libres para compilar las imágenes y la app, más los modelos y audios. Para uso en CPU, 16 GB de RAM es un punto de partida razonable; los recursos necesarios dependen del modelo y de las grabaciones simultáneas. No compile Android mientras ejecuta inferencia en una máquina ajustada de memoria. El modelo de 0,6 B utilizado en la prueba verifica el recorrido técnico, pero su calidad no equivale a la de modelos mayores.
+
+## Primera instalación
+
+```bash
+cd /opt/projects/ollomi
+python3 scripts/selfhost_init.py
+docker compose build
+docker compose up -d postgres redis typesense migrate
+```
+
+El inicializador crea `.env` con permisos 600 y claves independientes. No lo sobrescribe. Conserve `OLLOMI_SECRET_KEY`: cifra las credenciales de IA y firma las sesiones. Cambiarla invalida sesiones e impide descifrar las credenciales antiguas.
+
+Instale Whisper explícitamente. Este contenedor temporal tiene acceso de red solamente durante la descarga:
+
+```bash
+docker run --rm --network bridge --user "$(id -u):$(id -g)" \
+  -e HF_HOME=/tmp/hf -e HF_HUB_DISABLE_XET=1 \
+  -v "$PWD/selfhost-data/models:/models" \
+  --entrypoint python ollomi-speech:local -c \
+  "from huggingface_hub import snapshot_download; snapshot_download('Systran/faster-whisper-small', local_dir='/models/small')"
+```
+
+Para un modelo personalizado de faster-whisper/CTranslate2, copie su directorio completo bajo `selfhost-data/models/`. En el perfil STT, el modelo es el nombre de ese directorio o una ruta bajo `/models`; nunca una ruta arbitraria del host.
+
+Descargue los modelos Ollama con la red conectada temporalmente:
+
+```bash
+docker compose -f compose.yaml -f deploy/compose.connected.yaml up -d ollama
+docker compose exec ollama ollama pull qwen3:4b
+docker compose exec ollama ollama pull embeddinggemma
+docker compose up -d --force-recreate ollama
+docker compose up -d
+docker compose exec api python -m selfhost.cli create-admin
+```
+
+La configuración inicial propone Whisper `small`, chat `qwen3:4b` y `embeddinggemma`. En hardware pequeño puede instalar `tiny` y `qwen3:0.6b` y cambiar los perfiles desde Android. Con Ollama 0.11.10 y Qwen3, añada `{"prompt_suffix":"/no_think","max_tokens":2048}` en las opciones del perfil si quiere evitar pensamiento extendido. La compatibilidad de opciones depende de la versión del servidor; use el botón de comprobación de conexión.
+
+## Acceso desde Android
+
+El puerto predeterminado es `127.0.0.1:8080`. Cambie `OLLOMI_BIND` por la dirección LAN del servidor para acceder desde un teléfono y `OLLOMI_PORT` si está ocupado. Vuelva a crear el proxy con `docker compose up -d proxy`. En el emulador Android, `10.0.2.2` apunta al host.
+
+Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y contraseña locales. Desde Ajustes → servidor puede elegir los perfiles STT/chat/embeddings, administrar usuarios si es administrador, importar audio y exportar datos. Las conversaciones se graban con el micrófono del teléfono. Para cambiar de servidor, cierre sesión y entre con la nueva URL. La sesión, las importaciones pendientes y los metadatos WAL se vinculan al servidor y a la cuenta.
+
+La APK de desarrollo se construye así:
+
+```bash
+cd app
+flutter pub get
+flutter build apk --debug --flavor dev --target-platform android-arm64,android-x64
+```
+
+Para distribuir una versión definitiva, configure una clave de firma propia en Gradle y compile el sabor `prod` en modo release. La APK de desarrollo entregada no es una publicación en Google Play.
+
+El selector acepta MP3, WAV, M4A, OGG y FLAC. También acepta «Compartir» audio desde otras apps Android. La copia pendiente del teléfono se elimina solo cuando el servidor confirma la admisión duradera. Puede cancelar/reintentar trabajos; un fallo de IA conserva el original. Un reintento explícito utiliza los perfiles seleccionados en ese momento, para poder corregir URL, credenciales o modelo. La subida está limitada a 1 GiB y 12 horas por grabación de forma predeterminada.
+
+## IA local y servidores compatibles
+
+Los administradores crean perfiles con propósito `stt`, `chat` o `embedding`, URL base, modelo y clave opcional. Los usuarios eligen perfiles habilitados; nunca reciben la clave del proveedor. Ejemplos:
+
+| Propósito | URL base | Modelo |
+|---|---|---|
+| Whisper del Compose | `http://stt:8000/v1` | `small` o directorio instalado |
+| Ollama del Compose | `http://ollama:11434/v1` | nombre instalado con `ollama pull` |
+| Servidor compatible en LAN | `http://servidor-lan:8000/v1` | nombre que exponga ese servidor |
+
+STT usa `POST /audio/transcriptions`, chat `/chat/completions` y embeddings `/embeddings`. Ollama sirve chat y embeddings; Whisper corre en el servicio de voz separado. No se supone que una única URL ofrezca las tres operaciones.
+
+`compose.yaml` aísla API, workers, bases y modelos en una red `internal`. El override `deploy/compose.connected.yaml` permite llegar a servidores de la LAN o de Internet desde API/worker. Para un proveedor público hay que activar además `OLLOMI_LOCAL_ONLY=false` y marcar el perfil como externo; se exige HTTPS. No se siguen redirecciones ni se heredan proxies de entorno en las llamadas de IA. El administrador del host debe limitar la salida por firewall si quiere permitir solo determinados destinos LAN.
+
+Al cambiar el perfil de embeddings se crea una generación de índice nueva y se programa la reindexación. La búsqueda puede estar incompleta mientras esta termina. PostgreSQL conserva los datos originales; Typesense y los embeddings son índices derivados.
+
+## Voz, hablantes y GPU
+
+Piper es opcional. Copie un modelo `.onnx` y su `.onnx.json` a `selfhost-data/models/piper/`. El nombre predeterminado es `es_ES-davefx-medium`; respete la licencia del modelo. El servicio expone las voces en `/v1/voices` y sintetiza respuestas con `/v2/tts/synthesize`. La preferencia de voz se guarda con `PATCH /v1/users/me` y `{"voice":"nombre-del-modelo"}`.
+
+La diarización Community-1 requiere pesos descargados por el operador tras aceptar sus condiciones. Coloque una copia local completa en `selfhost-data/models/community-1/` y reconstruya con `DIARIZATION=true`. Sin esos pesos el servicio sigue transcribiendo y deja el hablante sin identificar. Los identificadores de hablante son locales a cada fragmento; no se afirma reconocimiento biométrico persistente entre conversaciones.
+
+Para CUDA, con NVIDIA Container Toolkit instalado:
+
+```bash
+docker compose -f compose.yaml -f deploy/compose.cuda.yaml up -d --build
+```
+
+La ruta CUDA está preparada, pero la validación realizada fue en CPU.
+
+## Integraciones y firmware locales
+
+La pestaña de integraciones permite al administrador configurar WebDAV, CalDAV, webhooks y MCP en direcciones privadas. WebDAV exporta JSON; CalDAV publica tareas VTODO en una colección ya creada. Son exportaciones explícitas, no una sincronización bidireccional de agenda. Los webhooks pueden repetirse si se reintenta tras un error de red: el receptor debe tratar los duplicados. MCP admite Streamable HTTP, descubrimiento de herramientas y ejecución explícita con argumentos JSON; no ejecuta herramientas automáticamente desde el chat.
+
+El firmware se provisiona en `/data/firmware/` del volumen de audio. `manifest.json` relaciona modelo de dispositivo con `latest` y `stable`; cada entrada contiene `filename`, `sha256`, `version`, `changelog` y los campos OTA de Omi. Solo se sirven binarios instalados localmente; el manifiesto se valida contra SHA-256. No se ha flasheado ningún dispositivo durante la verificación. Los mapas abren una aplicación instalada mediante coordenadas; no se incluye un servidor de teselas ni consultas obligatorias a Google Maps.
+
+## Datos, retención y notificaciones
+
+Los datos se almacenan en volúmenes Docker: PostgreSQL, Redis, Typesense, audio y modelos Ollama. Los modelos de voz están en `selfhost-data/models`. Por defecto los audios se conservan hasta borrarlos. `OLLOMI_AUDIO_RETENTION_DAYS=N` elimina periódicamente el audio de conversaciones terminadas mayores de N días; cero desactiva la caducidad. La transcripción permanece. Si el usuario desactiva guardar grabaciones, el audio se elimina después de procesarlo correctamente.
+
+Las notificaciones son locales y se alimentan de un cursor de eventos autenticado. Llegan al consultar el servidor mientras la app está activa. No hay Firebase ni garantía de entrega push con la app terminada o restringida por Android.
+
+## Copias de seguridad y recuperación
+
+```bash
+scripts/selfhost_backup.sh /ruta/privada/backup-ollomi
+```
+
+El script detiene temporalmente los escritores, guarda un `pg_dump` consistente, los originales y `.env`, y vuelve a arrancar los servicios. Añada por separado los modelos y el firmware aprovisionado; los modelos pueden reinstalarse, pero conserve sus revisiones y licencias. El archivo de claves debe guardarse con el mismo cuidado que la base de datos.
+
+Restaure primero en una instalación **nueva**, con volúmenes vacíos, y mantenga la instalación anterior hasta verificarla:
+
+```bash
+cp /ruta/backup/instance.env .env
+chmod 600 .env
+docker compose up -d postgres redis typesense
+docker compose exec -T postgres pg_restore -U ollomi -d ollomi < /ruta/backup/database.dump
+docker compose run --rm --no-deps -T --user 0 --entrypoint tar api -C /data -xzf - < /ruta/backup/audio.tar.gz
+docker compose run --rm --no-deps --user 0 --entrypoint chown api -R 10001:10001 /data
+docker compose up -d
+```
+
+Reinstale los modelos antes de procesar. Use Actualizar en Ajustes → servidor para programar la reindexación (`POST /v1/users/me/reindex`). No borre los volúmenes como procedimiento de actualización. Las actualizaciones normales usan `docker compose build && docker compose up -d`; el servicio `migrate` aplica las migraciones antes de arrancar API y workers.
+
+Para restablecer una contraseña: `docker compose exec api python -m selfhost.cli reset-password --email usuario@local`. Revoca las sesiones anteriores de ese usuario.
+
+## TLS
+
+El proxy incluido sirve HTTP para localhost/LAN. Para exposición fuera de una red de confianza, sitúe Caddy detrás de su terminador TLS o cambie el Caddyfile con su dominio y certificados. No exponga PostgreSQL, Redis, Typesense ni Ollama. La instalación predeterminada solo publica el puerto del proxy.

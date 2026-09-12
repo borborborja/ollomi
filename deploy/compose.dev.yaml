@@ -1,0 +1,8 @@
+# Development only: use the checked-out Python source without rebuilding images.
+services:
+  api:
+    volumes: [./backend/selfhost:/srv/selfhost:ro]
+  worker:
+    volumes: [./backend/selfhost:/srv/selfhost:ro]
+  scheduler:
+    volumes: [./backend/selfhost:/srv/selfhost:ro]

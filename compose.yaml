@@ -1,0 +1,123 @@
+name: ollomi
+
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: deploy/Dockerfile
+  image: ollomi-backend:local
+  restart: unless-stopped
+  init: true
+  environment: &environment
+    OLLOMI_SECRET_KEY: ${OLLOMI_SECRET_KEY:?Run python3 scripts/selfhost_init.py}
+    OLLOMI_DATABASE_URL: postgresql+psycopg://ollomi:${POSTGRES_PASSWORD:?Set database password}@postgres/ollomi
+    OLLOMI_REDIS_URL: redis://redis:6379/0
+    OLLOMI_TYPESENSE_KEY: ${TYPESENSE_API_KEY:?Set search password}
+    OLLOMI_AUDIO_RETENTION_DAYS: ${OLLOMI_AUDIO_RETENTION_DAYS:-0}
+    OLLOMI_LOCAL_ONLY: ${OLLOMI_LOCAL_ONLY:-true}
+    OLLOMI_PUBLIC_URL: ${OLLOMI_PUBLIC_URL:-http://localhost:8080}
+  volumes:
+    - audio:/data
+  networks: [private]
+  security_opt: [no-new-privileges:true]
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ollomi
+      POSTGRES_DB: ollomi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run initialization}
+    volumes: [postgres:/var/lib/postgresql/data]
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U ollomi -d ollomi]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  redis:
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+    command: [redis-server, --appendonly, 'yes']
+    restart: unless-stopped
+    volumes: [redis:/data]
+    networks: [private]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  typesense:
+    image: typesense/typesense:29.0
+    command: [--data-dir, /data, --api-key, '${TYPESENSE_API_KEY}', --enable-cors=false]
+    restart: unless-stopped
+    volumes: [search:/data]
+    networks: [private]
+  migrate:
+    <<: *backend
+    restart: 'no'
+    command: [python, -m, selfhost.cli, migrate]
+  api:
+    <<: *backend
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health")']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+  worker:
+    <<: *backend
+    command: [celery, -A, selfhost.worker.celery, worker, --loglevel=INFO, --concurrency=2]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+  scheduler:
+    <<: *backend
+    command: [celery, -A, selfhost.worker.celery, beat, --loglevel=INFO, --schedule=/data/celerybeat]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+  stt:
+    build:
+      context: services/speech
+      args:
+        DIARIZATION: ${DIARIZATION:-false}
+    image: ollomi-speech:local
+    restart: unless-stopped
+    init: true
+    environment:
+      HF_HUB_OFFLINE: '1'
+      HF_HUB_DISABLE_TELEMETRY: '1'
+      PYANNOTE_METRICS_ENABLED: '0'
+      WHISPER_MODEL: ${WHISPER_MODEL:-small}
+      DIARIZATION_PATH: /models/community-1
+    volumes: [./selfhost-data/models:/models:ro]
+    networks: [private]
+  ollama:
+    image: ollama/ollama:0.11.10
+    restart: unless-stopped
+    environment:
+      OLLAMA_NO_CLOUD: '1'
+      OLLAMA_KEEP_ALIVE: 5m
+    volumes: [ollama:/root/.ollama]
+    networks: [private]
+  proxy:
+    image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    restart: unless-stopped
+    ports: ['${OLLOMI_BIND:-127.0.0.1}:${OLLOMI_PORT:-8080}:8080']
+    volumes: [./deploy/Caddyfile:/etc/caddy/Caddyfile:ro]
+    networks: [private, ingress]
+    depends_on:
+      api: {condition: service_healthy}
+
+networks:
+  private:
+    internal: true
+  ingress:
+volumes:
+  postgres:
+  redis:
+  audio:
+  search:
+  ollama:

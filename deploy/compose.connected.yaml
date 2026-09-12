@@ -1,0 +1,11 @@
+# Explicit opt-in: for LAN AI servers, external OpenAI-compatible providers,
+# local connectors, and the initial Ollama model download.
+services:
+  api:
+    networks: [private, inference]
+  worker:
+    networks: [private, inference]
+  ollama:
+    networks: [private, inference]
+networks:
+  inference:
