@@ -57,7 +57,7 @@ def insert(db, uid, kind, data):
     db.add(row)
     db.flush()
     emit(db, uid, kind + "_created", {"id": row.id})
-    if kind in {"conversation", "memory", "task"}:
+    if kind in {"conversation", "memory", "task", "goal", "decision", "calendar_event"}:
         db.add(
             Job(
                 user_id=uid,
@@ -72,7 +72,7 @@ def insert(db, uid, kind, data):
 
 
 def reindex_record(db, uid, record):
-    if record.kind in {"conversation", "memory", "task"}:
+    if record.kind in {"conversation", "memory", "task", "goal", "decision", "calendar_event"}:
         db.add(
             Job(
                 user_id=uid,
@@ -536,6 +536,25 @@ collection_routes(
     "/v1/goals",
     "goal",
     {"title": "", "description": "", "progress": 0, "completed": False},
+)
+collection_routes(
+    "/v1/calendar-events",
+    "calendar_event",
+    {
+        "title": "",
+        "description": "",
+        "start_at": None,
+        "end_at": None,
+        "date_text": "",
+        "location": "",
+        "attendees": [],
+        "tags": [],
+    },
+)
+collection_routes(
+    "/v1/decisions",
+    "decision",
+    {"description": "", "owner": "", "tags": []},
 )
 
 

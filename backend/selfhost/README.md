@@ -10,6 +10,7 @@ Use the root `compose.yaml`. See [installation and operation](../../docs/OLLomi_
 - `db.py`, `migrations/`: PostgreSQL records, sessions, durable jobs/events, pgvector. Migrations are required before startup.
 - `security.py`, `admin.py`, `profiles.py`: local Argon2 passwords, short-lived access JWTs, rotating refresh tokens, administrator-managed inference profiles and encrypted credentials.
 - `audio.py`, `sync.py`, `worker.py`: bounded uploads, framed Omi WAL/Opus decoding, live WebSocket capture, durable processing and lease fencing. Audio retries retain originals. Recording parts are serialized per conversation.
+- `extraction.py`: conservative validation of model-produced summaries, commitments, dated events, decisions, goals, people and memories. Dates without a timezone remain text and never become automatic reminders.
 - `records.py`, `mobile.py`, `playback.py`: owner-scoped Omi mobile contracts, signed playback URLs bound to a live session, export and deletion.
 - `search.py`, `chat.py`: owner-scoped vector/text retrieval and streamed chat. Embedding generations isolate incompatible models; changes queue reindexing.
 - `integrations.py`: explicit exports to local WebDAV, CalDAV VTODO, webhooks; explicit MCP Streamable HTTP tool discovery/calls. Administrator credentials are never returned.
@@ -22,5 +23,7 @@ Python 3.11. Install `requirements.txt` and `requirements-test.txt` in an isolat
 `docker compose -f compose.yaml -f deploy/compose.dev.yaml up -d` mounts the source for development. Restart changed Python services. Production uses the image without this override.
 
 Data modifications and durable work admission share a PostgreSQL transaction. Celery/Redis messages are delivery hints; the scheduler recovers queued jobs and expired leases. A failed provider call marks the job failed; explicit retry is available through `/v1/import/jobs/{id}/retry`. Completed transcripts survive a later summary failure. Provider credentials are encrypted with a key derived from `OLLOMI_SECRET_KEY`; preserve this secret together with the database backup.
+
+After each transcript, the selected chat profile returns a structured extraction. Ollomi persists task, memory, goal, decision and calendar-event records with provenance from their source conversation. It stores a deadline only when the model returned an ISO-8601 instant with a timezone; ambiguous wording is retained as `due_text` or `date_text` for review. Events are therefore ready for a future CalDAV `VEVENT` exporter, while the current CalDAV export is deliberately limited to explicit task `VTODO` exports.
 
 The API currently supports the core mobile contracts, not every commercial/cloud endpoint in upstream Omi. Exact limitations are listed in the validation document.

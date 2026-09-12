@@ -114,7 +114,7 @@ def export_data(uid):
                 select(Record).where(
                     Record.user_id == uid,
                     Record.kind.in_(
-                        ["conversation", "memory", "task", "person", "folder", "goal"]
+                        ["conversation", "memory", "task", "person", "folder", "goal", "decision", "calendar_event"]
                     ),
                 )
             )

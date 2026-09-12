@@ -35,7 +35,17 @@ def record_text(row):
             + "\n"
             + "\n".join(s.get("text", "") for s in data.get("transcript_segments", []))
         )
-    return data.get("content", data.get("description", ""))
+    if row.kind in {"goal", "calendar_event"}:
+        return "\n".join(
+            str(value)
+            for value in (data.get("title"), data.get("description"), data.get("location"), " ".join(data.get("tags", [])))
+            if value
+        )
+    return "\n".join(
+        str(value)
+        for value in (data.get("content"), data.get("description"), data.get("owner"), " ".join(data.get("tags", [])))
+        if value
+    )
 
 
 def index_record(uid, record_id, profile):
