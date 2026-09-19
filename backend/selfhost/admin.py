@@ -8,6 +8,8 @@ from selfhost.db import AIProfile, Job, Session, User, emit, transaction
 from selfhost.profiles import (
     completion,
     embed,
+    env_managed,
+    mark_profile_health,
     provider_client,
     public_profile,
     selected_profile,
@@ -176,6 +178,52 @@ def admin_profiles(admin=Depends(administrator)):
         ]
 
 
+@router.get("/v1/ai-status")
+def ai_status(user=Depends(current_user)):
+    with transaction() as db:
+        result = {}
+        for purpose in ("stt", "chat", "embedding"):
+            rows = list(
+                db.scalars(
+                    select(AIProfile).where(
+                        AIProfile.purpose == purpose,
+                        AIProfile.enabled.is_(True),
+                    )
+                )
+            )
+            managed = [
+                row
+                for row in rows
+                if (row.capabilities or {}).get("managed_by") == "env"
+            ]
+            visible = sorted(
+                managed or rows,
+                key=lambda row: (row.capabilities or {}).get("priority", 999999),
+            )
+            profiles = [public_profile(row) for row in visible]
+            successful = [
+                profile
+                for profile in profiles
+                if profile["status"] == "healthy" and profile["last_success_at"]
+            ]
+            active = (
+                max(successful, key=lambda profile: profile["last_success_at"])["id"]
+                if successful
+                else (
+                    profiles[0]["id"]
+                    if profiles
+                    and all(profile["status"] == "unknown" for profile in profiles)
+                    else None
+                )
+            )
+            result[purpose] = {
+                "managed_by_env": bool(managed),
+                "active_profile_id": active,
+                "profiles": profiles,
+            }
+        return result
+
+
 @router.get("/v1/ai-profiles")
 def profiles(user=Depends(current_user)):
     with transaction() as db:
@@ -192,9 +240,15 @@ def profiles(user=Depends(current_user)):
 def save_profile(body, profile_id=None):
     url = validate_url(body.base_url, body.external)
     with transaction() as db:
+        if env_managed(db, body.purpose):
+            raise HTTPException(
+                409, f"{body.purpose} profiles are managed by environment"
+            )
         row = db.get(AIProfile, profile_id) if profile_id else AIProfile()
         if row is None:
             raise HTTPException(404, "Profile not found")
+        if (row.capabilities or {}).get("managed_by") == "env":
+            raise HTTPException(409, "Environment-managed profiles are read-only")
         old = snapshot(row) if profile_id else None
         if old and old["purpose"] != body.purpose:
             raise HTTPException(422, "Create a new profile to change its purpose")
@@ -251,10 +305,16 @@ def check_profile(profile_id: str, admin=Depends(administrator)):
     try:
         capabilities = {}
         if profile["purpose"] == "chat":
-            completion(profile, [{"role": "user", "content": "Reply with OK."}])
+            completion(
+                profile,
+                [{"role": "user", "content": "Reply with OK."}],
+                fallback=False,
+            )
             capabilities["chat"] = True
         elif profile["purpose"] == "embedding":
-            capabilities["dimensions"] = len(embed(profile, ["Connection test"])[0])
+            capabilities["dimensions"] = len(
+                embed(profile, ["Connection test"], fallback=False)[0]
+            )
         else:
             import io
             import wave
@@ -275,7 +335,9 @@ def check_profile(profile_id: str, admin=Depends(administrator)):
                 if "text" not in response.json():
                     raise ValueError("No transcription text")
             capabilities["transcription"] = True
+        mark_profile_health(profile, True)
     except Exception:
+        mark_profile_health(profile, False)
         raise HTTPException(
             502,
             "Provider validation failed; check URL, credentials, model and supported operation",
@@ -296,6 +358,10 @@ def select_profiles(body: dict[str, str], user=Depends(current_user)):
         row = db.get(User, user.id)
         previous = (row.preferences or {}).get("ai_profiles", {})
         for purpose, profile_id in body.items():
+            if env_managed(db, purpose):
+                raise HTTPException(
+                    409, f"{purpose} profiles are managed by environment"
+                )
             profile = db.get(AIProfile, profile_id)
             if not profile or not profile.enabled or profile.purpose != purpose:
                 raise HTTPException(422, "Profile is not available for this purpose")

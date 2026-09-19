@@ -48,13 +48,13 @@ docker compose up -d
 docker compose exec api python -m selfhost.cli create-admin
 ```
 
-La configuración inicial propone Whisper `small`, chat `qwen3:4b` y `embeddinggemma`. En hardware pequeño puede instalar `tiny` y `qwen3:0.6b` y cambiar los perfiles desde Android. Con Ollama 0.11.10 y Qwen3, añada `{"prompt_suffix":"/no_think","max_tokens":2048}` en las opciones del perfil si quiere evitar pensamiento extendido. La compatibilidad de opciones depende de la versión del servidor; use el botón de comprobación de conexión.
+La configuración inicial fija por entorno Whisper `small`, chat `qwen3:4b` y `embeddinggemma`. En hardware pequeño puede instalar `tiny` y `qwen3:0.6b` y cambiar `OLLOMI_STT1_MODEL` y `OLLOMI_CHAT1_MODEL` en `.env`. Con Ollama 0.11.10 y Qwen3, añada `OLLOMI_CHAT1_OPTIONS={"prompt_suffix":"/no_think","max_tokens":2048}` si quiere evitar pensamiento extendido. La compatibilidad de opciones depende de la versión del servidor; compruebe el estado desde Android.
 
 ## Acceso desde Android
 
 El puerto predeterminado es `127.0.0.1:8080`. Cambie `OLLOMI_BIND` por la dirección LAN del servidor para acceder desde un teléfono y `OLLOMI_PORT` si está ocupado. Vuelva a crear el proxy con `docker compose up -d proxy`. En el emulador Android, `10.0.2.2` apunta al host.
 
-Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y contraseña locales. Desde Ajustes → servidor puede elegir los perfiles STT/chat/embeddings, administrar usuarios si es administrador, importar audio y exportar datos. Las conversaciones se graban con el micrófono del teléfono. Para cambiar de servidor, cierre sesión y entre con la nueva URL. La sesión, las importaciones pendientes y los metadatos WAL se vinculan al servidor y a la cuenta.
+Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y contraseña locales. Desde Ajustes → servidor puede ver el modelo activo y la salud de cada fallback STT/chat/embeddings, administrar usuarios si es administrador, importar audio y exportar datos. Cuando los modelos están definidos en `.env`, la app no permite editarlos ni seleccionarlos. Las conversaciones se graban con el micrófono del teléfono. Para cambiar de servidor, cierre sesión y entre con la nueva URL. La sesión, las importaciones pendientes y los metadatos WAL se vinculan al servidor y a la cuenta.
 
 La APK de desarrollo se construye así:
 
@@ -70,15 +70,46 @@ El selector acepta MP3, WAV, M4A, OGG y FLAC. También acepta «Compartir» audi
 
 ## IA local y servidores compatibles
 
-Los administradores crean perfiles con propósito `stt`, `chat` o `embedding`, URL base, modelo y clave opcional. Los usuarios eligen perfiles habilitados; nunca reciben la clave del proveedor. Ejemplos:
+El método recomendado es definir cadenas ordenadas en `.env`. Para cada propósito use un número creciente; el backend prueba el siguiente perfil si el anterior falla:
+
+```dotenv
+OLLOMI_CHAT1_PROVIDER=ollama
+OLLOMI_CHAT1_MODEL=qwen3:4b
+OLLOMI_CHAT2_PROVIDER=ollama-cloud
+OLLOMI_CHAT2_MODEL=gemma4:31b
+OLLOMI_CHAT2_API_KEY=...
+
+OLLOMI_STT1_PROVIDER=whisper
+OLLOMI_STT1_MODEL=small
+OLLOMI_STT2_PROVIDER=openai
+OLLOMI_STT2_MODEL=whisper-1
+OLLOMI_STT2_API_KEY=...
+
+OLLOMI_EMBEDDING1_PROVIDER=ollama
+OLLOMI_EMBEDDING1_MODEL=embeddinggemma
+OLLOMI_EMBEDDING1_DIMENSIONS=768
+OLLOMI_EMBEDDING2_PROVIDER=openai
+OLLOMI_EMBEDDING2_MODEL=text-embedding-3-small
+OLLOMI_EMBEDDING2_API_KEY=...
+OLLOMI_EMBEDDING2_DIMENSIONS=768
+```
+
+Cada entrada acepta `PROVIDER`, `MODEL`, `URL`, `API_KEY`, `NAME`, `EXTERNAL`, `OPTIONS` (objeto JSON) y `DIMENSIONS`. `openai`, `openrouter`, `ollama-cloud`, `ollama` y `whisper` conocen su URL predeterminada; `custom` requiere `URL`. OpenAI, OpenRouter y Ollama Cloud se marcan como externos automáticamente. Una cadena con varios modelos de embeddings exige el mismo `DIMENSIONS` explícito para evitar mezclar vectores incompatibles. Los perfiles se guardan cifrados, son de solo lectura en la app y nunca devuelven la clave al teléfono. Sin variables numeradas para un propósito, se conserva el modo anterior: los administradores pueden crear perfiles en Android y cada usuario puede elegir uno.
+
+`OPTIONS` se envía como parámetros adicionales. Por ejemplo, para un transcriptor que no admita `verbose_json`, use `OLLOMI_STT2_OPTIONS={"response_format":"json"}`. Las respuestas sin segmentos se guardan como un único segmento con la duración total del audio.
+
+Ejemplos de endpoints compatibles:
 
 | Propósito | URL base | Modelo |
 |---|---|---|
 | Whisper del Compose | `http://stt:8000/v1` | `small` o directorio instalado |
 | Ollama del Compose | `http://ollama:11434/v1` | nombre instalado con `ollama pull` |
 | Servidor compatible en LAN | `http://servidor-lan:8000/v1` | nombre que exponga ese servidor |
+| OpenAI | `https://api.openai.com/v1` | modelo compatible con el propósito |
+| OpenRouter | `https://openrouter.ai/api/v1` | identificador del catálogo |
+| Ollama Cloud | `https://ollama.com/v1` | nombre cloud, por ejemplo `gemma4:31b` |
 
-STT usa `POST /audio/transcriptions`, chat `/chat/completions` y embeddings `/embeddings`. Ollama sirve chat y embeddings; Whisper corre en el servicio de voz separado. No se supone que una única URL ofrezca las tres operaciones.
+STT usa `POST /audio/transcriptions`, chat `/chat/completions` y embeddings `/embeddings`. Ollama local y Ollama Cloud sirven chat; Ollama local también sirve embeddings. Ollama no implementa actualmente el endpoint de transcripción de audio, por lo que STT debe apuntar a Whisper u otro proveedor compatible. No se supone que una única URL ofrezca las tres operaciones.
 
 `compose.yaml` aísla API, workers, bases y modelos en una red `internal`. El override `deploy/compose.connected.yaml` permite llegar a servidores de la LAN o de Internet desde API/worker. Para un proveedor público hay que activar además `OLLOMI_LOCAL_ONLY=false` y marcar el perfil como externo; se exige HTTPS. No se siguen redirecciones ni se heredan proxies de entorno en las llamadas de IA. El administrador del host debe limitar la salida por firewall si quiere permitir solo determinados destinos LAN.
 

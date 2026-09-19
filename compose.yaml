@@ -7,6 +7,7 @@ x-backend: &backend
   image: ollomi-backend:local
   restart: unless-stopped
   init: true
+  env_file: [.env]
   environment: &environment
     OLLOMI_SECRET_KEY: ${OLLOMI_SECRET_KEY:?Run python3 scripts/selfhost_init.py}
     OLLOMI_DATABASE_URL: postgresql+psycopg://ollomi:${POSTGRES_PASSWORD:?Set database password}@postgres/ollomi
