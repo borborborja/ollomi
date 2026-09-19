@@ -1,4 +1,5 @@
 import io
+import os
 import wave
 
 import pytest
@@ -52,6 +53,112 @@ def test_role_and_secrets(client, admin, other):
         "never-return-this-key" not in client.get("/v1/ai-profiles", headers=other).text
     )
     assert "base_url" not in client.get("/v1/ai-profiles", headers=other).text
+
+
+def test_environment_profiles_are_read_only_and_report_status(
+    client, admin, monkeypatch
+):
+    monkeypatch.setenv("OLLOMI_CHAT1_PROVIDER", "custom")
+    monkeypatch.setenv("OLLOMI_CHAT1_URL", "http://127.0.0.1:11434/v1")
+    monkeypatch.setenv("OLLOMI_CHAT1_MODEL", "qwen-test")
+    monkeypatch.setenv("OLLOMI_CHAT2_PROVIDER", "custom")
+    monkeypatch.setenv("OLLOMI_CHAT2_URL", "http://127.0.0.1:9999/v1")
+    monkeypatch.setenv("OLLOMI_CHAT2_MODEL", "fallback-test")
+    from selfhost.db import transaction
+    from selfhost.profiles import sync_env_profiles
+
+    with transaction() as db:
+        sync_env_profiles(db)
+
+    status = client.get("/v1/ai-status", headers=admin).json()["chat"]
+    assert status["managed_by_env"] is True
+    assert [profile["model"] for profile in status["profiles"]] == [
+        "qwen-test",
+        "fallback-test",
+    ]
+    assert all(profile["status"] == "unknown" for profile in status["profiles"])
+    assert status["active_profile_id"] == status["profiles"][0]["id"]
+    assert (
+        client.put(
+            "/v1/users/me/ai-profiles",
+            headers=admin,
+            json={"chat": status["profiles"][1]["id"]},
+        ).status_code
+        == 409
+    )
+    assert (
+        client.put(
+            "/v1/admin/ai-profiles/" + status["profiles"][0]["id"],
+            headers=admin,
+            json={
+                "name": "changed",
+                "purpose": "chat",
+                "base_url": "http://127.0.0.1:11434/v1",
+                "model": "changed",
+            },
+        ).status_code
+        == 409
+    )
+
+
+def test_ordered_provider_fallback_uses_second_profile(monkeypatch):
+    from selfhost import profiles
+
+    attempts = []
+    events = []
+    monkeypatch.setattr(profiles, "mark_profile_health", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        profiles, "record_fallback", lambda **kwargs: events.append(kwargs)
+    )
+    chain = {
+        "id": "first",
+        "purpose": "chat",
+        "fallbacks": [{"id": "second", "purpose": "chat"}],
+    }
+
+    def operation(profile):
+        attempts.append(profile["id"])
+        if profile["id"] == "first":
+            raise RuntimeError("provider unavailable")
+        return "ok"
+
+    assert profiles.call_with_fallback(chain, operation) == "ok"
+    assert attempts == ["first", "second"]
+    assert events == [
+        {
+            "purpose": "chat",
+            "from_profile": "first",
+            "to_profile": "second",
+            "reason": "other",
+            "outcome": "recovered",
+        }
+    ]
+
+
+def test_environment_provider_presets_cover_required_openai_apis(monkeypatch):
+    from selfhost import profiles
+
+    for key in list(os.environ):
+        if any(
+            key.startswith(f"OLLOMI_{purpose}")
+            for purpose in ("STT", "CHAT", "EMBEDDING")
+        ):
+            monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("OLLOMI_STT1_PROVIDER", "openai")
+    monkeypatch.setenv("OLLOMI_STT1_MODEL", "whisper-1")
+    monkeypatch.setenv("OLLOMI_CHAT1_PROVIDER", "openrouter")
+    monkeypatch.setenv("OLLOMI_CHAT1_MODEL", "openai/gpt-test")
+    monkeypatch.setenv("OLLOMI_CHAT2_PROVIDER", "ollama-cloud")
+    monkeypatch.setenv("OLLOMI_CHAT2_MODEL", "gemma-test")
+    monkeypatch.setenv("OLLOMI_EMBEDDING1_PROVIDER", "ollama")
+    monkeypatch.setenv("OLLOMI_EMBEDDING1_MODEL", "embedding-test")
+    monkeypatch.setattr(profiles, "validate_url", lambda value, external=False: value)
+
+    configured = profiles.env_profiles()
+    assert configured["stt"][0]["base_url"] == "https://api.openai.com/v1"
+    assert configured["chat"][0]["base_url"] == "https://openrouter.ai/api/v1"
+    assert configured["chat"][1]["base_url"] == "https://ollama.com/v1"
+    assert configured["embedding"][0]["base_url"] == "http://ollama:11434/v1"
 
 
 @pytest.mark.parametrize(

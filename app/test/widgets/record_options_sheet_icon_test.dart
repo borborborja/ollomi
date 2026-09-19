@@ -21,14 +21,20 @@ void main() {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: RecordOptionsSheet(onPickPhoneMic: () {}, onPickPhoneCall: () {}),
+          body: RecordOptionsSheet(
+            onPickPhoneMic: () {},
+            onPickPhoneCall: () {},
+            connectedDeviceName: 'Omi',
+            onPickConnectedDevice: () {},
+            onImportAudio: () {},
+          ),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
     final icons = find.byType(FaIcon);
-    expect(icons, findsNWidgets(2));
+    expect(icons, findsNWidgets(4));
 
     for (final icon in icons.evaluate()) {
       final iconRect = tester.getRect(find.byWidget(icon.widget));
@@ -45,5 +51,65 @@ void main() {
       expect(iconRect.center.dx, closeTo(circleRect.center.dx, 0.5));
       expect(iconRect.center.dy, closeTo(circleRect.center.dy, 0.5));
     }
+  });
+
+  testWidgets('record options expose connected-device and audio-import sources', (tester) async {
+    var deviceSelected = false;
+    var importSelected = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: RecordOptionsSheet(
+            onPickPhoneMic: () {},
+            onPickPhoneCall: () {},
+            connectedDeviceName: 'Friend Pendant',
+            onPickConnectedDevice: () => deviceSelected = true,
+            onImportAudio: () => importSelected = true,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Record: Friend Pendant'), findsOneWidget);
+    expect(find.text('Import Data: Recordings'), findsOneWidget);
+    expect(find.text('MP3 · M4A · WAV · OGG · FLAC'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('record-source-connected-device')));
+    await tester.tap(find.byKey(const Key('record-source-import-audio')));
+    expect(deviceSelected, isTrue);
+    expect(importSelected, isTrue);
+  });
+
+  testWidgets('record options omit the device source when nothing is connected', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: RecordOptionsSheet(
+            onPickPhoneMic: () {},
+            onPickPhoneCall: () {},
+            onImportAudio: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('record-source-connected-device')), findsNothing);
+    expect(find.byKey(const Key('record-source-import-audio')), findsOneWidget);
   });
 }

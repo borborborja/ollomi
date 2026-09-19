@@ -84,6 +84,8 @@ def server_info():
                 "chat",
                 "search",
                 "ai_profiles",
+                "env_ai_fallbacks",
+                "ai_provider_status",
                 "events",
             ],
         }

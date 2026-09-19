@@ -6,7 +6,14 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 
 from selfhost.db import Record, emit, owned, transaction, wire
-from selfhost.profiles import chat_request, provider_client, selected_profile
+from selfhost.observability import record_fallback
+from selfhost.profiles import (
+    chat_request,
+    mark_profile_health,
+    profile_chain,
+    provider_client,
+    selected_profile,
+)
 from selfhost.records import insert, list_rows
 from selfhost.search import semantic_search
 from selfhost.security import current_user
@@ -158,31 +165,65 @@ def stream_reply(uid, body, session_id=None):
                 + history_messages
                 + [{"role": "user", "content": question}]
             )
-            with provider_client(profile) as client:
-                with client.stream(
-                    "POST",
-                    "chat/completions",
-                    json=chat_request(profile, prompt, stream=True),
-                ) as response:
-                    response.raise_for_status()
-                    for line in response.iter_lines():
-                        if not line.startswith("data:"):
-                            continue
-                        payload = line[5:].strip()
-                        if payload == "[DONE]":
-                            break
-                        data = json.loads(payload)
-                        choices = data.get("choices", [])
-                        delta = (
-                            choices[0].get("delta", {}).get("content", "")
-                            if choices
-                            else ""
+            candidates = profile_chain(profile)
+            failures = []
+            for index, candidate in enumerate(candidates):
+                candidate_answer = ""
+                try:
+                    with provider_client(candidate) as client:
+                        with client.stream(
+                            "POST",
+                            "chat/completions",
+                            json=chat_request(candidate, prompt, stream=True),
+                        ) as response:
+                            response.raise_for_status()
+                            for line in response.iter_lines():
+                                if not line.startswith("data:"):
+                                    continue
+                                payload = line[5:].strip()
+                                if payload == "[DONE]":
+                                    break
+                                data = json.loads(payload)
+                                choices = data.get("choices", [])
+                                delta = (
+                                    choices[0].get("delta", {}).get("content", "")
+                                    if choices
+                                    else ""
+                                )
+                                if delta:
+                                    candidate_answer += delta
+                                    yield (
+                                        "data: "
+                                        + delta.replace("\n", "__CRLF__")
+                                        + "\n\n"
+                                    )
+                    if not candidate_answer:
+                        raise ValueError("Empty model reply")
+                    answer = candidate_answer
+                    mark_profile_health(candidate, True)
+                    for previous, current in failures:
+                        record_fallback(
+                            purpose="chat",
+                            from_profile=previous.get("id"),
+                            to_profile=current.get("id"),
+                            reason="other",
+                            outcome="recovered",
                         )
-                        if delta:
-                            answer += delta
-                            yield "data: " + delta.replace("\n", "__CRLF__") + "\n\n"
-            if not answer:
-                raise ValueError("Empty model reply")
+                    break
+                except Exception:
+                    mark_profile_health(candidate, False)
+                    # Once content reached the user, starting another provider would
+                    # produce a duplicated or contradictory answer.
+                    if candidate_answer or index + 1 >= len(candidates):
+                        record_fallback(
+                            purpose="chat",
+                            from_profile=candidate.get("id"),
+                            to_profile=None,
+                            reason="other",
+                            outcome="exhausted",
+                        )
+                        raise
+                    failures.append((candidate, candidates[index + 1]))
             with transaction() as db:
                 result = wire(
                     insert(

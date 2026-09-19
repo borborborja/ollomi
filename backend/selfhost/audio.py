@@ -22,7 +22,7 @@ from starlette.concurrency import run_in_threadpool
 
 from selfhost.config import settings
 from selfhost.db import Job, Record, emit, ident, owned, transaction
-from selfhost.profiles import provider_client, selected_profile
+from selfhost.profiles import call_with_fallback, provider_client, selected_profile
 from selfhost.records import conversation_data
 from selfhost.security import authenticate, current_user
 
@@ -265,21 +265,34 @@ def probe_audio(path):
 
 
 def transcribe_file(profile, path, language="auto", diarize=True):
-    data = {"model": profile["model"], "response_format": "verbose_json"}
-    if language != "auto":
-        data["language"] = language
-    if not profile.get("external"):
-        data["diarize"] = str(diarize).lower()
-    with provider_client(profile, timeout=600) as client, Path(path).open("rb") as file:
-        response = client.post(
-            "audio/transcriptions",
-            data=data,
-            files={"file": ("audio.wav", file, "audio/wav")},
-        )
-        response.raise_for_status()
-        result = response.json()
-    if not isinstance(result.get("text"), str):
-        raise ValueError("STT response has no text")
+    def request(candidate):
+        options = dict((candidate.get("capabilities") or {}).get("options", {}))
+        response_format = options.pop("response_format", "verbose_json")
+        data = {
+            "model": candidate["model"],
+            "response_format": response_format,
+            **options,
+        }
+        if language != "auto":
+            data["language"] = language
+        if not candidate.get("external"):
+            data["diarize"] = str(diarize).lower()
+        with (
+            provider_client(candidate, timeout=600) as client,
+            Path(path).open("rb") as file,
+        ):
+            response = client.post(
+                "audio/transcriptions",
+                data=data,
+                files={"file": ("audio.wav", file, "audio/wav")},
+            )
+            response.raise_for_status()
+            result = response.json()
+        if not isinstance(result.get("text"), str):
+            raise ValueError("STT response has no text")
+        return result
+
+    result = call_with_fallback(profile, request)
     segments = result.get("segments")
     if segments is None:
         # A text-only provider cannot manufacture word/speaker timestamps.

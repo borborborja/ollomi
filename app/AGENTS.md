@@ -2,7 +2,7 @@
 
 ## Ollomi fork override
 
-The active Android target uses local `AuthService` sessions, a runtime-selected server, and the phone microphone. Firebase, Google/Apple login, PostHog, Intercom, cloud STT SDK setup, and Omi/Bluetooth pairing below describe preserved upstream code and must not be restored for this target. Android IDs are `me.ollomi.app.dev` / `me.ollomi.app`. Run `flutter pub get`, `flutter test --concurrency=2`, `bash scripts/analyze_ratchet.sh`, and `flutter build apk --debug --flavor dev --target-platform android-arm64,android-x64`. No Firebase generated options or cloud environment files are required. See `../docs/OLLomi_SELF_HOSTING.es.md` and `../docs/OLLomi_VALIDATION.md`. The general l10n, generated-file and agent-flutter rules below still apply.
+The active Android target uses local `AuthService` sessions and a runtime-selected server. Recording can use the phone microphone, a phone call when Android permits it, or an already-connected compatible device; it can also import audio. Firebase, Google/Apple login, PostHog, Intercom, cloud STT SDK setup, and automatic Omi pairing below describe preserved upstream code and must not be restored for this target. Android IDs are `me.ollomi.app.dev` / `me.ollomi.app`. Run `flutter pub get`, `flutter test --concurrency=2`, `bash scripts/analyze_ratchet.sh`, and `flutter build apk --debug --flavor dev --target-platform android-arm64,android-x64`. No Firebase generated options or cloud environment files are required. See `../docs/OLLomi_SELF_HOSTING.es.md` and `../docs/OLLomi_VALIDATION.md`. The general l10n, generated-file and agent-flutter rules below still apply.
 
 Inherits [`../AGENTS.md`](../AGENTS.md); adds app-specific operational guidance.
 

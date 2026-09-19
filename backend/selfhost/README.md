@@ -26,4 +26,6 @@ Data modifications and durable work admission share a PostgreSQL transaction. Ce
 
 After each transcript, the selected chat profile returns a structured extraction. Ollomi persists task, memory, goal, decision and calendar-event records with provenance from their source conversation. It stores a deadline only when the model returned an ISO-8601 instant with a timezone; ambiguous wording is retained as `due_text` or `date_text` for review. Events are therefore ready for a future CalDAV `VEVENT` exporter, while the current CalDAV export is deliberately limited to explicit task `VTODO` exports.
 
+Inference can be owned entirely by the host environment. Ordered `OLLOMI_STT1_*`, `OLLOMI_CHAT1_*` and `OLLOMI_EMBEDDING1_*` entries are synchronized as read-only profiles; increasing suffixes are tried as fallbacks. When a purpose has environment profiles, per-user selection and app-side editing are disabled for that purpose. Runtime success/failure state is exposed without URLs or credentials through `/v1/ai-status`.
+
 The API currently supports the core mobile contracts, not every commercial/cloud endpoint in upstream Omi. Exact limitations are listed in the validation document.
