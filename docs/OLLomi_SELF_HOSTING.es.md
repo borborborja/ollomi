@@ -1,6 +1,6 @@
 # Ollomi: instalación y operación
 
-Ollomi es un fork local de Omi. El servicio activo es `selfhost.main:app`; el backend comercial original no entra en la imagen Docker. La aplicación Android funciona solo con el micrófono del teléfono: no busca, empareja ni conecta dispositivos Omi por Bluetooth. Incluye autenticación local, servidor configurable e importación MP3. Véanse [investigación](OLLomi_RESEARCH.es.md) y [validación y límites](OLLomi_VALIDATION.md).
+Ollomi es un fork local de Omi. El servicio activo es `selfhost.main:app`; el backend comercial original no entra en la imagen Docker. La aplicación Android puede grabar con el micrófono del teléfono, capturar una llamada cuando Android lo permita, usar un dispositivo compatible ya conectado o importar MP3, M4A, WAV, OGG y FLAC. Incluye autenticación local y servidor configurable. Véanse [investigación](OLLomi_RESEARCH.es.md) y [validación y límites](OLLomi_VALIDATION.md).
 
 ## Instalación preparada en este equipo
 
@@ -14,10 +14,59 @@ Docker Engine con Compose v2, Linux, almacenamiento persistente y un navegador o
 
 Reserve al menos 25 GB libres para compilar las imágenes y la app, más los modelos y audios. Para uso en CPU, 16 GB de RAM es un punto de partida razonable; los recursos necesarios dependen del modelo y de las grabaciones simultáneas. No compile Android mientras ejecuta inferencia en una máquina ajustada de memoria. El modelo de 0,6 B utilizado en la prueba verifica el recorrido técnico, pero su calidad no equivale a la de modelos mayores.
 
-## Primera instalación
+## Primera instalación con imágenes publicadas
+
+La vía más rápida descarga las imágenes públicas de GitHub Container Registry y no compila el backend:
 
 ```bash
-cd /opt/projects/ollomi
+git clone https://github.com/borborborja/ollomi.git
+cd ollomi
+python3 scripts/selfhost_init.py
+```
+
+Edite `.env` antes de iniciar. Para acceder desde un teléfono de la misma red use `OLLOMI_BIND=0.0.0.0`; puede cambiar `OLLOMI_PORT=8080`. Si quiere utilizar OpenAI, OpenRouter, Ollama Cloud o un servidor de la LAN, configure además `OLLOMI_LOCAL_ONLY=false` y use el override conectado mostrado más abajo.
+
+```bash
+OLLOMI_IMAGE_OWNER=borborborja docker compose \
+  -f compose.yaml -f deploy/compose.ghcr.yaml pull
+OLLOMI_IMAGE_OWNER=borborborja docker compose \
+  -f compose.yaml -f deploy/compose.ghcr.yaml up -d
+OLLOMI_IMAGE_OWNER=borborborja docker compose \
+  -f compose.yaml -f deploy/compose.ghcr.yaml \
+  exec api python -m selfhost.cli create-admin
+```
+
+Para abreviar los demás ejemplos de esta guía durante la sesión actual:
+
+```bash
+export OLLOMI_IMAGE_OWNER=borborborja
+export COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml
+```
+
+Si necesita proveedores externos o de la LAN, use `export COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml:deploy/compose.connected.yaml`.
+
+El comando de administración solicita correo y contraseña. Compruebe después:
+
+```bash
+curl http://127.0.0.1:8080/health
+docker compose ps
+```
+
+La respuesta de salud debe ser `{"status":"ok"}`. `migrate` termina con código 0; los demás servicios permanecen activos. El backend y el worker usan la misma imagen `ollomi-backend`; `ollomi-speech` contiene el servidor compatible con la API de transcripción de OpenAI. PostgreSQL, Redis, Typesense y Ollama usan sus imágenes oficiales fijadas en `compose.yaml`.
+
+Para proveedores externos o de la LAN, añada el override en todos los comandos de arranque:
+
+```bash
+OLLOMI_IMAGE_OWNER=borborborja docker compose \
+  -f compose.yaml -f deploy/compose.ghcr.yaml -f deploy/compose.connected.yaml \
+  up -d
+```
+
+## Primera instalación compilando desde el código
+
+```bash
+git clone https://github.com/borborborja/ollomi.git
+cd ollomi
 python3 scripts/selfhost_init.py
 docker compose build
 docker compose up -d postgres redis typesense migrate
@@ -25,13 +74,14 @@ docker compose up -d postgres redis typesense migrate
 
 El inicializador crea `.env` con permisos 600 y claves independientes. No lo sobrescribe. Conserve `OLLOMI_SECRET_KEY`: cifra las credenciales de IA y firma las sesiones. Cambiarla invalida sesiones e impide descifrar las credenciales antiguas.
 
-Instale Whisper explícitamente. Este contenedor temporal tiene acceso de red solamente durante la descarga:
+Instale Whisper explícitamente. Este contenedor temporal tiene acceso de red solamente durante la descarga. Use la imagen de GHCR si siguió el despliegue rápido; use `ollomi-speech:local` si compiló desde el código:
 
 ```bash
+SPEECH_IMAGE=ghcr.io/borborborja/ollomi-speech:latest
 docker run --rm --network bridge --user "$(id -u):$(id -g)" \
   -e HF_HOME=/tmp/hf -e HF_HUB_DISABLE_XET=1 \
   -v "$PWD/selfhost-data/models:/models" \
-  --entrypoint python ollomi-speech:local -c \
+  --entrypoint python "$SPEECH_IMAGE" -c \
   "from huggingface_hub import snapshot_download; snapshot_download('Systran/faster-whisper-small', local_dir='/models/small')"
 ```
 
@@ -54,7 +104,11 @@ La configuración inicial fija por entorno Whisper `small`, chat `qwen3:4b` y `e
 
 El puerto predeterminado es `127.0.0.1:8080`. Cambie `OLLOMI_BIND` por la dirección LAN del servidor para acceder desde un teléfono y `OLLOMI_PORT` si está ocupado. Vuelva a crear el proxy con `docker compose up -d proxy`. En el emulador Android, `10.0.2.2` apunta al host.
 
-Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y contraseña locales. Desde Ajustes → servidor puede ver el modelo activo y la salud de cada fallback STT/chat/embeddings, administrar usuarios si es administrador, importar audio y exportar datos. Cuando los modelos están definidos en `.env`, la app no permite editarlos ni seleccionarlos. Las conversaciones se graban con el micrófono del teléfono. Para cambiar de servidor, cierre sesión y entre con la nueva URL. La sesión, las importaciones pendientes y los metadatos WAL se vinculan al servidor y a la cuenta.
+Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y contraseña locales. Desde Ajustes → servidor puede ver el modelo activo y la salud de cada fallback STT/chat/embeddings, administrar usuarios, importar audio y exportar datos. Cuando los modelos están definidos en `.env`, la app no permite editarlos ni seleccionarlos. Para cambiar de servidor, cierre sesión y entre con la nueva URL. La sesión, las importaciones pendientes y los metadatos WAL se vinculan al servidor y a la cuenta.
+
+Cada cambio en `main` crea una APK firmada en [Actions → Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml). Abra la ejecución más reciente, baje hasta **Artifacts** y descargue `ollomi-android-<commit>`; dentro están `ollomi.apk` y `SHA256SUMS`. Una etiqueta `v*` publica los mismos archivos en [Releases](https://github.com/borborborja/ollomi/releases). La firma se conserva entre compilaciones, por lo que una APK publicada puede actualizar otra APK publicada sin desinstalarla. El paso desde una APK de desarrollo firmada con otra clave puede requerir una única desinstalación.
+
+Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, dispositivo compatible conectado o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android. La opción del dispositivo aparece con su nombre y usa la conexión Bluetooth ya establecida.
 
 La APK de desarrollo se construye así:
 
@@ -161,7 +215,25 @@ docker compose run --rm --no-deps --user 0 --entrypoint chown api -R 10001:10001
 docker compose up -d
 ```
 
-Reinstale los modelos antes de procesar. Use Actualizar en Ajustes → servidor para programar la reindexación (`POST /v1/users/me/reindex`). No borre los volúmenes como procedimiento de actualización. Las actualizaciones normales usan `docker compose build && docker compose up -d`; el servicio `migrate` aplica las migraciones antes de arrancar API y workers.
+Reinstale los modelos antes de procesar. Use Actualizar en Ajustes → servidor para programar la reindexación (`POST /v1/users/me/reindex`). No borre los volúmenes como procedimiento de actualización. Las actualizaciones compiladas desde código usan `git pull --ff-only && docker compose build && docker compose up -d`. Si instaló desde GHCR, use:
+
+```bash
+git pull --ff-only
+OLLOMI_IMAGE_OWNER=borborborja docker compose -f compose.yaml -f deploy/compose.ghcr.yaml pull
+OLLOMI_IMAGE_OWNER=borborborja docker compose -f compose.yaml -f deploy/compose.ghcr.yaml up -d
+```
+
+El servicio `migrate` aplica las migraciones antes de arrancar API y workers. No ejecute `docker compose down -v`: `-v` elimina los volúmenes con los datos.
+
+## Diagnóstico
+
+```bash
+docker compose ps
+docker compose logs --tail=200 api worker stt proxy
+curl http://127.0.0.1:8080/health
+```
+
+Si Android muestra `ERR_CONNECTION_REFUSED`, compruebe que `proxy` está activo, que `.env` contiene `OLLOMI_BIND=0.0.0.0`, que el firewall permite el puerto y que teléfono y servidor comparten red. Una respuesta `{"detail":"Not Found"}` en `/` confirma que el API responde, pero la ruta de comprobación correcta es `/health`; Ollomi no incluye una interfaz web de usuario.
 
 Para restablecer una contraseña: `docker compose exec api python -m selfhost.cli reset-password --email usuario@local`. Revoca las sesiones anteriores de ese usuario.
 
