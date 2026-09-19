@@ -381,7 +381,8 @@ class _SelfHostPageState extends State<SelfHostPage> {
 
 class ImportAudioPage extends StatefulWidget {
   final List<String> sharedPaths;
-  const ImportAudioPage({super.key, this.sharedPaths = const []});
+  final bool pickOnOpen;
+  const ImportAudioPage({super.key, this.sharedPaths = const [], this.pickOnOpen = false});
   @override
   State<ImportAudioPage> createState() => _ImportAudioPageState();
 }
@@ -398,6 +399,9 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
     super.initState();
     _loadShared();
     _timer = Timer.periodic(const Duration(seconds: 5), (_) => _load());
+    if (widget.pickOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _pickAudioFiles());
+    }
   }
 
   @override
@@ -479,28 +483,29 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
     }
   }
 
+  Future<void> _pickAudioFiles() async {
+    if (_busy) return;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'm4a', 'ogg', 'flac'],
+        allowMultiple: true,
+      );
+      for (final file in result?.files ?? <PlatformFile>[]) {
+        if (file.path != null) await _keep(File(file.path!));
+      }
+      await _load();
+    } catch (_) {
+      if (mounted) setState(() => _error = context.l10n.importErrorOpeningFilePicker(''));
+    }
+  }
+
   @override
   Widget build(BuildContext context) => LocalScaffold(
         appBar: AppBar(title: Text(context.l10n.importData)),
         floatingActionButton: FloatingActionButton(
           key: const Key('import-mp3'),
-          onPressed: _busy
-              ? null
-              : () async {
-                  try {
-                    final result = await FilePicker.platform.pickFiles(
-                      type: FileType.custom,
-                      allowedExtensions: ['mp3', 'wav', 'm4a', 'ogg', 'flac'],
-                      allowMultiple: true,
-                    );
-                    for (final file in result?.files ?? <PlatformFile>[]) {
-                      if (file.path != null) await _keep(File(file.path!));
-                    }
-                    await _load();
-                  } catch (_) {
-                    if (mounted) setState(() => _error = context.l10n.importErrorOpeningFilePicker(''));
-                  }
-                },
+          onPressed: _busy ? null : _pickAudioFiles,
           child: const Icon(Icons.audio_file),
         ),
         body: RefreshIndicator(

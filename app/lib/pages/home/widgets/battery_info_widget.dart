@@ -12,6 +12,7 @@ import 'package:omi/pages/capture/connect.dart';
 import 'package:omi/pages/conversation_capturing/page.dart';
 import 'package:omi/pages/home/device.dart';
 import 'package:omi/pages/phone_calls/phone_calls_page.dart';
+import 'package:omi/pages/settings/selfhost_page.dart';
 import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/providers/device_provider.dart';
 import 'package:omi/providers/home_provider.dart';
@@ -222,6 +223,7 @@ class HomeRecordButton extends StatefulWidget {
 class _HomeRecordButtonState extends State<HomeRecordButton> {
   void _showRecordOptions(BuildContext context) {
     HapticFeedback.lightImpact();
+    final connectedDevice = context.read<DeviceProvider>().connectedDevice;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -236,6 +238,45 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
           if (!context.mounted) return;
           Navigator.push(context, MaterialPageRoute(builder: (_) => const PhoneCallsPage()));
         },
+        connectedDeviceName: connectedDevice?.name,
+        onPickConnectedDevice: connectedDevice == null
+            ? null
+            : () {
+                Navigator.pop(sheetContext);
+                _startDeviceRecording(context, connectedDevice);
+              },
+        onImportAudio: () {
+          Navigator.pop(sheetContext);
+          if (!context.mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ImportAudioPage(pickOnOpen: true)),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _startDeviceRecording(BuildContext context, BtDevice device) async {
+    HapticFeedback.mediumImpact();
+    final captureProvider = context.read<CaptureProvider>();
+    final sameDevice = captureProvider.recordingDevice?.id == device.id;
+
+    if (sameDevice && captureProvider.recordingState == RecordingState.pause) {
+      await captureProvider.resumeDeviceRecording();
+    } else if (!sameDevice || captureProvider.recordingState != RecordingState.deviceRecord) {
+      await captureProvider.streamDeviceRecording(device: device);
+    }
+
+    if (!context.mounted || captureProvider.recordingState != RecordingState.deviceRecord) return;
+    if (SharedPreferencesUtil().batchModeEnabled) {
+      AppSnackbar.showSnackbar(context.l10n.recording);
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ConversationCapturingPage(topConversationId: captureProvider.topConversationId),
       ),
     );
   }
@@ -344,8 +385,18 @@ class SlashLinePainter extends CustomPainter {
 class RecordOptionsSheet extends StatelessWidget {
   final VoidCallback onPickPhoneMic;
   final VoidCallback onPickPhoneCall;
+  final String? connectedDeviceName;
+  final VoidCallback? onPickConnectedDevice;
+  final VoidCallback onImportAudio;
 
-  const RecordOptionsSheet({super.key, required this.onPickPhoneMic, required this.onPickPhoneCall});
+  const RecordOptionsSheet({
+    super.key,
+    required this.onPickPhoneMic,
+    required this.onPickPhoneCall,
+    this.connectedDeviceName,
+    this.onPickConnectedDevice,
+    required this.onImportAudio,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -368,6 +419,7 @@ class RecordOptionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _RecordOption(
+            key: const Key('record-source-phone-mic'),
             icon: FontAwesomeIcons.microphone,
             title: context.l10n.recordWithPhoneMic,
             subtitle: context.l10n.recordWithPhoneMicSubtitle,
@@ -375,10 +427,29 @@ class RecordOptionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _RecordOption(
+            key: const Key('record-source-phone-call'),
             icon: FontAwesomeIcons.phone,
             title: context.l10n.phoneCall,
             subtitle: context.l10n.phoneCallSubtitle,
             onTap: onPickPhoneCall,
+          ),
+          if (connectedDeviceName != null && onPickConnectedDevice != null) ...[
+            const SizedBox(height: 10),
+            _RecordOption(
+              key: const Key('record-source-connected-device'),
+              icon: FontAwesomeIcons.bluetooth,
+              title: '${context.l10n.record}: $connectedDeviceName',
+              subtitle: context.l10n.connected,
+              onTap: onPickConnectedDevice!,
+            ),
+          ],
+          const SizedBox(height: 10),
+          _RecordOption(
+            key: const Key('record-source-import-audio'),
+            icon: FontAwesomeIcons.fileImport,
+            title: '${context.l10n.importData}: ${context.l10n.recordings}',
+            subtitle: 'MP3 · M4A · WAV · OGG · FLAC',
+            onTap: onImportAudio,
           ),
         ],
       ),
@@ -392,7 +463,8 @@ class _RecordOption extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
-  const _RecordOption({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _RecordOption(
+      {super.key, required this.icon, required this.title, required this.subtitle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
