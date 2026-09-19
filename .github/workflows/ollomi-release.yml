@@ -89,7 +89,9 @@ jobs:
             --build-name="1.0.${GITHUB_RUN_NUMBER}" --build-number="$build_number"
           mkdir -p release-artifacts
           cp build/app/outputs/flutter-apk/app-prod-release.apk release-artifacts/ollomi.apk
-          sha256sum release-artifacts/ollomi.apk > release-artifacts/SHA256SUMS
+          cd release-artifacts
+          sha256sum ollomi.apk > SHA256SUMS
+          sha256sum -c SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: ollomi-android-${{ github.sha }}
