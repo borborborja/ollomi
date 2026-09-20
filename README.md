@@ -5,6 +5,7 @@ Fork autoalojable de Omi: Android permite grabar con el teléfono o un dispositi
 [![Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml/badge.svg)](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml)
 
 - [Instalación, modelos, Android y copias de seguridad](docs/OLLomi_SELF_HOSTING.es.md)
+- [Compose autónomo para usar solo APIs externas](deploy/examples/external-api/README.md)
 - [Investigación y decisiones](docs/OLLomi_RESEARCH.es.md)
 - [Pruebas y límites de esta versión](docs/OLLomi_VALIDATION.md)
 - [Backend autoalojado](backend/selfhost/README.md)
@@ -36,17 +37,33 @@ docker compose up -d
 
 El inicializador escribe `COMPOSE_FILE` en `.env`, usa las imágenes públicas de `borborborja` y busca un puerto libre empezando por 8080 y 8090. Consulte `OLLOMI_PORT` y abra `http://IP_DEL_SERVIDOR:PUERTO/health`; debe devolver `{"status":"ok"}`. Tras el primer acceso, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker compose up -d --force-recreate migrate api worker scheduler`. El seed es idempotente y nunca cambia una cuenta existente.
 
-Para usar únicamente IA en la LAN o en la nube, inicialice con `--external-ai`. Esto añade automáticamente `deploy/compose.connected.yaml`, no inicia Ollama y deja ejemplos de OpenAI, OpenRouter, Ollama Cloud y endpoints OpenAI-compatible en `.env`. Instale la APK desde la [última Release](https://github.com/borborborja/ollomi/releases/latest) y use la URL del servidor en Android.
+Para usar únicamente IA en la LAN o en la nube, inicialice con `--external-ai`. Esto añade automáticamente `deploy/compose.connected.yaml`, no activa Whisper ni Ollama, no descarga pesos y deja ejemplos de OpenAI, OpenRouter, Ollama Cloud y endpoints OpenAI-compatible en `.env`. Configure STT, chat y embeddings antes de ejecutar `docker compose up -d`. También hay un [Compose autónomo con todas las variables de ejemplo](deploy/examples/external-api/README.md) que solo descarga la imagen del backend. Instale la APK desde la [última Release](https://github.com/borborborja/ollomi/releases/latest) y use la URL del servidor en Android.
 
 Antes de procesar audio hay que instalar los modelos locales o configurar proveedores externos en `.env`. La [guía completa](docs/OLLomi_SELF_HOSTING.es.md) incluye Whisper, Ollama, fallbacks, actualización, copias de seguridad y diagnóstico.
 
-## Publicación automática
+## Imágenes y compilación
 
 Cada cambio en `main` ejecuta [Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml): publica las imágenes `linux/amd64` [`ollomi-backend`](https://github.com/borborborja/ollomi/pkgs/container/ollomi-backend) y [`ollomi-speech`](https://github.com/borborborja/ollomi/pkgs/container/ollomi-speech) en GHCR, y compila una APK `prod` firmada como artefacto de Actions. Las etiquetas Git `v*` adjuntan también la APK y su SHA-256 a la Release.
 
+Las imágenes publicadas se pueden descargar directamente. Sustituya `v0.3.1` por una release concreta o use `latest` para seguir `main`:
+
+```bash
+docker pull ghcr.io/borborborja/ollomi-backend:v0.3.1
+docker pull ghcr.io/borborborja/ollomi-speech:v0.3.1
+```
+
+Para compilar las mismas imágenes desde el código:
+
+```bash
+docker build -f deploy/Dockerfile -t ollomi-backend:local .
+docker build -f services/speech/Dockerfile -t ollomi-speech:local services/speech
+```
+
+También puede generar `.env` y construir todo el Compose localmente con `python3 scripts/selfhost_init.py --source-build`, `docker compose build` y `docker compose up -d`. El workflow usa `docker/build-push-action`, etiqueta cada imagen con la rama, la etiqueta Git y el SHA corto, y actualiza `latest` solo desde la rama predeterminada. En un fork, active Actions y conceda permiso de escritura a paquetes; la compilación de la APK requiere además los cuatro secretos de firma indicados más abajo.
+
 Para actualizar una instalación que usa GHCR:
 
-Las instalaciones creadas con una versión anterior deben añadir una vez `COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml` a `.env`. Añada al final `:deploy/compose.connected.yaml` si usa IA externa/LAN y `COMPOSE_PROFILES=local-ollama` si quiere conservar el Ollama incluido.
+Las instalaciones creadas con una versión anterior deben añadir una vez `COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml` a `.env`. Añada al final `:deploy/compose.connected.yaml` si usa IA externa/LAN. Use `COMPOSE_PROFILES=local-whisper,local-ollama` para conservar ambos servicios locales, solo `local-whisper` para conservar Whisper o elimine la variable cuando todos los modelos sean externos.
 
 ```bash
 git pull --ff-only

@@ -56,6 +56,7 @@ def initialize(root: Path, args: argparse.Namespace) -> tuple[Path, int]:
 
     connected = args.connected or args.external_ai
     without_local_ollama = args.without_local_ollama or args.external_ai
+    without_local_whisper = args.external_ai
     port = choose_port(args.port)
 
     admin_email = (args.admin_email or "").strip()
@@ -75,22 +76,34 @@ def initialize(root: Path, args: argparse.Namespace) -> tuple[Path, int]:
         f"OLLOMI_HOST_UID={os.getuid()}",
         f"OLLOMI_HOST_GID={os.getgid()}",
     ]
+    compose_profiles = []
+    if not without_local_whisper:
+        compose_profiles.append("local-whisper")
     if not without_local_ollama:
-        lines.append("COMPOSE_PROFILES=local-ollama")
+        compose_profiles.append("local-ollama")
+    if compose_profiles:
+        lines.append(f"COMPOSE_PROFILES={','.join(compose_profiles)}")
     lines.extend(
         f"{key}={secrets.token_hex(32)}" for key in ("OLLOMI_SECRET_KEY", "POSTGRES_PASSWORD", "TYPESENSE_API_KEY")
     )
+    external_stt_index = 1 if without_local_whisper else 2
     lines.extend(
         [
             f"OLLOMI_LOCAL_ONLY={'false' if connected else 'true'}",
             f"OLLOMI_BIND={args.bind}",
             f"OLLOMI_PORT={port}",
             f"OLLOMI_PUBLIC_URL=http://localhost:{port}",
+            f"OLLOMI_SEED_LOCAL_WHISPER={'false' if without_local_whisper else 'true'}",
             f"OLLOMI_SEED_LOCAL_OLLAMA={'false' if without_local_ollama else 'true'}",
-            "OLLOMI_STT1_PROVIDER=whisper",
-            "OLLOMI_STT1_MODEL=small",
         ]
     )
+    if not without_local_whisper:
+        lines.extend(
+            [
+                "OLLOMI_STT1_PROVIDER=whisper",
+                "OLLOMI_STT1_MODEL=small",
+            ]
+        )
     if not without_local_ollama:
         lines.extend(
             [
@@ -120,10 +133,10 @@ def initialize(root: Path, args: argparse.Namespace) -> tuple[Path, int]:
             "# OLLOMI_CHAT2_URL=https://openrouter.ai/api/v1",
             "# OLLOMI_CHAT2_MODEL=openai/gpt-4.1-mini",
             "# OLLOMI_CHAT2_API_KEY=replace-me",
-            "# OLLOMI_STT2_PROVIDER=custom",
-            "# OLLOMI_STT2_URL=http://192.168.1.10:8000/v1",
-            "# OLLOMI_STT2_MODEL=whisper-large-v3",
-            "# OLLOMI_STT2_API_KEY=replace-me",
+            f"# OLLOMI_STT{external_stt_index}_PROVIDER=custom",
+            f"# OLLOMI_STT{external_stt_index}_URL=http://192.168.1.10:8000/v1",
+            f"# OLLOMI_STT{external_stt_index}_MODEL=whisper-large-v3",
+            f"# OLLOMI_STT{external_stt_index}_API_KEY=replace-me",
             "# OLLOMI_EMBEDDING1_PROVIDER=ollama",
             "# OLLOMI_EMBEDDING1_URL=http://192.168.1.10:11434/v1",
             "# OLLOMI_EMBEDDING1_MODEL=nomic-embed-text",
@@ -159,7 +172,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument(
         "--external-ai",
         action="store_true",
-        help="Shortcut for --connected --without-local-ollama",
+        help="Use only external/LAN STT, chat and embedding APIs; start no local AI service",
     )
     result.add_argument("--bind", default="127.0.0.1")
     result.add_argument("--port", type=int)

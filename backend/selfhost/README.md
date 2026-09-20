@@ -28,6 +28,8 @@ After each transcript, the selected chat profile returns a structured extraction
 
 Inference can be owned entirely by the host environment. Ordered `OLLOMI_STT1_*`, `OLLOMI_CHAT1_*` and `OLLOMI_EMBEDDING1_*` entries are synchronized as read-only profiles; increasing suffixes are tried as fallbacks. When a purpose has environment profiles, per-user selection and app-side editing are disabled for that purpose. Runtime success/failure state is exposed without URLs or credentials through `/v1/ai-status`.
 
+The local speech and Ollama containers use the Compose profiles `local-whisper` and `local-ollama`. `OLLOMI_SEED_LOCAL_WHISPER` and `OLLOMI_SEED_LOCAL_OLLAMA` control whether matching default database profiles are created. An external-only deployment leaves both false, activates neither Compose profile and must provide numbered STT, chat and embedding profiles before processing audio.
+
 `OLLOMI_ADMIN_EMAIL` and `OLLOMI_ADMIN_PASSWORD` create the initial administrator once during startup. Existing accounts are never modified. The CLI also accepts `create-admin` and `reset-password` with `--password-env NAME` or `--password-stdin`, so automation never needs to expose a password in the process argument list. Remove the bootstrap password from the container environment after the first successful login.
 
 Environment profile hostnames may be temporarily unresolved during startup; the seed logs a warning and continues. URL policy and DNS are checked again immediately before every provider call, so an unavailable or disallowed target still fails closed at use time.

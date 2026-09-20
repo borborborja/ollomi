@@ -409,7 +409,9 @@ def embed(profile, texts, *, fallback=True):
 
 def seed_profiles(db):
     configured = sync_env_profiles(db)
-    defaults = [("stt", "small", settings().stt_url, "Whisper local")]
+    defaults = []
+    if settings().seed_local_whisper:
+        defaults.append(("stt", "small", settings().stt_url, "Whisper local"))
     if settings().seed_local_ollama:
         defaults.extend(
             [
