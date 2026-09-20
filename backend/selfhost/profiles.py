@@ -1,5 +1,6 @@
 import ipaddress
 import json
+import logging
 import os
 import socket
 from datetime import datetime, timezone
@@ -15,7 +16,6 @@ from selfhost.db import AIProfile, User, transaction
 from selfhost.observability import record_fallback
 from selfhost.security import seal, unseal
 
-
 PURPOSES = ("stt", "chat", "embedding")
 PROVIDER_DEFAULTS = {
     "openai": ("https://api.openai.com/v1", True),
@@ -26,9 +26,10 @@ PROVIDER_DEFAULTS = {
     "whisper": (None, False),
     "custom": (None, False),
 }
+logger = logging.getLogger(__name__)
 
 
-def validate_url(value: str, external: bool = False):
+def validate_url(value: str, external: bool = False, allow_unresolved: bool = False):
     url = urlsplit(value)
     if (
         url.scheme not in {"http", "https"}
@@ -38,27 +39,26 @@ def validate_url(value: str, external: bool = False):
         or url.query
         or url.fragment
     ):
-        raise HTTPException(
-            422, "Use an HTTP(S) base URL without credentials, query or fragment"
-        )
+        raise HTTPException(422, "Use an HTTP(S) base URL without credentials, query or fragment")
     if external and settings().local_only:
         raise HTTPException(422, "External providers require OLLOMI_LOCAL_ONLY=false")
+    if external and url.scheme != "https":
+        raise HTTPException(422, "External providers require HTTPS")
     try:
-        addresses = {
-            ipaddress.ip_address(info[4][0])
-            for info in socket.getaddrinfo(url.hostname, url.port or 443)
-        }
+        addresses = {ipaddress.ip_address(info[4][0]) for info in socket.getaddrinfo(url.hostname, url.port or 443)}
     except socket.gaierror:
+        if allow_unresolved:
+            logger.warning(
+                "An inference hostname did not resolve during configuration seed; "
+                "it will be checked again before use"
+            )
+            return value.rstrip("/")
         raise HTTPException(422, "Server hostname cannot be resolved") from None
     for address in addresses:
         if address.is_link_local or address.is_multicast or address.is_unspecified:
             raise HTTPException(422, "This network address is not allowed")
         if not external and not (address.is_private or address.is_loopback):
-            raise HTTPException(
-                422, "Public servers must be explicitly marked external"
-            )
-    if external and url.scheme != "https":
-        raise HTTPException(422, "External providers require HTTPS")
+            raise HTTPException(422, "Public servers must be explicitly marked external")
     return value.rstrip("/")
 
 
@@ -155,7 +155,7 @@ def env_profiles():
                     "purpose": purpose,
                     "provider": provider.replace("_", "-"),
                     "priority": index,
-                    "base_url": validate_url(url, external),
+                    "base_url": validate_url(url, external, allow_unresolved=True),
                     "model": model,
                     "api_key": os.getenv(base + "API_KEY", ""),
                     "external": external,
@@ -163,15 +163,9 @@ def env_profiles():
                     "dimensions": dimensions,
                 }
             )
-    embedding_dimensions = {
-        profile["dimensions"] for profile in configured["embedding"]
-    }
-    if len(configured["embedding"]) > 1 and (
-        None in embedding_dimensions or len(embedding_dimensions) != 1
-    ):
-        raise ValueError(
-            "Embedding fallbacks require the same explicit *_DIMENSIONS value"
-        )
+    embedding_dimensions = {profile["dimensions"] for profile in configured["embedding"]}
+    if len(configured["embedding"]) > 1 and (None in embedding_dimensions or len(embedding_dimensions) != 1):
+        raise ValueError("Embedding fallbacks require the same explicit *_DIMENSIONS value")
     return configured
 
 
@@ -219,9 +213,7 @@ def sync_env_profiles(db):
                 row.revision += 1
             db.add(row)
     for row in db.scalars(select(AIProfile)):
-        if (row.capabilities or {}).get(
-            "managed_by"
-        ) == "env" and row.id not in configured_ids:
+        if (row.capabilities or {}).get("managed_by") == "env" and row.id not in configured_ids:
             row.enabled = False
     return configured
 
@@ -240,9 +232,7 @@ def _ordered_env_rows(db, purpose):
         )
     )
     rows = [row for row in rows if (row.capabilities or {}).get("managed_by") == "env"]
-    return sorted(
-        rows, key=lambda row: (row.capabilities or {}).get("priority", 999999)
-    )
+    return sorted(rows, key=lambda row: (row.capabilities or {}).get("priority", 999999))
 
 
 def selected_profile(db, user_id, purpose):
@@ -256,9 +246,7 @@ def selected_profile(db, user_id, purpose):
         db.get(AIProfile, profile_id)
         if profile_id
         else db.scalar(
-            select(AIProfile)
-            .where(AIProfile.purpose == purpose, AIProfile.enabled.is_(True))
-            .order_by(AIProfile.id)
+            select(AIProfile).where(AIProfile.purpose == purpose, AIProfile.enabled.is_(True)).order_by(AIProfile.id)
         )
     )
     if row is None or not row.enabled or row.purpose != purpose:
@@ -298,9 +286,7 @@ def mark_profile_health(profile, healthy, reason=None):
             return
         capabilities = dict(row.capabilities or {})
         runtime = dict(capabilities.get("runtime", {}))
-        runtime.update(
-            status="healthy" if healthy else "unhealthy", last_checked_at=timestamp
-        )
+        runtime.update(status="healthy" if healthy else "unhealthy", last_checked_at=timestamp)
         if healthy:
             runtime["last_success_at"] = timestamp
             runtime.pop("failure_reason", None)
@@ -423,15 +409,21 @@ def embed(profile, texts, *, fallback=True):
 
 def seed_profiles(db):
     configured = sync_env_profiles(db)
-    defaults = [
-        ("stt", "small", settings().stt_url, "Whisper local"),
-        ("chat", "qwen3:4b", settings().ollama_url, "Ollama local"),
-        ("embedding", "embeddinggemma", settings().ollama_url, "Embeddings locales"),
-    ]
+    defaults = [("stt", "small", settings().stt_url, "Whisper local")]
+    if settings().seed_local_ollama:
+        defaults.extend(
+            [
+                ("chat", "qwen3:4b", settings().ollama_url, "Ollama local"),
+                (
+                    "embedding",
+                    "embeddinggemma",
+                    settings().ollama_url,
+                    "Embeddings locales",
+                ),
+            ]
+        )
     for purpose, model, base_url, name in defaults:
-        if configured[purpose] or db.scalar(
-            select(AIProfile.id).where(AIProfile.purpose == purpose).limit(1)
-        ):
+        if configured[purpose] or db.scalar(select(AIProfile.id).where(AIProfile.purpose == purpose).limit(1)):
             continue
         db.add(
             AIProfile(

@@ -6,9 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="OLLOMI_", env_file=".env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="OLLOMI_", env_file=".env", extra="ignore")
     database_url: str = "postgresql+psycopg://ollomi:ollomi@postgres/ollomi"
     redis_url: str = "redis://redis:6379/0"
     data_dir: Path = Path("/data")
@@ -22,6 +20,7 @@ class Settings(BaseSettings):
     typesense_key: SecretStr = SecretStr("")
     stt_url: str = "http://stt:8000/v1"
     ollama_url: str = "http://ollama:11434/v1"
+    seed_local_ollama: bool = True
     tts_url: str = "http://stt:8000"
     local_only: bool = True
     allow_private_http: bool = True

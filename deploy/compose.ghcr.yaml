@@ -1,18 +1,21 @@
 # Use published images instead of building them locally.
-# Example: OLLOMI_IMAGE_OWNER=borborborja docker compose -f compose.yaml -f deploy/compose.ghcr.yaml up -d
+# Example: docker compose -f compose.yaml -f deploy/compose.ghcr.yaml up -d
 services:
   migrate:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:-borborborja}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
   api:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:-borborborja}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
   worker:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:-borborborja}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
   scheduler:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:-borborborja}/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
   stt:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER}/ollomi-speech:${OLLOMI_IMAGE_TAG:-latest}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:-borborborja}/ollomi-speech:${OLLOMI_IMAGE_TAG:-latest}
+  model-downloader:
+    build: !reset null
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:-borborborja}/ollomi-speech:${OLLOMI_IMAGE_TAG:-latest}

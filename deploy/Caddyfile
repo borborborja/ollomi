@@ -6,7 +6,7 @@
     request_body {
         max_size 1025MB
     }
-    reverse_proxy api:8080 {
+    reverse_proxy ollomi-api:8080 {
         flush_interval -1
     }
 }
