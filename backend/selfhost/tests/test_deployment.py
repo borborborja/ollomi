@@ -134,6 +134,22 @@ def test_disabling_local_ollama_seeds_only_whisper(client, monkeypatch):
     settings.cache_clear()
 
 
+def test_disabling_all_local_ai_seeds_no_profiles(client, monkeypatch):
+    from selfhost.config import settings
+    from selfhost.db import AIProfile, transaction
+    from selfhost.profiles import seed_profiles
+
+    monkeypatch.setenv("OLLOMI_SEED_LOCAL_WHISPER", "false")
+    monkeypatch.setenv("OLLOMI_SEED_LOCAL_OLLAMA", "false")
+    settings.cache_clear()
+    with transaction() as db:
+        db.query(AIProfile).delete()
+        seed_profiles(db)
+    with transaction() as db:
+        assert db.query(AIProfile).count() == 0
+    settings.cache_clear()
+
+
 def test_initializer_selects_free_port_and_external_compose_chain(tmp_path, monkeypatch):
     selfhost_init = load_module("ollomi_selfhost_init", "scripts/selfhost_init.py")
 
@@ -161,8 +177,11 @@ def test_initializer_selects_free_port_and_external_compose_chain(tmp_path, monk
     assert "OLLOMI_BIND=0.0.0.0" in content
     assert "OLLOMI_PORT=8090" in content
     assert "OLLOMI_LOCAL_ONLY=false" in content
+    assert "OLLOMI_SEED_LOCAL_WHISPER=false" in content
     assert "OLLOMI_SEED_LOCAL_OLLAMA=false" in content
-    assert "COMPOSE_PROFILES=local-ollama" not in content
+    assert "COMPOSE_PROFILES=" not in content
+    assert "\nOLLOMI_STT1_PROVIDER=whisper\n" not in content
+    assert "# OLLOMI_STT1_PROVIDER=custom\n" in content
     assert "\nOLLOMI_CHAT1_PROVIDER=ollama\n" not in content
     assert "OLLOMI_ADMIN_EMAIL='owner@test.local'" in content
     assert "OLLOMI_ADMIN_PASSWORD='bootstrap-password-123'" in content
@@ -178,8 +197,11 @@ def test_initializer_defaults_to_ghcr_and_local_ollama(tmp_path, monkeypatch):
 
     assert port == 8080
     assert "COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml\n" in content
-    assert "COMPOSE_PROFILES=local-ollama\n" in content
+    assert "COMPOSE_PROFILES=local-whisper,local-ollama\n" in content
+    assert "OLLOMI_SEED_LOCAL_WHISPER=true\n" in content
     assert "OLLOMI_SEED_LOCAL_OLLAMA=true\n" in content
+    assert "\nOLLOMI_STT1_PROVIDER=whisper\n" in content
+    assert "# OLLOMI_STT2_PROVIDER=custom\n" in content
     assert "\nOLLOMI_CHAT1_PROVIDER=ollama\n" in content
     assert "\nOLLOMI_EMBEDDING1_PROVIDER=ollama\n" in content
 

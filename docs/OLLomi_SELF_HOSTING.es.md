@@ -29,7 +29,7 @@ python3 scripts/selfhost_init.py --bind 0.0.0.0 \
 unset INITIAL_ADMIN_PASSWORD
 ```
 
-El inicializador crea `.env` con permisos 600, escribe la cadena `COMPOSE_FILE`, usa por defecto las imágenes GHCR de `borborborja` y elige el primer puerto libre entre 8080, 8090 y los siguientes. `--bind 0.0.0.0` permite acceder desde el teléfono. Para usar proveedores de la LAN o Internet sin un Ollama local, use `--external-ai`; esta opción incluye `deploy/compose.connected.yaml`, fija `OLLOMI_LOCAL_ONLY=false` y no activa el perfil `local-ollama`.
+El inicializador crea `.env` con permisos 600, escribe la cadena `COMPOSE_FILE`, usa por defecto las imágenes GHCR de `borborborja` y elige el primer puerto libre entre 8080, 8090 y los siguientes. `--bind 0.0.0.0` permite acceder desde el teléfono. Para usar únicamente proveedores de la LAN o Internet, use `--external-ai`; esta opción incluye `deploy/compose.connected.yaml`, fija `OLLOMI_LOCAL_ONLY=false` y no activa los perfiles `local-whisper` ni `local-ollama`.
 
 ```bash
 docker compose pull
@@ -41,7 +41,7 @@ docker compose exec ollama ollama pull embeddinggemma
 docker compose up -d
 ```
 
-El arranque final vuelve a aplicar la cadena guardada en `.env` y retira de Ollama la red temporal de descarga. Si inicializó con `--external-ai`, omita los tres comandos de Ollama y configure los perfiles externos comentados en `.env` antes de arrancar.
+El arranque final vuelve a aplicar la cadena guardada en `.env` y retira de Ollama la red temporal de descarga. Si inicializó con `--external-ai`, omita la descarga de Whisper y los tres comandos de Ollama. Configure en `.env` al menos un perfil externo para STT, chat y embeddings antes de arrancar; no se crea, descarga ni ejecuta ningún contenedor de IA local.
 
 Compose lee `COMPOSE_FILE` y `COMPOSE_PROFILES` desde `.env`; ya no hay que repetir `-f` ni exportar `OLLOMI_IMAGE_OWNER` en cada comando. Compruebe los valores elegidos con:
 
@@ -59,6 +59,23 @@ docker compose ps
 ```
 
 La respuesta de salud debe ser `{"status":"ok"}`. `migrate` termina con código 0; los demás servicios permanecen activos. El backend y el worker usan la misma imagen `ollomi-backend`; `ollomi-speech` contiene el servidor compatible con la API de transcripción de OpenAI. PostgreSQL, Redis, Typesense y Ollama usan sus imágenes oficiales fijadas en `compose.yaml`.
+
+### Compose autónomo con solo APIs externas
+
+El directorio [`deploy/examples/external-api`](../deploy/examples/external-api/README.md) contiene un `compose.yaml` copiable que referencia directamente `ghcr.io/borborborja/ollomi-backend`. Su `env.example` enumera los ajustes de la instancia y todas las propiedades de los perfiles numerados, con ejemplos de OpenAI, OpenRouter, un endpoint compatible y Ollama en otra máquina. Esta variante no contiene servicios `stt`, `model-downloader` u `ollama`, por lo que no necesita pesos de Whisper ni el directorio `selfhost-data/models`.
+
+```bash
+mkdir ollomi && cd ollomi
+curl -LO https://raw.githubusercontent.com/borborborja/ollomi/main/deploy/examples/external-api/compose.yaml
+curl -Lo .env https://raw.githubusercontent.com/borborborja/ollomi/main/deploy/examples/external-api/env.example
+chmod 600 .env
+# Edite .env y sustituya todos los valores CHANGE_ME.
+docker compose config --quiet
+docker compose pull
+docker compose up -d
+```
+
+La imagen queda fijada por `OLLOMI_IMAGE_TAG`; se recomienda una etiqueta de release como `v0.3.0`. `latest` sigue cada publicación de `main`. El Compose conserva localmente PostgreSQL/pgvector, Redis, Typesense y los audios: solo salen del servidor las peticiones de inferencia configuradas.
 
 También puede crear o restablecer cuentas sin terminal interactivo. La contraseña se lee de una variable transmitida al contenedor o de una sola línea de entrada estándar; nunca la pase como argumento `--password`, porque quedaría visible en `ps`:
 
@@ -80,6 +97,15 @@ python3 scripts/selfhost_init.py --source-build
 docker compose build
 docker compose up -d postgres redis typesense migrate
 ```
+
+Los Dockerfiles que usa GitHub Actions también se pueden ejecutar directamente:
+
+```bash
+docker build -f deploy/Dockerfile -t ollomi-backend:local .
+docker build -f services/speech/Dockerfile -t ollomi-speech:local services/speech
+```
+
+`deploy/Dockerfile` compila el backend autoalojado. `services/speech/Dockerfile` compila el servidor Whisper; no hace falta construir esta segunda imagen si todo el STT se delega a una API externa. El workflow `.github/workflows/ollomi-release.yml` publica ambas imágenes para `linux/amd64` con etiquetas de rama, release y SHA; `latest` se actualiza desde `main`.
 
 El inicializador crea `.env` con permisos 600 y claves independientes. No lo sobrescribe. Conserve `OLLOMI_SECRET_KEY`: cifra las credenciales de IA y firma las sesiones. Cambiarla invalida sesiones e impide descifrar las credenciales antiguas.
 
@@ -103,7 +129,7 @@ docker compose exec ollama ollama pull embeddinggemma
 docker compose up -d
 ```
 
-Ollama está bajo el perfil `local-ollama`. El inicializador normal escribe `COMPOSE_PROFILES=local-ollama`; `--without-local-ollama` o `--external-ai` lo omiten y también evitan crear perfiles predeterminados de chat y embeddings que apunten a ese contenedor. Puede activarlo más tarde añadiendo `COMPOSE_PROFILES=local-ollama` y `OLLOMI_SEED_LOCAL_OLLAMA=true` a `.env`.
+Whisper y Ollama están bajo los perfiles `local-whisper` y `local-ollama`. El inicializador normal escribe `COMPOSE_PROFILES=local-whisper,local-ollama`. `--without-local-ollama` mantiene solo Whisper; `--external-ai` omite ambos y evita crear perfiles que apunten a esos contenedores. Puede activar Ollama más tarde añadiéndolo a `COMPOSE_PROFILES` y fijando `OLLOMI_SEED_LOCAL_OLLAMA=true`. Para activar Whisper local, añada `local-whisper` y configure `OLLOMI_STT1_PROVIDER=whisper` y `OLLOMI_STT1_MODEL` con el modelo descargado.
 
 La configuración inicial fija por entorno Whisper `small`, chat `qwen3:4b` y `embeddinggemma`. En hardware pequeño puede instalar `tiny` y `qwen3:0.6b` y cambiar `OLLOMI_STT1_MODEL` y `OLLOMI_CHAT1_MODEL` en `.env`. Con Ollama 0.11.10 y Qwen3, añada `OLLOMI_CHAT1_OPTIONS={"prompt_suffix":"/no_think","max_tokens":2048}` si quiere evitar pensamiento extendido. La compatibilidad de opciones depende de la versión del servidor; compruebe el estado desde Android.
 
@@ -232,10 +258,10 @@ Una instalación creada antes de que el inicializador gestionara la cadena de Co
 
 ```dotenv
 COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml
-COMPOSE_PROFILES=local-ollama
+COMPOSE_PROFILES=local-whisper,local-ollama
 ```
 
-Si usa IA externa o de la LAN, añada `:deploy/compose.connected.yaml` al primer valor. Omita `COMPOSE_PROFILES` si no quiere el Ollama incluido. Después las actualizaciones quedan reducidas a:
+Si usa IA externa o de la LAN, añada `:deploy/compose.connected.yaml` al primer valor. Deje solo `local-whisper` para STT local sin Ollama. Omita `COMPOSE_PROFILES` cuando STT, chat y embeddings sean externos. Después las actualizaciones quedan reducidas a:
 
 ```bash
 git pull --ff-only

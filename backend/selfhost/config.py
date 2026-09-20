@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     typesense_key: SecretStr = SecretStr("")
     stt_url: str = "http://stt:8000/v1"
     ollama_url: str = "http://ollama:11434/v1"
+    seed_local_whisper: bool = True
     seed_local_ollama: bool = True
     tts_url: str = "http://stt:8000"
     local_only: bool = True

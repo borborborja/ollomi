@@ -1,0 +1,94 @@
+# Standalone Ollomi deployment using the images built by GitHub Actions.
+# This variant contains no Whisper or Ollama container and needs no model files.
+name: ollomi
+
+x-backend: &backend
+  image: ghcr.io/borborborja/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
+  restart: unless-stopped
+  init: true
+  env_file: [.env]
+  environment: &backend-environment
+    OLLOMI_DATABASE_URL: postgresql+psycopg://ollomi:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres/ollomi
+    OLLOMI_REDIS_URL: redis://redis:6379/0
+    OLLOMI_TYPESENSE_URL: http://typesense:8108
+    OLLOMI_TYPESENSE_KEY: ${TYPESENSE_API_KEY:?Set TYPESENSE_API_KEY}
+  volumes: [audio:/data]
+  networks: [private, inference]
+  security_opt: [no-new-privileges:true]
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ollomi
+      POSTGRES_DB: ollomi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: [postgres:/var/lib/postgresql/data]
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U ollomi -d ollomi]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+    command: [redis-server, --appendonly, 'yes']
+    restart: unless-stopped
+    volumes: [redis:/data]
+    networks: [private]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  typesense:
+    image: typesense/typesense:29.0
+    command: [--data-dir, /data, --api-key, '${TYPESENSE_API_KEY}', --enable-cors=false]
+    restart: unless-stopped
+    volumes: [search:/data]
+    networks: [private]
+
+  migrate:
+    <<: *backend
+    restart: 'no'
+    command: [python, -m, selfhost.cli, migrate]
+
+  ollomi-api:
+    <<: *backend
+    ports: ['${OLLOMI_BIND:-127.0.0.1}:${OLLOMI_PORT:-8090}:8080']
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health")']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    <<: *backend
+    command: [celery, -A, selfhost.worker.celery, worker, --loglevel=INFO, --concurrency=2]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+
+  scheduler:
+    <<: *backend
+    command: [celery, -A, selfhost.worker.celery, beat, --loglevel=INFO, --schedule=/data/celerybeat]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+
+networks:
+  private:
+    internal: true
+  inference:
+
+volumes:
+  postgres:
+  redis:
+  audio:
+  search:

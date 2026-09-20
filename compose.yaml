@@ -88,6 +88,7 @@ services:
       args:
         DIARIZATION: ${DIARIZATION:-false}
     image: ollomi-speech:local
+    profiles: [local-whisper]
     restart: unless-stopped
     init: true
     environment:
