@@ -10,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:marionette_flutter/marionette_flutter.dart';
 
 import 'package:omi/services/account_cutover/account_cutover_runtime.dart';
+import 'package:omi/gen/pigeon_communicator.g.dart';
+import 'package:omi/services/bridges/ble_bridge.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:opus_dart/opus_dart.dart';
@@ -40,6 +42,7 @@ import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/services/capture/local_segment_store.dart';
 import 'package:omi/providers/connectivity_provider.dart';
 import 'package:omi/providers/conversation_provider.dart';
+import 'package:omi/providers/device_provider.dart';
 import 'package:omi/providers/folder_provider.dart';
 import 'package:omi/providers/goals_provider.dart';
 import 'package:omi/providers/home_provider.dart';
@@ -51,6 +54,7 @@ import 'package:omi/providers/memories_provider.dart';
 import 'package:omi/providers/message_provider.dart';
 import 'package:omi/providers/onboarding_provider.dart';
 import 'package:omi/providers/people_provider.dart';
+import 'package:omi/providers/speech_profile_provider.dart';
 import 'package:omi/providers/task_integration_provider.dart';
 import 'package:omi/providers/usage_provider.dart';
 import 'package:omi/providers/user_provider.dart';
@@ -90,6 +94,13 @@ Future _init() async {
     await AccountCutoverRuntime.instance.bindAuthenticatedOwner(AuthService.instance.currentUser?.uid);
   }
   initOpus(await opus_flutter.load());
+
+  // Route native Omi/Friend BLE events into the Dart device service before it
+  // starts restoring or connecting a persisted device.
+  BleFlutterApi.setUp(BleBridge.instance);
+  BleBridge.instance.stateRestoredCallback = (peripheralUuids) {
+    Logger.debug('main: restored ${peripheralUuids.length} BLE peripherals');
+  };
 
   await CrashlyticsManager.init();
   if (isAuth) {
@@ -225,7 +236,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ListenableProvider(create: (context) => ConnectivityProvider()),
         ChangeNotifierProvider(create: (context) => AuthenticationProvider()),
         ChangeNotifierProvider(create: (context) => ConversationProvider()),
-        ChangeNotifierProvider(create: (context) => OnboardingProvider()),
         ListenableProvider(create: (context) => AppProvider()),
         ChangeNotifierProvider(create: (context) => PeopleProvider()),
         ChangeNotifierProvider(create: (context) => UsageProvider()),
@@ -234,8 +244,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           update: (BuildContext context, value, MessageProvider? previous) =>
               (previous?..updateAppProvider(value)) ?? MessageProvider(),
         ),
-        ChangeNotifierProxyProvider4<ConversationProvider, MessageProvider, PeopleProvider, UsageProvider,
-            CaptureProvider>(
+        ChangeNotifierProxyProvider4<
+          ConversationProvider,
+          MessageProvider,
+          PeopleProvider,
+          UsageProvider,
+          CaptureProvider
+        >(
           create: (context) => CaptureProvider(localSegmentStore: LocalSegmentStore.appSupport()),
           update: (BuildContext context, conversation, message, people, usage, CaptureProvider? previous) {
             final externalActions = ProviderCaptureExternalActions(
@@ -253,7 +268,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           update: (BuildContext context, conversation, LocalRecordingsProvider? previous) =>
               (previous?..setConversationProvider(conversation)) ?? LocalRecordingsProvider(),
         ),
+        ChangeNotifierProxyProvider2<CaptureProvider, LocalRecordingsProvider, DeviceProvider>(
+          create: (context) => DeviceProvider(),
+          update: (BuildContext context, captureProvider, localRecordings, DeviceProvider? previous) =>
+              (previous?..setProviders(captureProvider, localRecordings)) ?? DeviceProvider(),
+        ),
+        ChangeNotifierProxyProvider<DeviceProvider, OnboardingProvider>(
+          create: (context) => OnboardingProvider(),
+          update: (BuildContext context, device, OnboardingProvider? previous) =>
+              (previous?..setDeviceProvider(device)) ?? OnboardingProvider(),
+        ),
         ListenableProvider(create: (context) => HomeProvider()),
+        ChangeNotifierProxyProvider<DeviceProvider, SpeechProfileProvider>(
+          create: (context) => SpeechProfileProvider(),
+          update: (BuildContext context, device, SpeechProfileProvider? previous) =>
+              (previous?..setProviders(device)) ?? SpeechProfileProvider(),
+        ),
         ChangeNotifierProxyProvider2<AppProvider, ConversationProvider, ConversationDetailProvider>(
           create: (context) => ConversationDetailProvider(),
           update: (BuildContext context, app, conversation, ConversationDetailProvider? previous) =>

@@ -37,7 +37,7 @@ The handoff administrator was created with a random password in a mode-600 local
 ## Scope and limitations
 
 - Core local app flows have implementations: conversations/transcripts recorded with the phone, summaries, tasks, memories, folders/people records, search/chat, MP3 import, local identity and AI-profile administration.
-- The Android product deliberately has no Omi/Bluetooth pairing, battery, firmware, or device-sync flow. The manifest removes Bluetooth and Companion Device permissions, and the Android activity no longer registers the BLE bridge. Preserved upstream device code is outside the reachable product and is not a supported feature.
+- Android supports optional Omi/Friend Bluetooth discovery, pairing and background connection. The manifest declares the Bluetooth and Companion Device permissions, and the Android activity registers the native BLE bridge. The bridge, manifest merge and Dart transport are covered by compile/unit checks; a physical pairing was not exercised in the validation environment.
 - Community-1 weights were not obtained behind the user's account/terms gate. Optional diarization code is present; persistent cross-conversation biometric identification is not implemented or validated. Segment/person assignment is available.
 - CUDA configuration is supplied but was not executed on a GPU.
 - Local notifications poll durable events while the app can run; there is no Firebase push or guarantee of delivery after Android kills the process.
