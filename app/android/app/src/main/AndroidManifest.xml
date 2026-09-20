@@ -4,20 +4,23 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Dependencies may declare legacy BLE capabilities. The phone-only
-         product must remove them from the merged manifest as well. -->
-    <uses-permission android:name="android.permission.BLUETOOTH" tools:node="remove" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:node="remove" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:node="remove" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:node="remove" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" tools:node="remove" />
-    <uses-permission android:name="android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND" tools:node="remove" />
+    <!-- BLE is optional: phone-only capture remains supported, while Omi/Friend
+         devices can be discovered and kept connected in the background. -->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-feature android:name="android.software.companion_device_setup" android:required="false" />
     <uses-permission
-        android:name="android.permission.REQUEST_COMPANION_START_FOREGROUND_SERVICES_FROM_BACKGROUND"
-        tools:node="remove" />
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.FOREGROUND_BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND" />
     <uses-permission
-        android:name="android.permission.REQUEST_OBSERVE_COMPANION_DEVICE_PRESENCE"
-        tools:node="remove" />
+        android:name="android.permission.REQUEST_COMPANION_START_FOREGROUND_SERVICES_FROM_BACKGROUND" />
+    <uses-permission android:name="android.permission.REQUEST_OBSERVE_COMPANION_DEVICE_PRESENCE" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- while-in-use is enough for conversation GPS: capture runs in the
@@ -140,6 +143,22 @@
 
         <meta-data android:name="com.posthog.posthog.AUTO_INIT" android:value="false" />
 
+        <!-- Receives OS-level presence events for associated Omi/Friend devices. -->
+        <service
+            android:name="com.friend.ios.ble.BleCompanionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_COMPANION_DEVICE_SERVICE">
+            <intent-filter>
+                <action android:name="android.companion.CompanionDeviceService" />
+            </intent-filter>
+        </service>
+
+        <!-- Owns the persistent BLE connection and capture while the app is backgrounded. -->
+        <service
+            android:name="com.friend.ios.ble.OmiBleForegroundService"
+            android:foregroundServiceType="connectedDevice"
+            android:stopWithTask="false"
+            android:exported="false" />
 
         <!-- Native phone-mic foreground service — keeps mic capture alive in background -->
         <service

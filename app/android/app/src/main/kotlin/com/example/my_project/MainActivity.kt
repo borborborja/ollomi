@@ -1,6 +1,10 @@
 package com.friend.ios
 
 import android.content.Intent
+import com.friend.ios.batch.OmiBackgroundAudioStreamer
+import com.friend.ios.ble.BleHostApiImpl
+import com.friend.ios.ble.OmiBleForegroundService
+import com.friend.ios.ble.OmiBleManager
 import com.friend.ios.phonemic.*
 import android.os.Bundle
 import androidx.annotation.NonNull
@@ -15,6 +19,8 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
     private var localAudioImport: LocalAudioImport? = null
+    private val nativeBleTranscriptChannel = "com.friend.ios/native_ble_transcript"
+    private var bleHostApiImpl: BleHostApiImpl? = null
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -29,10 +35,32 @@ class MainActivity: FlutterActivity() {
         localAudioImport = LocalAudioImport(this, flutterEngine.dartExecutor.binaryMessenger)
         localAudioImport?.accept(intent)
 
+        // Register the native BLE Pigeon bridge before Dart starts device discovery.
+        OmiBleManager.initialize(application)
+        getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
+            .edit()
+            .putBoolean("flutter.nativeBleForegroundReady", false)
+            .apply()
+        OmiBleManager.isFlutterAlive = true
+        OmiBleManager.instance.flutterApi = BleFlutterApi(flutterEngine.dartExecutor.binaryMessenger)
+        val hostApi = BleHostApiImpl { this }
+        hostApi.initCompanionManager(this)
+        bleHostApiImpl = hostApi
+        BleHostApi.setUp(flutterEngine.dartExecutor.binaryMessenger, hostApi)
+
         // Register Native Phone Mic Pigeon APIs
         PhoneMicController.initialize(application)
         PhoneMicController.instance.bindFlutterApi(PhoneMicFlutterApi(flutterEngine.dartExecutor.binaryMessenger))
         PhoneMicHostApi.setUp(flutterEngine.dartExecutor.binaryMessenger, PhoneMicHostApiImpl(PhoneMicController.instance))
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, nativeBleTranscriptChannel).setMethodCallHandler {
+            call, result ->
+            if (call.method == "drain") {
+                result.success(OmiBackgroundAudioStreamer.drainCachedTranscriptMessages())
+            } else {
+                result.notImplemented()
+            }
+        }
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
             call, result ->
@@ -53,9 +81,35 @@ class MainActivity: FlutterActivity() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val address = bleHostApiImpl?.onActivityResult(requestCode, resultCode, data)
+        if (address != null) {
+            OmiBleForegroundService.startService(this, address, caller = "MainActivity.onActivityResult")
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        OmiBleManager.isAppForeground = true
+    }
+
+    override fun onPause() {
+        OmiBleManager.isAppForeground = false
+        super.onPause()
+    }
+
     override fun onDestroy() {
+        OmiBleManager.isFlutterAlive = false
+        getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
+            .edit()
+            .putBoolean("flutter.nativeBleForegroundReady", false)
+            .apply()
         if (isFinishing) {
             if (PhoneMicController.isInitialized) PhoneMicController.instance.onFlutterEngineDestroyed()
+            if (!OmiBleForegroundService.isPersistentModeEnabled(this)) {
+                OmiBleForegroundService.stopService(this)
+            }
         }
         super.onDestroy()
     }

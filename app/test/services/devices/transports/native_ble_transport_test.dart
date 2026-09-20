@@ -34,13 +34,31 @@ void main() {
     hostApiChannelNames.clear();
   });
 
+  test('registered Pigeon callback forwards native Bluetooth state into BleBridge', () async {
+    const channelName = 'dev.flutter.pigeon.omi_pigeon.BleFlutterApi.onBluetoothStateChanged.bootstrap-test';
+    final states = <String>[];
+    final removeListener = BleBridge.instance.addBluetoothStateListener(states.add);
+    addTearDown(removeListener);
+    BleFlutterApi.setUp(
+      BleBridge.instance,
+      binaryMessenger: TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger,
+      messageChannelSuffix: 'bootstrap-test',
+    );
+    addTearDown(() => BleFlutterApi.setUp(null, messageChannelSuffix: 'bootstrap-test'));
+
+    await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+      channelName,
+      BleFlutterApi.pigeonChannelCodec.encodeMessage(<Object?>['on']),
+      (_) {},
+    );
+
+    expect(states, ['on']);
+  });
+
   test('keeps button listener alive and resubscribes after reconnect', () async {
     final subscribeCalls = <List<Object?>>[];
     final services = [
-      BleService(
-        uuid: _serviceUuid,
-        characteristicUuids: [_characteristicUuid],
-      ),
+      BleService(uuid: _serviceUuid, characteristicUuids: [_characteristicUuid]),
     ];
 
     setHostApiHandler('manageDevice', (message) async {

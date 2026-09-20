@@ -1,6 +1,6 @@
 # Ollomi: instalación y operación
 
-Ollomi es un fork local de Omi. El servicio activo es `selfhost.main:app`; el backend comercial original no entra en la imagen Docker. La aplicación Android puede grabar con el micrófono del teléfono, capturar una llamada cuando Android lo permita, usar un dispositivo compatible ya conectado o importar MP3, M4A, WAV, OGG y FLAC. Incluye autenticación local y servidor configurable. Véanse [investigación](OLLomi_RESEARCH.es.md) y [validación y límites](OLLomi_VALIDATION.md).
+Ollomi es un fork local de Omi. El servicio activo es `selfhost.main:app`; el backend comercial original no entra en la imagen Docker. La aplicación Android puede grabar con el micrófono del teléfono, capturar una llamada cuando Android lo permita, descubrir y conectar un dispositivo Omi/Friend compatible o importar MP3, M4A, WAV, OGG y FLAC. Incluye autenticación local y servidor configurable. Véanse [investigación](OLLomi_RESEARCH.es.md) y [validación y límites](OLLomi_VALIDATION.md).
 
 ## Instalación preparada en este equipo
 
@@ -141,7 +141,7 @@ Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y 
 
 Cada cambio en `main` crea una APK firmada en [Actions → Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml). Abra la ejecución más reciente, baje hasta **Artifacts** y descargue `ollomi-android-<commit>`; dentro están `ollomi.apk` y `SHA256SUMS`. Una etiqueta `v*` publica los mismos archivos en [Releases](https://github.com/borborborja/ollomi/releases). La firma se conserva entre compilaciones, por lo que una APK publicada puede actualizar otra APK publicada sin desinstalarla. El paso desde una APK de desarrollo firmada con otra clave puede requerir una única desinstalación.
 
-Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, dispositivo compatible conectado o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android. La opción del dispositivo aparece con su nombre y usa la conexión Bluetooth ya establecida.
+Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, dispositivo compatible conectado o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android. La opción del dispositivo permite buscar y asociar un Omi/Friend compatible por Bluetooth; después usa esa conexión.
 
 La APK de desarrollo se construye así:
 
