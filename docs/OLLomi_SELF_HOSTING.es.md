@@ -75,7 +75,7 @@ docker compose pull
 docker compose up -d
 ```
 
-La imagen queda fijada por `OLLOMI_IMAGE_TAG`; se recomienda una etiqueta de release como `v0.3.0`. `latest` sigue cada publicación de `main`. El Compose conserva localmente PostgreSQL/pgvector, Redis, Typesense y los audios: solo salen del servidor las peticiones de inferencia configuradas.
+La imagen queda fijada por `OLLOMI_IMAGE_TAG`; se recomienda una etiqueta de release como `v0.3.1`. `latest` sigue cada publicación de `main`. El Compose conserva localmente PostgreSQL/pgvector, Redis, Typesense y los audios: solo salen del servidor las peticiones de inferencia configuradas.
 
 También puede crear o restablecer cuentas sin terminal interactivo. La contraseña se lee de una variable transmitida al contenedor o de una sola línea de entrada estándar; nunca la pase como argumento `--password`, porque quedaría visible en `ps`:
 

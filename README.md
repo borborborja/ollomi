@@ -45,11 +45,11 @@ Antes de procesar audio hay que instalar los modelos locales o configurar provee
 
 Cada cambio en `main` ejecuta [Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml): publica las imágenes `linux/amd64` [`ollomi-backend`](https://github.com/borborborja/ollomi/pkgs/container/ollomi-backend) y [`ollomi-speech`](https://github.com/borborborja/ollomi/pkgs/container/ollomi-speech) en GHCR, y compila una APK `prod` firmada como artefacto de Actions. Las etiquetas Git `v*` adjuntan también la APK y su SHA-256 a la Release.
 
-Las imágenes publicadas se pueden descargar directamente. Sustituya `v0.3.0` por una release concreta o use `latest` para seguir `main`:
+Las imágenes publicadas se pueden descargar directamente. Sustituya `v0.3.1` por una release concreta o use `latest` para seguir `main`:
 
 ```bash
-docker pull ghcr.io/borborborja/ollomi-backend:v0.3.0
-docker pull ghcr.io/borborborja/ollomi-speech:v0.3.0
+docker pull ghcr.io/borborborja/ollomi-backend:v0.3.1
+docker pull ghcr.io/borborborja/ollomi-speech:v0.3.1
 ```
 
 Para compilar las mismas imágenes desde el código:
