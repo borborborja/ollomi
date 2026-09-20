@@ -21,45 +21,54 @@ La vía más rápida descarga las imágenes públicas de GitHub Container Regist
 ```bash
 git clone https://github.com/borborborja/ollomi.git
 cd ollomi
-python3 scripts/selfhost_init.py
+read -rsp 'Contraseña inicial: ' INITIAL_ADMIN_PASSWORD; echo
+export INITIAL_ADMIN_PASSWORD
+python3 scripts/selfhost_init.py --bind 0.0.0.0 \
+  --admin-email admin@example.com \
+  --admin-password-env INITIAL_ADMIN_PASSWORD
+unset INITIAL_ADMIN_PASSWORD
 ```
 
-Edite `.env` antes de iniciar. Para acceder desde un teléfono de la misma red use `OLLOMI_BIND=0.0.0.0`; puede cambiar `OLLOMI_PORT=8080`. Si quiere utilizar OpenAI, OpenRouter, Ollama Cloud o un servidor de la LAN, configure además `OLLOMI_LOCAL_ONLY=false` y use el override conectado mostrado más abajo.
+El inicializador crea `.env` con permisos 600, escribe la cadena `COMPOSE_FILE`, usa por defecto las imágenes GHCR de `borborborja` y elige el primer puerto libre entre 8080, 8090 y los siguientes. `--bind 0.0.0.0` permite acceder desde el teléfono. Para usar proveedores de la LAN o Internet sin un Ollama local, use `--external-ai`; esta opción incluye `deploy/compose.connected.yaml`, fija `OLLOMI_LOCAL_ONLY=false` y no activa el perfil `local-ollama`.
 
 ```bash
-OLLOMI_IMAGE_OWNER=borborborja docker compose \
-  -f compose.yaml -f deploy/compose.ghcr.yaml pull
-OLLOMI_IMAGE_OWNER=borborborja docker compose \
-  -f compose.yaml -f deploy/compose.ghcr.yaml up -d
-OLLOMI_IMAGE_OWNER=borborborja docker compose \
-  -f compose.yaml -f deploy/compose.ghcr.yaml \
-  exec api python -m selfhost.cli create-admin
+docker compose pull
+docker compose run --rm model-downloader --stt small
+docker compose -f compose.yaml -f deploy/compose.ghcr.yaml \
+  -f deploy/compose.connected.yaml --profile local-ollama up -d ollama
+docker compose exec ollama ollama pull qwen3:4b
+docker compose exec ollama ollama pull embeddinggemma
+docker compose up -d
 ```
 
-Para abreviar los demás ejemplos de esta guía durante la sesión actual:
+El arranque final vuelve a aplicar la cadena guardada en `.env` y retira de Ollama la red temporal de descarga. Si inicializó con `--external-ai`, omita los tres comandos de Ollama y configure los perfiles externos comentados en `.env` antes de arrancar.
+
+Compose lee `COMPOSE_FILE` y `COMPOSE_PROFILES` desde `.env`; ya no hay que repetir `-f` ni exportar `OLLOMI_IMAGE_OWNER` en cada comando. Compruebe los valores elegidos con:
 
 ```bash
-export OLLOMI_IMAGE_OWNER=borborborja
-export COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml
+grep -E '^(COMPOSE_FILE|COMPOSE_PROFILES|OLLOMI_PORT)=' .env
+docker compose config --quiet
 ```
 
-Si necesita proveedores externos o de la LAN, use `export COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml:deploy/compose.connected.yaml`.
-
-El comando de administración solicita correo y contraseña. Compruebe después:
+El administrador se crea durante el primer arranque. El seed es idempotente: si el correo ya existe no cambia su contraseña, rol ni otros datos. Después de iniciar sesión correctamente, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y retire la variable del contenedor:
 
 ```bash
-curl http://127.0.0.1:8080/health
+docker compose up -d --force-recreate migrate api worker scheduler
+curl "http://127.0.0.1:$(sed -n 's/^OLLOMI_PORT=//p' .env)/health"
 docker compose ps
 ```
 
 La respuesta de salud debe ser `{"status":"ok"}`. `migrate` termina con código 0; los demás servicios permanecen activos. El backend y el worker usan la misma imagen `ollomi-backend`; `ollomi-speech` contiene el servidor compatible con la API de transcripción de OpenAI. PostgreSQL, Redis, Typesense y Ollama usan sus imágenes oficiales fijadas en `compose.yaml`.
 
-Para proveedores externos o de la LAN, añada el override en todos los comandos de arranque:
+También puede crear o restablecer cuentas sin terminal interactivo. La contraseña se lee de una variable transmitida al contenedor o de una sola línea de entrada estándar; nunca la pase como argumento `--password`, porque quedaría visible en `ps`:
 
 ```bash
-OLLOMI_IMAGE_OWNER=borborborja docker compose \
-  -f compose.yaml -f deploy/compose.ghcr.yaml -f deploy/compose.connected.yaml \
-  up -d
+read -rsp 'Contraseña: ' OLLOMI_ADMIN_PASSWORD; echo
+export OLLOMI_ADMIN_PASSWORD
+docker compose exec -T -e OLLOMI_ADMIN_PASSWORD api \
+  python -m selfhost.cli create-admin --email otra@example.com \
+  --password-env OLLOMI_ADMIN_PASSWORD
+unset OLLOMI_ADMIN_PASSWORD
 ```
 
 ## Primera instalación compilando desde el código
@@ -67,42 +76,40 @@ OLLOMI_IMAGE_OWNER=borborborja docker compose \
 ```bash
 git clone https://github.com/borborborja/ollomi.git
 cd ollomi
-python3 scripts/selfhost_init.py
+python3 scripts/selfhost_init.py --source-build
 docker compose build
 docker compose up -d postgres redis typesense migrate
 ```
 
 El inicializador crea `.env` con permisos 600 y claves independientes. No lo sobrescribe. Conserve `OLLOMI_SECRET_KEY`: cifra las credenciales de IA y firma las sesiones. Cambiarla invalida sesiones e impide descifrar las credenciales antiguas.
 
-Instale Whisper explícitamente. Este contenedor temporal tiene acceso de red solamente durante la descarga. Use la imagen de GHCR si siguió el despliegue rápido; use `ollomi-speech:local` si compiló desde el código:
+Instale Whisper con el servicio de descarga de una sola ejecución. Este usa el mismo volumen y usuario que el despliegue y solo se inicia al invocarlo:
 
 ```bash
-SPEECH_IMAGE=ghcr.io/borborborja/ollomi-speech:latest
-docker run --rm --network bridge --user "$(id -u):$(id -g)" \
-  -e HF_HOME=/tmp/hf -e HF_HUB_DISABLE_XET=1 \
-  -v "$PWD/selfhost-data/models:/models" \
-  --entrypoint python "$SPEECH_IMAGE" -c \
-  "from huggingface_hub import snapshot_download; snapshot_download('Systran/faster-whisper-small', local_dir='/models/small')"
+docker compose run --rm model-downloader --stt small
 ```
+
+Los valores admitidos son `tiny`, `base`, `small`, `medium`, `large-v2` y `large-v3`. El contenedor STT funciona después sin red y monta los pesos como solo lectura.
 
 Para un modelo personalizado de faster-whisper/CTranslate2, copie su directorio completo bajo `selfhost-data/models/`. En el perfil STT, el modelo es el nombre de ese directorio o una ruta bajo `/models`; nunca una ruta arbitraria del host.
 
 Descargue los modelos Ollama con la red conectada temporalmente:
 
 ```bash
-docker compose -f compose.yaml -f deploy/compose.connected.yaml up -d ollama
+docker compose -f compose.yaml -f deploy/compose.connected.yaml \
+  --profile local-ollama up -d ollama
 docker compose exec ollama ollama pull qwen3:4b
 docker compose exec ollama ollama pull embeddinggemma
-docker compose up -d --force-recreate ollama
 docker compose up -d
-docker compose exec api python -m selfhost.cli create-admin
 ```
+
+Ollama está bajo el perfil `local-ollama`. El inicializador normal escribe `COMPOSE_PROFILES=local-ollama`; `--without-local-ollama` o `--external-ai` lo omiten y también evitan crear perfiles predeterminados de chat y embeddings que apunten a ese contenedor. Puede activarlo más tarde añadiendo `COMPOSE_PROFILES=local-ollama` y `OLLOMI_SEED_LOCAL_OLLAMA=true` a `.env`.
 
 La configuración inicial fija por entorno Whisper `small`, chat `qwen3:4b` y `embeddinggemma`. En hardware pequeño puede instalar `tiny` y `qwen3:0.6b` y cambiar `OLLOMI_STT1_MODEL` y `OLLOMI_CHAT1_MODEL` en `.env`. Con Ollama 0.11.10 y Qwen3, añada `OLLOMI_CHAT1_OPTIONS={"prompt_suffix":"/no_think","max_tokens":2048}` si quiere evitar pensamiento extendido. La compatibilidad de opciones depende de la versión del servidor; compruebe el estado desde Android.
 
 ## Acceso desde Android
 
-El puerto predeterminado es `127.0.0.1:8080`. Cambie `OLLOMI_BIND` por la dirección LAN del servidor para acceder desde un teléfono y `OLLOMI_PORT` si está ocupado. Vuelva a crear el proxy con `docker compose up -d proxy`. En el emulador Android, `10.0.2.2` apunta al host.
+El inicializador intenta 8080 y después 8090 si el primero está ocupado; el valor definitivo está en `OLLOMI_PORT`. Cambie `OLLOMI_BIND` por la dirección LAN del servidor para acceder desde un teléfono. Vuelva a crear el proxy con `docker compose up -d proxy`. En el emulador Android, `10.0.2.2` apunta al host.
 
 Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y contraseña locales. Desde Ajustes → servidor puede ver el modelo activo y la salud de cada fallback STT/chat/embeddings, administrar usuarios, importar audio y exportar datos. Cuando los modelos están definidos en `.env`, la app no permite editarlos ni seleccionarlos. Para cambiar de servidor, cierre sesión y entre con la nueva URL. La sesión, las importaciones pendientes y los metadatos WAL se vinculan al servidor y a la cuenta.
 
@@ -150,6 +157,8 @@ OLLOMI_EMBEDDING2_DIMENSIONS=768
 
 Cada entrada acepta `PROVIDER`, `MODEL`, `URL`, `API_KEY`, `NAME`, `EXTERNAL`, `OPTIONS` (objeto JSON) y `DIMENSIONS`. `openai`, `openrouter`, `ollama-cloud`, `ollama` y `whisper` conocen su URL predeterminada; `custom` requiere `URL`. OpenAI, OpenRouter y Ollama Cloud se marcan como externos automáticamente. Una cadena con varios modelos de embeddings exige el mismo `DIMENSIONS` explícito para evitar mezclar vectores incompatibles. Los perfiles se guardan cifrados, son de solo lectura en la app y nunca devuelven la clave al teléfono. Sin variables numeradas para un propósito, se conserva el modo anterior: los administradores pueden crear perfiles en Android y cada usuario puede elegir uno.
 
+El seed de perfiles no impide arrancar por un fallo DNS transitorio: conserva la URL y registra un aviso. Antes de cada llamada real, el backend vuelve a resolver el nombre y aplica toda la política de red; un host todavía no resoluble o una dirección no permitida falla en ese momento y puede activar el siguiente fallback.
+
 `OPTIONS` se envía como parámetros adicionales. Por ejemplo, para un transcriptor que no admita `verbose_json`, use `OLLOMI_STT2_OPTIONS={"response_format":"json"}`. Las respuestas sin segmentos se guardan como un único segmento con la duración total del audio.
 
 Ejemplos de endpoints compatibles:
@@ -166,6 +175,8 @@ Ejemplos de endpoints compatibles:
 STT usa `POST /audio/transcriptions`, chat `/chat/completions` y embeddings `/embeddings`. Ollama local y Ollama Cloud sirven chat; Ollama local también sirve embeddings. Ollama no implementa actualmente el endpoint de transcripción de audio, por lo que STT debe apuntar a Whisper u otro proveedor compatible. No se supone que una única URL ofrezca las tres operaciones.
 
 `compose.yaml` aísla API, workers, bases y modelos en una red `internal`. El override `deploy/compose.connected.yaml` permite llegar a servidores de la LAN o de Internet desde API/worker. Para un proveedor público hay que activar además `OLLOMI_LOCAL_ONLY=false` y marcar el perfil como externo; se exige HTTPS. No se siguen redirecciones ni se heredan proxies de entorno en las llamadas de IA. El administrador del host debe limitar la salida por firewall si quiere permitir solo determinados destinos LAN.
+
+Caddy reenvía al alias privado `ollomi-api`, exclusivo de la red de este proyecto. No usa el nombre genérico `api`, que puede resolver a contenedores de otros stacks si un proxy se conecta a varias redes Docker compartidas. Mantenga el proxy en la red privada de Ollomi; no hace falta `container_name` ni depender del nombre generado del contenedor.
 
 Al cambiar el perfil de embeddings se crea una generación de índice nueva y se programa la reindexación. La búsqueda puede estar incompleta mientras esta termina. PostgreSQL conserva los datos originales; Typesense y los embeddings son índices derivados.
 
@@ -217,10 +228,19 @@ docker compose up -d
 
 Reinstale los modelos antes de procesar. Use Actualizar en Ajustes → servidor para programar la reindexación (`POST /v1/users/me/reindex`). No borre los volúmenes como procedimiento de actualización. Las actualizaciones compiladas desde código usan `git pull --ff-only && docker compose build && docker compose up -d`. Si instaló desde GHCR, use:
 
+Una instalación creada antes de que el inicializador gestionara la cadena de Compose necesita esta migración única en `.env`:
+
+```dotenv
+COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml
+COMPOSE_PROFILES=local-ollama
+```
+
+Si usa IA externa o de la LAN, añada `:deploy/compose.connected.yaml` al primer valor. Omita `COMPOSE_PROFILES` si no quiere el Ollama incluido. Después las actualizaciones quedan reducidas a:
+
 ```bash
 git pull --ff-only
-OLLOMI_IMAGE_OWNER=borborborja docker compose -f compose.yaml -f deploy/compose.ghcr.yaml pull
-OLLOMI_IMAGE_OWNER=borborborja docker compose -f compose.yaml -f deploy/compose.ghcr.yaml up -d
+docker compose pull
+docker compose up -d
 ```
 
 El servicio `migrate` aplica las migraciones antes de arrancar API y workers. No ejecute `docker compose down -v`: `-v` elimina los volúmenes con los datos.
@@ -230,12 +250,12 @@ El servicio `migrate` aplica las migraciones antes de arrancar API y workers. No
 ```bash
 docker compose ps
 docker compose logs --tail=200 api worker stt proxy
-curl http://127.0.0.1:8080/health
+curl "http://127.0.0.1:$(sed -n 's/^OLLOMI_PORT=//p' .env)/health"
 ```
 
 Si Android muestra `ERR_CONNECTION_REFUSED`, compruebe que `proxy` está activo, que `.env` contiene `OLLOMI_BIND=0.0.0.0`, que el firewall permite el puerto y que teléfono y servidor comparten red. Una respuesta `{"detail":"Not Found"}` en `/` confirma que el API responde, pero la ruta de comprobación correcta es `/health`; Ollomi no incluye una interfaz web de usuario.
 
-Para restablecer una contraseña: `docker compose exec api python -m selfhost.cli reset-password --email usuario@local`. Revoca las sesiones anteriores de ese usuario.
+Para restablecer una contraseña de forma interactiva use `docker compose exec api python -m selfhost.cli reset-password --email usuario@local`. Para automatizarlo, añada `--password-env NOMBRE` o `--password-stdin`. El cambio revoca las sesiones anteriores de ese usuario.
 
 ## TLS
 

@@ -10,23 +10,11 @@ def test_auth_rotation_revocation(client, admin):
         "/v1/auth/login",
         json={"email": "admin@test.local", "password": "admin-password-123"},
     ).json()
-    rotated = client.post(
-        "/v1/auth/refresh", json={"refresh_token": login["refresh_token"]}
-    )
+    rotated = client.post("/v1/auth/refresh", json={"refresh_token": login["refresh_token"]})
     assert rotated.status_code == 200
-    assert (
-        client.post(
-            "/v1/auth/refresh", json={"refresh_token": login["refresh_token"]}
-        ).status_code
-        == 401
-    )
+    assert client.post("/v1/auth/refresh", json={"refresh_token": login["refresh_token"]}).status_code == 401
     session = rotated.json()
-    assert (
-        client.post(
-            "/v1/auth/logout", json={"refresh_token": session["refresh_token"]}
-        ).status_code
-        == 200
-    )
+    assert client.post("/v1/auth/logout", json={"refresh_token": session["refresh_token"]}).status_code == 200
     assert (
         client.get(
             "/v1/auth/me",
@@ -49,15 +37,11 @@ def test_role_and_secrets(client, admin, other):
     result = client.post("/v1/admin/ai-profiles", json=payload, headers=admin)
     assert result.status_code == 201
     assert "never-return-this-key" not in result.text
-    assert (
-        "never-return-this-key" not in client.get("/v1/ai-profiles", headers=other).text
-    )
+    assert "never-return-this-key" not in client.get("/v1/ai-profiles", headers=other).text
     assert "base_url" not in client.get("/v1/ai-profiles", headers=other).text
 
 
-def test_environment_profiles_are_read_only_and_report_status(
-    client, admin, monkeypatch
-):
+def test_environment_profiles_are_read_only_and_report_status(client, admin, monkeypatch):
     monkeypatch.setenv("OLLOMI_CHAT1_PROVIDER", "custom")
     monkeypatch.setenv("OLLOMI_CHAT1_URL", "http://127.0.0.1:11434/v1")
     monkeypatch.setenv("OLLOMI_CHAT1_MODEL", "qwen-test")
@@ -107,9 +91,7 @@ def test_ordered_provider_fallback_uses_second_profile(monkeypatch):
     attempts = []
     events = []
     monkeypatch.setattr(profiles, "mark_profile_health", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        profiles, "record_fallback", lambda **kwargs: events.append(kwargs)
-    )
+    monkeypatch.setattr(profiles, "record_fallback", lambda **kwargs: events.append(kwargs))
     chain = {
         "id": "first",
         "purpose": "chat",
@@ -139,10 +121,7 @@ def test_environment_provider_presets_cover_required_openai_apis(monkeypatch):
     from selfhost import profiles
 
     for key in list(os.environ):
-        if any(
-            key.startswith(f"OLLOMI_{purpose}")
-            for purpose in ("STT", "CHAT", "EMBEDDING")
-        ):
+        if any(key.startswith(f"OLLOMI_{purpose}") for purpose in ("STT", "CHAT", "EMBEDDING")):
             monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("OLLOMI_STT1_PROVIDER", "openai")
     monkeypatch.setenv("OLLOMI_STT1_MODEL", "whisper-1")
@@ -152,7 +131,11 @@ def test_environment_provider_presets_cover_required_openai_apis(monkeypatch):
     monkeypatch.setenv("OLLOMI_CHAT2_MODEL", "gemma-test")
     monkeypatch.setenv("OLLOMI_EMBEDDING1_PROVIDER", "ollama")
     monkeypatch.setenv("OLLOMI_EMBEDDING1_MODEL", "embedding-test")
-    monkeypatch.setattr(profiles, "validate_url", lambda value, external=False: value)
+    monkeypatch.setattr(
+        profiles,
+        "validate_url",
+        lambda value, external=False, allow_unresolved=False: value,
+    )
 
     configured = profiles.env_profiles()
     assert configured["stt"][0]["base_url"] == "https://api.openai.com/v1"
@@ -171,10 +154,7 @@ def test_environment_provider_presets_cover_required_openai_apis(monkeypatch):
 )
 def test_owner_isolation(client, admin, other, path, body):
     created = client.post(path, headers=admin, json=body).json()
-    assert (
-        client.patch(path + "/" + created["id"], headers=other, json=body).status_code
-        == 404
-    )
+    assert client.patch(path + "/" + created["id"], headers=other, json=body).status_code == 404
     assert client.delete(path + "/" + created["id"], headers=other).status_code == 404
     assert created["id"] not in client.get(path, headers=other).text
     assert created["id"] not in client.get("/v1/export", headers=other).text
@@ -189,26 +169,16 @@ def test_segment_edit_is_exact_and_references_are_owned(client, admin, other):
         "file_ids": ["outside-owner"],
         "visibility": "public",
     }
-    created = client.post("/v1/conversations", headers=admin, json=body).json()[
-        "conversation"
-    ]
+    created = client.post("/v1/conversations", headers=admin, json=body).json()["conversation"]
     assert created["visibility"] == "private"
     assert not created.get("file_ids")
     path = "/v1/conversations/" + created["id"]
-    assert (
-        client.patch(
-            path + "/segments/text", headers=admin, json={"index": 1, "text": "edited"}
-        ).status_code
-        == 200
-    )
+    assert client.patch(path + "/segments/text", headers=admin, json={"index": 1, "text": "edited"}).status_code == 200
     result = client.get(path, headers=admin).json()
     assert [s["text"] for s in result["transcript_segments"]] == ["first", "edited"]
     assert client.get(path, headers=other).status_code == 404
     folder = client.post("/v1/folders", headers=other, json={"name": "other"}).json()
-    assert (
-        client.patch(path, headers=admin, json={"folder_id": folder["id"]}).status_code
-        == 404
-    )
+    assert client.patch(path, headers=admin, json={"folder_id": folder["id"]}).status_code == 404
 
 
 def test_import_durable_owner_cancel_and_retry(client, admin, other):
@@ -232,32 +202,18 @@ def test_import_durable_owner_cancel_and_retry(client, admin, other):
 
     with transaction() as db:
         job = db.get(Job, job_id)
-        assert (
-            storage_path(job.user_id, job.payload["file_id"]).read_bytes()
-            == audio.getvalue()
-        )
+        assert storage_path(job.user_id, job.payload["file_id"]).read_bytes() == audio.getvalue()
     claimed = claim(job_id)
     assert claim(job_id) is None
-    assert (
-        client.post(f"/v1/import/jobs/{job_id}/cancel", headers=admin).status_code
-        == 200
-    )
+    assert client.post(f"/v1/import/jobs/{job_id}/cancel", headers=admin).status_code == 200
     with pytest.raises(Cancelled):
         checkpoint(claimed, 90)
-    assert (
-        client.post(f"/v1/import/jobs/{job_id}/retry", headers=admin).json()["status"]
-        == "queued"
-    )
+    assert client.post(f"/v1/import/jobs/{job_id}/retry", headers=admin).json()["status"] == "queued"
 
 
 def test_delete_cancels_pending_derivations(client, admin):
     created = client.post("/v1/conversations", headers=admin, json={}).json()
-    assert (
-        client.delete(
-            "/v1/conversations/" + created["conversation"]["id"], headers=admin
-        ).status_code
-        == 200
-    )
+    assert client.delete("/v1/conversations/" + created["conversation"]["id"], headers=admin).status_code == 200
     from selfhost.worker import claim
 
     assert claim(created["job_id"]) is None
@@ -279,15 +235,9 @@ def test_provider_public_endpoint_requires_explicit_opt_in(client, admin):
         "model": "x",
         "base_url": "https://1.1.1.1/v1",
     }
-    assert (
-        client.post("/v1/admin/ai-profiles", headers=admin, json=body).status_code
-        == 422
-    )
+    assert client.post("/v1/admin/ai-profiles", headers=admin, json=body).status_code == 422
     body["external"] = True
-    assert (
-        client.post("/v1/admin/ai-profiles", headers=admin, json=body).status_code
-        == 422
-    )
+    assert client.post("/v1/admin/ai-profiles", headers=admin, json=body).status_code == 422
 
 
 def test_password_reset_revokes_sessions(client, admin, other):
@@ -304,34 +254,15 @@ def test_password_reset_revokes_sessions(client, admin, other):
 
 
 def test_mobile_onboarding_persists_language_without_cloud(client, admin, other):
-    assert (
-        client.get("/v1/users/profile", headers=other).json()["email"]
-        == "user@test.local"
-    )
-    assert (
-        client.get("/v1/users/onboarding", headers=other).json()["completed"] is False
-    )
-    languages = client.get("/v1/users/available-languages", headers=other).json()[
-        "languages"
-    ]
+    assert client.get("/v1/users/profile", headers=other).json()["email"] == "user@test.local"
+    assert client.get("/v1/users/onboarding", headers=other).json()["completed"] is False
+    languages = client.get("/v1/users/available-languages", headers=other).json()["languages"]
     assert {"name": "Español", "code": "es"} in languages
     saved = client.patch("/v1/users/language", headers=other, json={"language": "es"})
     assert saved.json() == {"status": "ok", "single_language_mode": False}
     assert client.get("/v1/users/language", headers=other).json()["language"] == "es"
     assert client.get("/v1/users/language", headers=admin).json()["language"] is None
-    assert (
-        client.patch(
-            "/v1/users/language", headers=other, json={"language": 3}
-        ).status_code
-        == 422
-    )
-    assert (
-        client.patch(
-            "/v1/users/onboarding", headers=other, json={"completed": True}
-        ).status_code
-        == 200
-    )
+    assert client.patch("/v1/users/language", headers=other, json={"language": 3}).status_code == 422
+    assert client.patch("/v1/users/onboarding", headers=other, json={"completed": True}).status_code == 200
     assert client.get("/v1/users/onboarding", headers=other).json()["completed"] is True
-    assert (
-        client.get("/v1/users/onboarding", headers=admin).json()["completed"] is False
-    )
+    assert client.get("/v1/users/onboarding", headers=admin).json()["completed"] is False

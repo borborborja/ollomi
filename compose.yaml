@@ -62,6 +62,9 @@ services:
     command: [python, -m, selfhost.cli, migrate]
   api:
     <<: *backend
+    networks:
+      private:
+        aliases: [ollomi-api]
     depends_on:
       migrate: {condition: service_completed_successfully}
     healthcheck:
@@ -95,8 +98,28 @@ services:
       DIARIZATION_PATH: /models/community-1
     volumes: [./selfhost-data/models:/models:ro]
     networks: [private]
+  model-downloader:
+    build:
+      context: services/speech
+      args:
+        DIARIZATION: 'false'
+    image: ollomi-speech:local
+    profiles: [tools]
+    restart: 'no'
+    init: true
+    user: '${OLLOMI_HOST_UID:-1000}:${OLLOMI_HOST_GID:-1000}'
+    environment:
+      HF_HOME: /models/.cache/huggingface
+      HF_HUB_DISABLE_XET: '1'
+      HF_HUB_DISABLE_TELEMETRY: '1'
+      XDG_CACHE_HOME: /models/.cache
+    volumes: [./selfhost-data/models:/models]
+    networks: [inference]
+    entrypoint: [python, /srv/download_models.py]
+    command: [--stt, '${WHISPER_MODEL:-small}']
   ollama:
     image: ollama/ollama:0.11.10
+    profiles: [local-ollama]
     restart: unless-stopped
     environment:
       OLLAMA_NO_CLOUD: '1'
@@ -116,6 +139,7 @@ networks:
   private:
     internal: true
   ingress:
+  inference:
 volumes:
   postgres:
   redis:

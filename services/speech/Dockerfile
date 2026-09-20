@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 ARG DIARIZATION=false
 RUN if [ "$DIARIZATION" = true ]; then pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu && pip install pyannote.audio==4.0.1; fi
-COPY server.py .
+COPY server.py download_models.py ./
 RUN useradd --uid 10001 --create-home speech
 USER speech
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

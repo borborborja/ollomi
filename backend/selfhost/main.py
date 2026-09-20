@@ -19,6 +19,7 @@ from selfhost import (
 )
 from selfhost.config import settings
 from selfhost.db import Instance, ident, transaction
+from selfhost.accounts import seed_admin_from_env
 from selfhost.profiles import seed_profiles
 
 
@@ -27,6 +28,7 @@ def initialize():
     with transaction() as db:
         if db.get(Instance, "id") is None:
             db.add(Instance(key="id", value=ident()))
+        seed_admin_from_env(db)
         seed_profiles(db)
 
 

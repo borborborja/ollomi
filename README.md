@@ -18,21 +18,25 @@ Requiere Docker Engine y Docker Compose v2 en una máquina `linux/amd64`:
 ```bash
 git clone https://github.com/borborborja/ollomi.git
 cd ollomi
-python3 scripts/selfhost_init.py
+read -rsp 'Contraseña inicial: ' INITIAL_ADMIN_PASSWORD; echo
+export INITIAL_ADMIN_PASSWORD
+python3 scripts/selfhost_init.py --bind 0.0.0.0 \
+  --admin-email admin@example.com \
+  --admin-password-env INITIAL_ADMIN_PASSWORD
+unset INITIAL_ADMIN_PASSWORD
 
-# Para acceder desde otro dispositivo de la red local:
-sed -i 's/OLLOMI_BIND=127.0.0.1/OLLOMI_BIND=0.0.0.0/' .env
-
-OLLOMI_IMAGE_OWNER=borborborja docker compose \
-  -f compose.yaml -f deploy/compose.ghcr.yaml pull
-OLLOMI_IMAGE_OWNER=borborborja docker compose \
-  -f compose.yaml -f deploy/compose.ghcr.yaml up -d
-OLLOMI_IMAGE_OWNER=borborborja docker compose \
-  -f compose.yaml -f deploy/compose.ghcr.yaml \
-  exec api python -m selfhost.cli create-admin
+docker compose pull
+docker compose run --rm model-downloader --stt small
+docker compose -f compose.yaml -f deploy/compose.ghcr.yaml \
+  -f deploy/compose.connected.yaml --profile local-ollama up -d ollama
+docker compose exec ollama ollama pull qwen3:4b
+docker compose exec ollama ollama pull embeddinggemma
+docker compose up -d
 ```
 
-Después abra `http://IP_DEL_SERVIDOR:8080/health`; debe devolver `{"status":"ok"}`. Instale la APK desde el artefacto **ollomi-android-…** de la [última ejecución de Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml) y use `http://IP_DEL_SERVIDOR:8080` como servidor en Android.
+El inicializador escribe `COMPOSE_FILE` en `.env`, usa las imágenes públicas de `borborborja` y busca un puerto libre empezando por 8080 y 8090. Consulte `OLLOMI_PORT` y abra `http://IP_DEL_SERVIDOR:PUERTO/health`; debe devolver `{"status":"ok"}`. Tras el primer acceso, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker compose up -d --force-recreate migrate api worker scheduler`. El seed es idempotente y nunca cambia una cuenta existente.
+
+Para usar únicamente IA en la LAN o en la nube, inicialice con `--external-ai`. Esto añade automáticamente `deploy/compose.connected.yaml`, no inicia Ollama y deja ejemplos de OpenAI, OpenRouter, Ollama Cloud y endpoints OpenAI-compatible en `.env`. Instale la APK desde la [última Release](https://github.com/borborborja/ollomi/releases/latest) y use la URL del servidor en Android.
 
 Antes de procesar audio hay que instalar los modelos locales o configurar proveedores externos en `.env`. La [guía completa](docs/OLLomi_SELF_HOSTING.es.md) incluye Whisper, Ollama, fallbacks, actualización, copias de seguridad y diagnóstico.
 
@@ -42,10 +46,12 @@ Cada cambio en `main` ejecuta [Publish Ollomi](https://github.com/borborborja/ol
 
 Para actualizar una instalación que usa GHCR:
 
+Las instalaciones creadas con una versión anterior deben añadir una vez `COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml` a `.env`. Añada al final `:deploy/compose.connected.yaml` si usa IA externa/LAN y `COMPOSE_PROFILES=local-ollama` si quiere conservar el Ollama incluido.
+
 ```bash
 git pull --ff-only
-OLLOMI_IMAGE_OWNER=borborborja docker compose -f compose.yaml -f deploy/compose.ghcr.yaml pull
-OLLOMI_IMAGE_OWNER=borborborja docker compose -f compose.yaml -f deploy/compose.ghcr.yaml up -d
+docker compose pull
+docker compose up -d
 ```
 
 La APK mantiene la misma identidad de firma entre ejecuciones, por lo que las actualizaciones posteriores se instalan sobre la anterior. El primer cambio desde una APK de desarrollo firmada con otra clave puede requerir desinstalar esa instalación una única vez. El repositorio debe tener cuatro secretos de Actions: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` y `ANDROID_KEY_PASSWORD`.

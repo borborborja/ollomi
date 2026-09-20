@@ -2,10 +2,15 @@
 # local connectors, and the initial Ollama model download.
 services:
   api:
-    networks: [private, inference]
+    networks:
+      private:
+        aliases: [ollomi-api]
+      inference:
   worker:
-    networks: [private, inference]
+    networks:
+      private:
+      inference:
   ollama:
-    networks: [private, inference]
-networks:
-  inference:
+    networks:
+      private:
+      inference:

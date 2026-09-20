@@ -8,7 +8,7 @@ Use the root `compose.yaml`. See [installation and operation](../../docs/OLLomi_
 
 - `main.py`, `config.py`: startup, capability discovery, configuration.
 - `db.py`, `migrations/`: PostgreSQL records, sessions, durable jobs/events, pgvector. Migrations are required before startup.
-- `security.py`, `admin.py`, `profiles.py`: local Argon2 passwords, short-lived access JWTs, rotating refresh tokens, administrator-managed inference profiles and encrypted credentials.
+- `security.py`, `accounts.py`, `admin.py`, `profiles.py`: local Argon2 passwords, idempotent administrator bootstrap, short-lived access JWTs, rotating refresh tokens, administrator-managed inference profiles and encrypted credentials.
 - `audio.py`, `sync.py`, `worker.py`: bounded uploads, framed Omi WAL/Opus decoding, live WebSocket capture, durable processing and lease fencing. Audio retries retain originals. Recording parts are serialized per conversation.
 - `extraction.py`: conservative validation of model-produced summaries, commitments, dated events, decisions, goals, people and memories. Dates without a timezone remain text and never become automatic reminders.
 - `records.py`, `mobile.py`, `playback.py`: owner-scoped Omi mobile contracts, signed playback URLs bound to a live session, export and deletion.
@@ -27,5 +27,9 @@ Data modifications and durable work admission share a PostgreSQL transaction. Ce
 After each transcript, the selected chat profile returns a structured extraction. Ollomi persists task, memory, goal, decision and calendar-event records with provenance from their source conversation. It stores a deadline only when the model returned an ISO-8601 instant with a timezone; ambiguous wording is retained as `due_text` or `date_text` for review. Events are therefore ready for a future CalDAV `VEVENT` exporter, while the current CalDAV export is deliberately limited to explicit task `VTODO` exports.
 
 Inference can be owned entirely by the host environment. Ordered `OLLOMI_STT1_*`, `OLLOMI_CHAT1_*` and `OLLOMI_EMBEDDING1_*` entries are synchronized as read-only profiles; increasing suffixes are tried as fallbacks. When a purpose has environment profiles, per-user selection and app-side editing are disabled for that purpose. Runtime success/failure state is exposed without URLs or credentials through `/v1/ai-status`.
+
+`OLLOMI_ADMIN_EMAIL` and `OLLOMI_ADMIN_PASSWORD` create the initial administrator once during startup. Existing accounts are never modified. The CLI also accepts `create-admin` and `reset-password` with `--password-env NAME` or `--password-stdin`, so automation never needs to expose a password in the process argument list. Remove the bootstrap password from the container environment after the first successful login.
+
+Environment profile hostnames may be temporarily unresolved during startup; the seed logs a warning and continues. URL policy and DNS are checked again immediately before every provider call, so an unavailable or disallowed target still fails closed at use time.
 
 The API currently supports the core mobile contracts, not every commercial/cloud endpoint in upstream Omi. Exact limitations are listed in the validation document.
