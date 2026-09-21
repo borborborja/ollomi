@@ -6,7 +6,9 @@ import 'package:omi/env/env.dart';
 //
 // Override with `--dart-define=OLLOMI_SHARE_BASE_URL=https://share.example.com`.
 
-const defaultShareBaseUrl = Env.productionApiBaseUrl;
+/// Public-share origins are always normalized without a trailing slash.
+/// Keep this independent from the API client base, whose slash is intentional.
+const defaultShareBaseUrl = 'http://127.0.0.1:8080';
 
 const _shareBaseFromDefine = String.fromEnvironment('OLLOMI_SHARE_BASE_URL');
 
@@ -18,7 +20,7 @@ final _hostOk = RegExp(r'^[A-Za-z0-9.-]+$');
 String shareBaseUrl([String? raw]) {
   var value = (raw ?? _shareBaseFromDefine).trim();
   if (value.isEmpty) {
-    value = Env.apiBaseUrl ?? defaultShareBaseUrl;
+    value = Env.apiBaseUrl;
   }
   if (!value.contains('://')) {
     value = 'https://$value';
@@ -31,7 +33,7 @@ String shareBaseUrl([String? raw]) {
       uri.hasFragment ||
       (uri.scheme != 'http' && uri.scheme != 'https') ||
       !_hostOk.hasMatch(uri.host)) {
-    return Env.apiBaseUrl ?? defaultShareBaseUrl;
+    return shareBaseUrl('');
   }
   final origin = uri.hasPort ? '${uri.scheme}://${uri.host}:${uri.port}' : '${uri.scheme}://${uri.host}';
   final path = uri.path.replaceFirst(RegExp(r'/+$'), '');
