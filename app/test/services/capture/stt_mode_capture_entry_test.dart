@@ -49,7 +49,7 @@ void main() {
     );
   }
 
-  test('entry: basic on_device + ready never opens a managed Omi socket', () async {
+  test('entry: legacy on-device mode still opens the Ollomi server socket', () async {
     SttModeResolver.instance = SttModeResolver(
       flagReader: () => true,
       allowanceReader: () => const TranscriptionAllowanceSnapshot(
@@ -59,19 +59,17 @@ void main() {
       readinessReader: () async => FreemiumReadiness.ready,
       onDeviceConfigBuilder: () => const CustomSttConfig(
         provider: SttProvider.onDeviceWhisper,
-        identity: SttModeResolver.freemiumOnDeviceId,
+        identity: 'legacy-on-device',
       ),
     );
     final capture = _RecordingSocketCapture();
     await start(capture);
 
     expect(capture.openCalls, 1);
-    expect(capture.lastConfig, isNotNull);
-    expect(capture.lastConfig!.sttConfigId, SttModeResolver.freemiumOnDeviceId);
-    expect(capture.lastConfig!.isEnabled, isTrue);
+    expect(capture.lastConfig, isNull);
   });
 
-  test('entry: Android not-ready basic never reaches openConversationSocket', () async {
+  test('entry: legacy allowance state never blocks the Ollomi server socket', () async {
     SttModeResolver.instance = SttModeResolver(
       flagReader: () => true,
       allowanceReader: () => const TranscriptionAllowanceSnapshot(
@@ -84,10 +82,11 @@ void main() {
     final capture = _RecordingSocketCapture();
     await start(capture);
 
-    expect(capture.openCalls, 0, reason: 'managed socket must be unreachable for Android-not-ready basic');
+    expect(capture.openCalls, 1);
+    expect(capture.lastConfig, isNull);
   });
 
-  test('entry: unsupported codec + on_device never falls back to Omi', () async {
+  test('entry: legacy codec state remains server-managed', () async {
     SttModeResolver.instance = SttModeResolver(
       flagReader: () => true,
       allowanceReader: () => const TranscriptionAllowanceSnapshot(
@@ -97,13 +96,14 @@ void main() {
       readinessReader: () async => FreemiumReadiness.ready,
       onDeviceConfigBuilder: () => const CustomSttConfig(
         provider: SttProvider.onDeviceWhisper,
-        identity: SttModeResolver.freemiumOnDeviceId,
+        identity: 'legacy-on-device',
       ),
     );
     final capture = _RecordingSocketCapture();
     await start(capture, codec: BleAudioCodec.aac);
 
-    expect(capture.openCalls, 0);
+    expect(capture.openCalls, 1);
+    expect(capture.lastConfig, isNull);
   });
 
   test('entry: flag off still opens today\'s managed socket for basic', () async {
@@ -120,6 +120,6 @@ void main() {
     await start(capture);
 
     expect(capture.openCalls, 1);
-    expect(capture.lastConfig, isNull, reason: 'flag off keeps the Omi default socket');
+    expect(capture.lastConfig, isNull, reason: 'all Ollomi capture routes use the server socket');
   });
 }

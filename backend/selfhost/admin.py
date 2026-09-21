@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select, update
 
-from selfhost.db import AIProfile, Job, Session, User, emit, transaction
+from selfhost.config import settings
+from selfhost.db import AIProfile, Job, McpApiKey, McpOauthToken, Session, User, emit, transaction
 from selfhost.profiles import (
     completion,
     embed,
     env_managed,
     mark_profile_health,
-    provider_client,
     public_profile,
     selected_profile,
     snapshot,
@@ -99,11 +99,7 @@ def refresh(body: Refresh):
 @router.post("/v1/auth/logout")
 def logout(body: Refresh):
     with transaction() as db:
-        db.execute(
-            update(Session)
-            .where(Session.refresh_hash == digest(body.refresh_token))
-            .values(revoked=True)
-        )
+        db.execute(update(Session).where(Session.refresh_hash == digest(body.refresh_token)).values(revoked=True))
     return {"status": "ok"}
 
 
@@ -126,8 +122,7 @@ def me(user=Depends(current_user)):
 def users(admin=Depends(administrator)):
     with transaction() as db:
         return [
-            {**user_wire(row), "enabled": row.enabled}
-            for row in db.scalars(select(User).order_by(User.created_at))
+            {**user_wire(row), "enabled": row.enabled} for row in db.scalars(select(User).order_by(User.created_at))
         ]
 
 
@@ -163,19 +158,16 @@ def update_user(user_id: str, body: UserUpdate, admin=Depends(administrator)):
         if body.password:
             row.password_hash = passwords.hash(body.password)
         if body.password or body.enabled is False:
-            db.execute(
-                update(Session).where(Session.user_id == user_id).values(revoked=True)
-            )
+            db.execute(update(Session).where(Session.user_id == user_id).values(revoked=True))
+            db.execute(update(McpOauthToken).where(McpOauthToken.user_id == user_id).values(revoked=True))
+            db.execute(update(McpApiKey).where(McpApiKey.user_id == user_id).values(revoked=True))
         return user_wire(row)
 
 
 @router.get("/v1/admin/ai-profiles")
 def admin_profiles(admin=Depends(administrator)):
     with transaction() as db:
-        return [
-            public_profile(p, True)
-            for p in db.scalars(select(AIProfile).order_by(AIProfile.name))
-        ]
+        return [public_profile(p, True) for p in db.scalars(select(AIProfile).order_by(AIProfile.name))]
 
 
 @router.get("/v1/ai-status")
@@ -191,33 +183,27 @@ def ai_status(user=Depends(current_user)):
                     )
                 )
             )
-            managed = [
-                row
-                for row in rows
-                if (row.capabilities or {}).get("managed_by") == "env"
-            ]
+            managed = [row for row in rows if (row.capabilities or {}).get("managed_by") == "env"]
             visible = sorted(
                 managed or rows,
                 key=lambda row: (row.capabilities or {}).get("priority", 999999),
             )
             profiles = [public_profile(row) for row in visible]
             successful = [
-                profile
-                for profile in profiles
-                if profile["status"] == "healthy" and profile["last_success_at"]
+                profile for profile in profiles if profile["status"] == "healthy" and profile["last_success_at"]
             ]
             active = (
                 max(successful, key=lambda profile: profile["last_success_at"])["id"]
                 if successful
                 else (
                     profiles[0]["id"]
-                    if profiles
-                    and all(profile["status"] == "unknown" for profile in profiles)
+                    if profiles and all(profile["status"] == "unknown" for profile in profiles)
                     else None
                 )
             )
             result[purpose] = {
                 "managed_by_env": bool(managed),
+                "selection_allowed": settings().allow_user_model_selection,
                 "active_profile_id": active,
                 "profiles": profiles,
             }
@@ -229,11 +215,7 @@ def profiles(user=Depends(current_user)):
     with transaction() as db:
         return [
             public_profile(p)
-            for p in db.scalars(
-                select(AIProfile)
-                .where(AIProfile.enabled.is_(True))
-                .order_by(AIProfile.name)
-            )
+            for p in db.scalars(select(AIProfile).where(AIProfile.enabled.is_(True)).order_by(AIProfile.name))
         ]
 
 
@@ -241,9 +223,7 @@ def save_profile(body, profile_id=None):
     url = validate_url(body.base_url, body.external)
     with transaction() as db:
         if env_managed(db, body.purpose):
-            raise HTTPException(
-                409, f"{body.purpose} profiles are managed by environment"
-            )
+            raise HTTPException(409, f"{body.purpose} profiles are managed by environment")
         row = db.get(AIProfile, profile_id) if profile_id else AIProfile()
         if row is None:
             raise HTTPException(404, "Profile not found")
@@ -252,9 +232,7 @@ def save_profile(body, profile_id=None):
         old = snapshot(row) if profile_id else None
         if old and old["purpose"] != body.purpose:
             raise HTTPException(422, "Create a new profile to change its purpose")
-        for key, value in body.model_dump(
-            exclude={"api_key", "base_url", "options"}
-        ).items():
+        for key, value in body.model_dump(exclude={"api_key", "base_url", "options"}).items():
             setattr(row, key, value)
         row.base_url = url
         if body.options is not None:
@@ -312,28 +290,21 @@ def check_profile(profile_id: str, admin=Depends(administrator)):
             )
             capabilities["chat"] = True
         elif profile["purpose"] == "embedding":
-            capabilities["dimensions"] = len(
-                embed(profile, ["Connection test"], fallback=False)[0]
-            )
+            capabilities["dimensions"] = len(embed(profile, ["Connection test"], fallback=False)[0])
         else:
-            import io
+            import tempfile
             import wave
 
-            audio = io.BytesIO()
-            with wave.open(audio, "wb") as wav:
-                wav.setnchannels(1)
-                wav.setsampwidth(2)
-                wav.setframerate(16000)
-                wav.writeframes(b"\x00\x00" * 16000)
-            with provider_client(profile) as client:
-                response = client.post(
-                    "audio/transcriptions",
-                    files={"file": ("silence.wav", audio.getvalue(), "audio/wav")},
-                    data={"model": profile["model"]},
-                )
-                response.raise_for_status()
-                if "text" not in response.json():
-                    raise ValueError("No transcription text")
+            from selfhost.audio import transcribe_file
+
+            with tempfile.NamedTemporaryFile(suffix=".wav") as audio:
+                with wave.open(audio, "wb") as wav:
+                    wav.setnchannels(1)
+                    wav.setsampwidth(2)
+                    wav.setframerate(16000)
+                    wav.writeframes(b"\x00\x00" * 16000)
+                audio.flush()
+                transcribe_file(profile, audio.name, diarize=False)
             capabilities["transcription"] = True
         mark_profile_health(profile, True)
     except Exception:
@@ -354,16 +325,16 @@ def check_profile(profile_id: str, admin=Depends(administrator)):
 def select_profiles(body: dict[str, str], user=Depends(current_user)):
     if set(body) - {"chat", "embedding", "stt"}:
         raise HTTPException(422, "Unknown AI purpose")
+    if not settings().allow_user_model_selection:
+        raise HTTPException(403, "User model selection is disabled by the server administrator")
     with transaction() as db:
         row = db.get(User, user.id)
         previous = (row.preferences or {}).get("ai_profiles", {})
         for purpose, profile_id in body.items():
-            if env_managed(db, purpose):
-                raise HTTPException(
-                    409, f"{purpose} profiles are managed by environment"
-                )
             profile = db.get(AIProfile, profile_id)
             if not profile or not profile.enabled or profile.purpose != purpose:
+                raise HTTPException(422, "Profile is not available for this purpose")
+            if env_managed(db, purpose) and (profile.capabilities or {}).get("managed_by") != "env":
                 raise HTTPException(422, "Profile is not available for this purpose")
         row.preferences = {**row.preferences, "ai_profiles": {**previous, **body}}
         if "embedding" in body and previous.get("embedding") != body["embedding"]:

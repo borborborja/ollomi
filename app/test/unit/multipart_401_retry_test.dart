@@ -132,7 +132,7 @@ void main() {
       );
 
       final response = await makeMultipartApiCallWithRetry(
-        url: 'https://api.omi.me/v1/sync-local-files',
+        url: 'https://ollomi.example.test/v1/sync-local-files',
         files: [testFile],
         headers: {'Authorization': 'Bearer old-token'},
         fields: {},
@@ -171,7 +171,7 @@ void main() {
       );
 
       final response = await makeMultipartApiCallWithRetry(
-        url: 'https://api.omi.me/v1/sync-local-files',
+        url: 'https://ollomi.example.test/v1/sync-local-files',
         files: [testFile],
         headers: {'Authorization': 'Bearer expired-token'},
         fields: {},
@@ -207,7 +207,7 @@ void main() {
       );
 
       final response = await makeMultipartApiCallWithRetry(
-        url: 'https://api.omi.me/v1/sync-local-files',
+        url: 'https://ollomi.example.test/v1/sync-local-files',
         files: [testFile],
         headers: {'Authorization': 'Bearer expired-token'},
         fields: {},
@@ -243,7 +243,7 @@ void main() {
       );
 
       final response = await makeMultipartApiCallWithRetry(
-        url: 'https://api.omi.me/v1/sync-local-files',
+        url: 'https://ollomi.example.test/v1/sync-local-files',
         files: [testFile],
         headers: {'Authorization': 'Bearer expired-token'},
         fields: {},
@@ -315,7 +315,7 @@ void main() {
       );
 
       final response = await makeMultipartApiCallWithRetry(
-        url: 'https://api.omi.me/v1/sync-local-files',
+        url: 'https://ollomi.example.test/v1/sync-local-files',
         files: [testFile],
         headers: {'Authorization': 'Bearer old-token'},
         fields: {'key': 'value'},
@@ -350,7 +350,7 @@ void main() {
       );
 
       final response = await makeMultipartApiCallWithRetry(
-        url: 'https://api.omi.me/v1/sync-local-files',
+        url: 'https://ollomi.example.test/v1/sync-local-files',
         files: [testFile],
         headers: {'Authorization': 'Bearer valid-token'},
         fields: {},

@@ -1017,7 +1017,9 @@ class ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin, 
   }
 
   void _showPlansSheetOnQuotaExceeded() {
-    if (!mounted) return;
+    // A stale upstream-style quota response must never surface legacy billing
+    // UI in the self-hosted build. Ollomi has no subscription entitlement.
+    if (!mounted || !context.read<UsageProvider>().showSubscriptionUI) return;
     // Refresh subscription data so the plans sheet is up-to-date
     context.read<UsageProvider>().fetchSubscription();
     showModalBottomSheet(

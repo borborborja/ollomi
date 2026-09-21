@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:fake_async/fake_async.dart';
@@ -11,8 +10,6 @@ import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/backend/schema/message_event.dart';
 import 'package:omi/backend/schema/transcript_segment.dart';
 import 'package:omi/env/env.dart';
-import 'package:omi/models/custom_stt_config.dart';
-import 'package:omi/models/stt_provider.dart';
 import 'package:omi/providers/speech_profile_provider.dart';
 import 'package:omi/services/services.dart';
 import 'package:omi/services/sockets/pure_socket.dart';
@@ -81,19 +78,6 @@ class _FakeConnectedSocket implements IPureSocket {
 /// for CaptureProvider.openConversationSocket.
 class _CountingSpeechProfileProvider extends SpeechProfileProvider {
   int openCalls = 0;
-  CustomSttConfig? lastCustomSttConfig;
-
-  /// What resolveLocalSttConfig() returns: null means "no on-device model on
-  /// this platform" (the default, matching the pre-fallback behavior).
-  CustomSttConfig? localSttConfig;
-  Completer<CustomSttConfig?>? pendingLocalConfig;
-  int resolveCalls = 0;
-
-  @override
-  Future<CustomSttConfig?> resolveLocalSttConfig() async {
-    resolveCalls++;
-    return pendingLocalConfig == null ? localSttConfig : await pendingLocalConfig!.future;
-  }
 
   @override
   Future<TranscriptSegmentSocketService?> openSpeechProfileSocket({
@@ -102,10 +86,8 @@ class _CountingSpeechProfileProvider extends SpeechProfileProvider {
     required String language,
     required bool force,
     bool speechProfileRedo = false,
-    CustomSttConfig? customSttConfig,
   }) async {
     openCalls++;
-    lastCustomSttConfig = customSttConfig;
     return TranscriptSegmentSocketService.withSocket(
       sampleRate,
       codec,
@@ -307,17 +289,10 @@ void main() {
     });
   });
 
-  // When the backend's streaming STT is down but this platform can transcribe
-  // on-device, the question flow must continue locally instead of dead-ending
-  // in STT_UNAVAILABLE: the backend accepts client-supplied transcripts in
-  // custom-STT mode, and the voice print is built from the uploaded audio, not
-  // the transcript, so nothing about the resulting profile changes.
-  group('falls back to on-device STT when the backend STT is unavailable', () {
-    const localConfig = CustomSttConfig(provider: SttProvider.onDeviceWhisper, language: 'en');
-
-    test('switches to on-device STT after repeated 1011 closes and reconnects with it', () {
+  group('speech-profile STT stays server-authoritative', () {
+    test('repeated server STT failures never switch to an on-device provider', () {
       fakeAsync((async) {
-        final provider = _CountingSpeechProfileProvider()..localSttConfig = localConfig;
+        final provider = _CountingSpeechProfileProvider();
         provider.usePhoneMic = true;
         provider.updateStartedRecording(true);
 
@@ -326,141 +301,11 @@ void main() {
         provider.onClosed(1011);
         async.flushMicrotasks();
 
-        expect(provider.usingLocalStt, isTrue);
-        expect(provider.info, 'LOCAL_STT_FALLBACK');
-        expect(provider.error, isNot('STT_UNAVAILABLE'), reason: 'a usable local model means the flow can go on');
-
-        async.elapse(const Duration(seconds: 5));
-        expect(provider.openCalls, 1, reason: 'the fallback must reconnect rather than leave the socket dead');
-        expect(provider.lastCustomSttConfig, same(localConfig),
-            reason: 'the reconnect must carry the local STT config');
-
-        provider.dispose();
-      });
-    });
-
-    test('still surfaces STT_UNAVAILABLE when on-device STT is also unavailable', () {
-      fakeAsync((async) {
-        final provider = _CountingSpeechProfileProvider(); // localSttConfig stays null
-        provider.usePhoneMic = true;
-        provider.updateStartedRecording(true);
-
-        provider.onClosed(1011);
-        provider.onClosed(1011);
-        provider.onClosed(1011);
-        async.flushMicrotasks();
-
-        expect(provider.usingLocalStt, isFalse);
         expect(provider.error, 'STT_UNAVAILABLE');
-
         async.elapse(const Duration(seconds: 30));
         expect(provider.openCalls, 0);
-
         provider.dispose();
       });
-    });
-
-    test('a 1011 storm while already on on-device STT gives up instead of looping', () {
-      fakeAsync((async) {
-        final provider = _CountingSpeechProfileProvider()..localSttConfig = localConfig;
-        provider.usePhoneMic = true;
-        provider.updateStartedRecording(true);
-
-        for (var i = 0; i < 3; i++) {
-          provider.onClosed(1011);
-        }
-        async.flushMicrotasks();
-        expect(provider.usingLocalStt, isTrue);
-
-        for (var i = 0; i < 3; i++) {
-          provider.onClosed(1011);
-        }
-        async.flushMicrotasks();
-        expect(provider.error, 'STT_UNAVAILABLE', reason: 'the fallback is a one-way switch, not a retry loop');
-
-        provider.dispose();
-      });
-    });
-
-    test('enableLocalStt() before initialise() makes the first socket use the local config', () {
-      fakeAsync((async) {
-        final provider = _CountingSpeechProfileProvider()..localSttConfig = localConfig;
-        var enabled = false;
-        provider.enableLocalStt().then((value) => enabled = value);
-        async.flushMicrotasks();
-        expect(enabled, isTrue);
-        expect(provider.usingLocalStt, isTrue);
-
-        // Drive the same reconnect path initialise()/_initiateWebsocket use.
-        provider.usePhoneMic = true;
-        provider.updateStartedRecording(true);
-        provider.onClosed(1006);
-        async.elapse(const Duration(seconds: 5));
-        expect(provider.lastCustomSttConfig, same(localConfig));
-
-        provider.dispose();
-      });
-    });
-
-    for (final endSession in ['close', 'dispose', 'restart']) {
-      test('late local availability is ignored after $endSession', () {
-        fakeAsync((async) {
-          final pending = Completer<CustomSttConfig?>();
-          final provider = _CountingSpeechProfileProvider()..pendingLocalConfig = pending;
-          provider.usePhoneMic = true;
-          provider.updateStartedRecording(true);
-          for (var i = 0; i < 3; i++) {
-            provider.onClosed(1011);
-          }
-          async.flushMicrotasks();
-          if (endSession == 'dispose') {
-            provider.dispose();
-          } else {
-            provider.close();
-            async.flushMicrotasks();
-            if (endSession == 'restart') {
-              provider.resetTranscript();
-              provider.usePhoneMic = true;
-              provider.updateStartedRecording(true);
-            }
-          }
-          pending.complete(localConfig);
-          async.flushMicrotasks();
-          async.elapse(const Duration(seconds: 10));
-          expect(provider.usingLocalStt, isFalse);
-          expect(provider.openCalls, 0);
-          if (endSession != 'dispose') provider.dispose();
-        });
-      });
-    }
-
-    test('repeated close callbacks share one pending availability check', () {
-      fakeAsync((async) {
-        final pending = Completer<CustomSttConfig?>();
-        final provider = _CountingSpeechProfileProvider()..pendingLocalConfig = pending;
-        provider.usePhoneMic = true;
-        provider.updateStartedRecording(true);
-        for (var i = 0; i < 6; i++) {
-          provider.onClosed(1011);
-        }
-        async.flushMicrotasks();
-        expect(provider.resolveCalls, 1);
-        pending.complete(localConfig);
-        async.flushMicrotasks();
-        async.elapse(const Duration(seconds: 5));
-        expect(provider.openCalls, 1);
-        provider.dispose();
-      });
-    });
-
-    test('close() resets the on-device STT mode so it cannot leak into the next session', () async {
-      final provider = _CountingSpeechProfileProvider()..localSttConfig = localConfig;
-      expect(await provider.enableLocalStt(), isTrue);
-
-      await provider.close();
-
-      expect(provider.usingLocalStt, isFalse);
-      provider.dispose();
     });
   });
 

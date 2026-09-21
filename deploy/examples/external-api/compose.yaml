@@ -3,7 +3,7 @@
 name: ollomi
 
 x-backend: &backend
-  image: ghcr.io/borborborja/ollomi-backend:${OLLOMI_IMAGE_TAG:-latest}
+  image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-backend:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   restart: unless-stopped
   init: true
   env_file: [.env]
@@ -48,7 +48,7 @@ services:
       retries: 20
 
   typesense:
-    image: typesense/typesense:29.0
+    image: typesense/typesense:29.0@sha256:316b7e71c21f7e5e5caa8daa150e1b3f2be8c876081ee1f77bc2d92cd7f137d0
     command: [--data-dir, /data, --api-key, '${TYPESENSE_API_KEY}', --enable-cors=false]
     restart: unless-stopped
     volumes: [search:/data]
@@ -65,10 +65,37 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
     healthcheck:
-      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health")']
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health/ready")']
       interval: 15s
       timeout: 5s
       retries: 10
+
+  # Optional public HTTPS endpoint. Caddy obtains and renews the certificate;
+  # keep OLLOMI_BIND loopback-only when this profile is enabled.
+  proxy-tls:
+    image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    profiles: [public-tls]
+    restart: unless-stopped
+    init: true
+    # Keep the TLS profile optional at Compose-configuration time, but fail
+    # closed at *profile start* if the operator forgot the public DNS name.
+    # Passing an empty --from directly to Caddy would silently start plain
+    # HTTP on :80, which is never an acceptable MCP OAuth endpoint.
+    environment:
+      OLLOMI_TLS_DOMAIN: ${OLLOMI_TLS_DOMAIN:-}
+    command:
+      - /bin/sh
+      - -ec
+      - 'test -n "$$OLLOMI_TLS_DOMAIN" || { echo "OLLOMI_TLS_DOMAIN is required by the public-tls profile" >&2; exit 64; }; exec caddy reverse-proxy --from "$$OLLOMI_TLS_DOMAIN" --to ollomi-api:8080'
+    ports:
+      - '${OLLOMI_TLS_BIND:-0.0.0.0}:${OLLOMI_HTTP_PORT:-80}:80'
+      - '${OLLOMI_TLS_BIND:-0.0.0.0}:${OLLOMI_HTTPS_PORT:-443}:443'
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [private, ingress]
+    depends_on:
+      ollomi-api: {condition: service_healthy}
 
   worker:
     <<: *backend
@@ -86,9 +113,12 @@ networks:
   private:
     internal: true
   inference:
+  ingress:
 
 volumes:
   postgres:
   redis:
   audio:
   search:
+  caddy-data:
+  caddy-config:

@@ -14,7 +14,6 @@ import 'package:omi/widgets/dialog.dart';
 import 'widgets/app_metadata_widget.dart';
 import 'widgets/capabilities_chips_widget.dart';
 import 'widgets/external_trigger_fields_widget.dart';
-import 'widgets/payment_details_widget.dart';
 import 'widgets/prompt_text_field.dart';
 
 class UpdateAppPage extends StatefulWidget {
@@ -49,7 +48,9 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
               title: Text(context.l10n.manageYourApp),
               backgroundColor: Theme.of(context).colorScheme.primary,
               actions: [
-                if (provider.selectedCapabilities.any((c) => c.id == 'external_integration') &&
+                if (provider.selectedCapabilities.any(
+                      (c) => c.id == 'external_integration',
+                    ) &&
                     provider.chatToolsManifestUrlController.text.isNotEmpty)
                   IconButton(
                     onPressed: provider.isRefreshingManifest
@@ -63,7 +64,9 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : const Icon(Icons.refresh),
@@ -84,9 +87,16 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                          const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
                           const SizedBox(height: 14),
-                          Text(context.l10n.updatingYourApp, style: const TextStyle(color: Colors.white)),
+                          Text(
+                            context.l10n.updatingYourApp,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ],
                       ),
                     );
@@ -98,9 +108,16 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                          const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
                           const SizedBox(height: 14),
-                          Text(context.l10n.fetchingYourAppDetails, style: const TextStyle(color: Colors.white)),
+                          Text(
+                            context.l10n.fetchingYourAppDetails,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ],
                       ),
                     );
@@ -119,23 +136,23 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                               pickImage: () async {
                                 await provider.updateImage();
                               },
-                              generatingDescription: provider.isGenratingDescription,
-                              allowPaidApps: provider.allowPaidApps,
-                              appPricing: provider.isPaid ? 'Paid' : 'Free',
+                              generatingDescription:
+                                  provider.isGenratingDescription,
+                              // Ollomi is self-hosted: applications cannot be
+                              // sold through the Omi billing flow.
+                              allowPaidApps: false,
+                              appPricing: 'Free',
                               imageFile: provider.imageFile,
                               appNameController: provider.appNameController,
-                              appDescriptionController: provider.appDescriptionController,
+                              appDescriptionController:
+                                  provider.appDescriptionController,
                               categories: provider.categories,
                               setAppCategory: provider.setAppCategory,
                               imageUrl: provider.imageUrl,
-                              category: provider.mapCategoryIdToName(provider.appCategory),
+                              category: provider.mapCategoryIdToName(
+                                provider.appCategory,
+                              ),
                             ),
-                            provider.isPaid
-                                ? PaymentDetailsWidget(
-                                    appPricingController: provider.priceController,
-                                    paymentPlan: provider.mapPaymentPlanIdToName(provider.selectePaymentPlan),
-                                  )
-                                : const SizedBox.shrink(),
                             const SizedBox(height: 18),
                             Container(
                               decoration: BoxDecoration(
@@ -150,7 +167,10 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: Text(
                                       context.l10n.previewAndScreenshots,
-                                      style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                      style: TextStyle(
+                                        color: Colors.grey.shade300,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 18),
@@ -158,38 +178,58 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                     height: 180,
                                     child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
-                                      itemCount: provider.thumbnailUrls.length + 1,
+                                      itemCount:
+                                          provider.thumbnailUrls.length + 1,
                                       itemBuilder: (context, index) {
                                         // Calculate dimensions to maintain 2:3 ratio
                                         const width = 120.0;
                                         const height = width * 1.5; // 2:3 ratio
 
-                                        if (index == provider.thumbnailUrls.length) {
+                                        if (index ==
+                                            provider.thumbnailUrls.length) {
                                           return GestureDetector(
-                                            onTap: provider.isUploadingThumbnail ? null : provider.pickThumbnail,
+                                            onTap: provider.isUploadingThumbnail
+                                                ? null
+                                                : provider.pickThumbnail,
                                             child: Container(
                                               width: width,
                                               height: height,
-                                              margin: const EdgeInsets.only(right: 8),
+                                              margin: const EdgeInsets.only(
+                                                right: 8,
+                                              ),
                                               decoration: BoxDecoration(
                                                 color: const Color(0xFF35343B),
-                                                borderRadius: BorderRadius.circular(8),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
-                                              child: provider.isUploadingThumbnail
+                                              child:
+                                                  provider.isUploadingThumbnail
                                                   ? ShimmerWithTimeout(
-                                                      baseColor: Colors.grey[900]!,
-                                                      highlightColor: Colors.grey[800]!,
+                                                      baseColor:
+                                                          Colors.grey[900]!,
+                                                      highlightColor:
+                                                          Colors.grey[800]!,
                                                       child: Container(
                                                         width: width,
                                                         height: height,
                                                         decoration: BoxDecoration(
                                                           color: Colors.black,
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
                                                         ),
-                                                        child: const Icon(Icons.photo, size: 32),
+                                                        child: const Icon(
+                                                          Icons.photo,
+                                                          size: 32,
+                                                        ),
                                                       ),
                                                     )
-                                                  : const Icon(Icons.add_photo_alternate_outlined, size: 32),
+                                                  : const Icon(
+                                                      Icons
+                                                          .add_photo_alternate_outlined,
+                                                      size: 32,
+                                                    ),
                                             ),
                                           );
                                         }
@@ -200,69 +240,125 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (context) => MediaViewerPage(
-                                                      items: provider.thumbnailUrls
-                                                          .map((url) => MediaViewerItem(
-                                                                imageUrl: url,
-                                                              ))
-                                                          .toList(),
-                                                      initialIndex: index,
-                                                      maxScaleMultiplier: 2,
-                                                      showCloseButton: true,
-                                                      wrapBodyInSafeArea: false,
-                                                    ),
+                                                    builder: (context) =>
+                                                        MediaViewerPage(
+                                                          items: provider
+                                                              .thumbnailUrls
+                                                              .map(
+                                                                (url) =>
+                                                                    MediaViewerItem(
+                                                                      imageUrl:
+                                                                          url,
+                                                                    ),
+                                                              )
+                                                              .toList(),
+                                                          initialIndex: index,
+                                                          maxScaleMultiplier: 2,
+                                                          showCloseButton: true,
+                                                          wrapBodyInSafeArea:
+                                                              false,
+                                                        ),
                                                   ),
                                                 );
                                               },
                                               child: CachedNetworkImage(
-                                                imageUrl: provider.thumbnailUrls[index],
-                                                imageBuilder: (context, imageProvider) => Container(
-                                                  width: 120,
-                                                  height: 180, // 2:3 ratio (120 * 1.5)
-                                                  margin: const EdgeInsets.only(right: 8),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: const Color(0xFF424242), width: 1),
-                                                    image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                                  ),
-                                                ),
-                                                placeholder: (context, url) => ShimmerWithTimeout(
-                                                  baseColor: Colors.grey[900]!,
-                                                  highlightColor: Colors.grey[800]!,
-                                                  child: Container(
-                                                    width: 120,
-                                                    height: 180,
-                                                    margin: const EdgeInsets.only(right: 8),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.black,
-                                                      borderRadius: BorderRadius.circular(8),
+                                                imageUrl: provider
+                                                    .thumbnailUrls[index],
+                                                imageBuilder:
+                                                    (
+                                                      context,
+                                                      imageProvider,
+                                                    ) => Container(
+                                                      width: 120,
+                                                      height:
+                                                          180, // 2:3 ratio (120 * 1.5)
+                                                      margin:
+                                                          const EdgeInsets.only(
+                                                            right: 8,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: const Color(
+                                                            0xFF424242,
+                                                          ),
+                                                          width: 1,
+                                                        ),
+                                                        image: DecorationImage(
+                                                          image: imageProvider,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
                                                     ),
-                                                  ),
-                                                ),
-                                                errorWidget: (context, url, error) => Container(
-                                                  width: 120,
-                                                  height: 180,
-                                                  margin: const EdgeInsets.only(right: 8),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[900],
-                                                    borderRadius: BorderRadius.circular(8),
-                                                  ),
-                                                  child: const Icon(Icons.error),
-                                                ),
+                                                placeholder: (context, url) =>
+                                                    ShimmerWithTimeout(
+                                                      baseColor:
+                                                          Colors.grey[900]!,
+                                                      highlightColor:
+                                                          Colors.grey[800]!,
+                                                      child: Container(
+                                                        width: 120,
+                                                        height: 180,
+                                                        margin:
+                                                            const EdgeInsets.only(
+                                                              right: 8,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.black,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                errorWidget:
+                                                    (
+                                                      context,
+                                                      url,
+                                                      error,
+                                                    ) => Container(
+                                                      width: 120,
+                                                      height: 180,
+                                                      margin:
+                                                          const EdgeInsets.only(
+                                                            right: 8,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[900],
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.error,
+                                                      ),
+                                                    ),
                                               ),
                                             ),
                                             Positioned(
                                               top: 4,
                                               right: 12,
                                               child: GestureDetector(
-                                                onTap: () => provider.removeThumbnail(index),
+                                                onTap: () => provider
+                                                    .removeThumbnail(index),
                                                 child: Container(
-                                                  padding: const EdgeInsets.all(4),
+                                                  padding: const EdgeInsets.all(
+                                                    4,
+                                                  ),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.black.withValues(alpha: 0.6),
+                                                    color: Colors.black
+                                                        .withValues(alpha: 0.6),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(Icons.close, size: 16),
+                                                  child: const Icon(
+                                                    Icons.close,
+                                                    size: 16,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -288,7 +384,10 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: Text(
                                       context.l10n.appCapabilities,
-                                      style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                      style: TextStyle(
+                                        color: Colors.grey.shade300,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 10),
@@ -313,25 +412,47 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF1F1F25),
-                                          borderRadius: BorderRadius.circular(12.0),
+                                          borderRadius: BorderRadius.circular(
+                                            12.0,
+                                          ),
                                         ),
                                         padding: const EdgeInsets.all(14.0),
                                         child: Column(
                                           children: [
-                                            if (provider.isCapabilitySelectedById('chat'))
+                                            if (provider
+                                                .isCapabilitySelectedById(
+                                                  'chat',
+                                                ))
                                               PromptTextField(
-                                                controller: provider.chatPromptController,
+                                                controller: provider
+                                                    .chatPromptController,
                                                 label: context.l10n.chatPrompt,
-                                                hint: context.l10n.chatPromptPlaceholder,
+                                                hint: context
+                                                    .l10n
+                                                    .chatPromptPlaceholder,
                                               ),
-                                            if (provider.isCapabilitySelectedById('memories') &&
-                                                provider.isCapabilitySelectedById('chat'))
+                                            if (provider
+                                                    .isCapabilitySelectedById(
+                                                      'memories',
+                                                    ) &&
+                                                provider
+                                                    .isCapabilitySelectedById(
+                                                      'chat',
+                                                    ))
                                               const SizedBox(height: 20),
-                                            if (provider.isCapabilitySelectedById('memories'))
+                                            if (provider
+                                                .isCapabilitySelectedById(
+                                                  'memories',
+                                                ))
                                               PromptTextField(
-                                                controller: provider.conversationPromptController,
-                                                label: context.l10n.conversationPrompt,
-                                                hint: context.l10n.conversationPromptPlaceholder,
+                                                controller: provider
+                                                    .conversationPromptController,
+                                                label: context
+                                                    .l10n
+                                                    .conversationPrompt,
+                                                hint: context
+                                                    .l10n
+                                                    .conversationPromptPlaceholder,
                                               ),
                                           ],
                                         ),
@@ -341,7 +462,9 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                 ],
                               ),
                             const ExternalTriggerFieldsWidget(),
-                            if (provider.isCapabilitySelectedById('proactive_notification'))
+                            if (provider.isCapabilitySelectedById(
+                              'proactive_notification',
+                            ))
                               Column(
                                 children: [
                                   const SizedBox(height: 18),
@@ -353,24 +476,38 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                     padding: const EdgeInsets.all(14.0),
                                     width: double.infinity,
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 8.0,
+                                          ),
                                           child: Text(
                                             context.l10n.notificationScopes,
-                                            style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                            style: TextStyle(
+                                              color: Colors.grey.shade300,
+                                              fontSize: 16,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 10),
-                                        const SizedBox(height: 48, child: NotificationScopesChipsWidget()),
+                                        const SizedBox(
+                                          height: 48,
+                                          child:
+                                              NotificationScopesChipsWidget(),
+                                        ),
                                       ],
                                     ),
                                   ),
                                 ],
                               ),
-                            if (provider.isCapabilitySelectedById('external_integration') ||
-                                provider.isCapabilitySelectedById('proactive_notification'))
+                            if (provider.isCapabilitySelectedById(
+                                  'external_integration',
+                                ) ||
+                                provider.isCapabilitySelectedById(
+                                  'proactive_notification',
+                                ))
                               Column(
                                 children: [
                                   const SizedBox(height: 12),
@@ -381,18 +518,26 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                     ),
                                     padding: const EdgeInsets.all(14.0),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 8.0,
+                                          ),
                                           child: Text.rich(
                                             TextSpan(
                                               text: 'GitHub Repository URL',
-                                              style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                              style: TextStyle(
+                                                color: Colors.grey.shade300,
+                                                fontSize: 16,
+                                              ),
                                               children: const [
                                                 TextSpan(
                                                   text: ' *',
-                                                  style: TextStyle(color: Colors.red),
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -400,39 +545,66 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 8.0,
+                                          ),
                                           child: Text(
                                             'Link to your app\'s source code repository',
-                                            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 13,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 12),
                                         TextFormField(
-                                          controller: provider.sourceCodeUrlController,
+                                          controller:
+                                              provider.sourceCodeUrlController,
                                           decoration: InputDecoration(
-                                            hintText: 'https://github.com/username/repo',
-                                            hintStyle: const TextStyle(color: Colors.grey),
+                                            hintText:
+                                                'https://github.com/username/repo',
+                                            hintStyle: const TextStyle(
+                                              color: Colors.grey,
+                                            ),
                                             border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: const BorderSide(color: Colors.grey),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: const BorderSide(
+                                                color: Colors.grey,
+                                              ),
                                             ),
                                             enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: Colors.grey.shade800),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade800,
+                                              ),
                                             ),
                                             focusedBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: const BorderSide(color: Colors.white),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: const BorderSide(
+                                                color: Colors.white,
+                                              ),
                                             ),
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 14,
+                                                ),
                                           ),
-                                          style: const TextStyle(color: Colors.white),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
                                           keyboardType: TextInputType.url,
                                           validator: (value) {
-                                            if (value == null || value.trim().isEmpty) {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
                                               return 'GitHub repository URL is required';
                                             }
-                                            if (!Uri.tryParse(value.trim())!.isAbsolute) {
+                                            if (!Uri.tryParse(
+                                              value.trim(),
+                                            )!.isAbsolute) {
                                               return 'Please enter a valid URL';
                                             }
                                             return null;
@@ -462,12 +634,20 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
             bottomNavigationBar: (provider.isUpdating)
                 ? null
                 : Container(
-                    padding: const EdgeInsets.only(left: 30.0, right: 30, bottom: 50, top: 10),
+                    padding: const EdgeInsets.only(
+                      left: 30.0,
+                      right: 30,
+                      bottom: 50,
+                      top: 10,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.0),
                       color: const Color(0xFF1F1F25),
                       gradient: LinearGradient(
-                        colors: [Colors.black, Colors.black.withValues(alpha: 0)],
+                        colors: [
+                          Colors.black,
+                          Colors.black.withValues(alpha: 0),
+                        ],
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                       ),
@@ -501,11 +681,16 @@ class _UpdateAppPageState extends State<UpdateAppPage> {
                         padding: const EdgeInsets.all(12.0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12.0),
-                          color: (provider.isValid && provider.hasChanges) ? Colors.white : Colors.grey.shade700,
+                          color: (provider.isValid && provider.hasChanges)
+                              ? Colors.white
+                              : Colors.grey.shade700,
                         ),
                         child: Text(
                           context.l10n.updateApp,
-                          style: const TextStyle(color: Colors.black, fontSize: 16),
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ),

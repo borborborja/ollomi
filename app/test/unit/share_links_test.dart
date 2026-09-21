@@ -3,7 +3,7 @@ import 'package:omi/utils/share_links.dart';
 
 void main() {
   group('shareBaseUrl', () {
-    test('defaults to production h.omi.me', () {
+    test('defaults to the local Ollomi production endpoint', () {
       expect(shareBaseUrl(''), defaultShareBaseUrl);
       expect(shareBaseUrl(null), defaultShareBaseUrl);
     });

@@ -34,8 +34,6 @@ dependencies:
 
   latlong2: ^0.9.1
 
-  # Firebase
-
   # Auth
 
   # Analytics and Support

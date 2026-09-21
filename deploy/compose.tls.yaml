@@ -1,0 +1,25 @@
+# Optional public HTTPS endpoint. Enable it through selfhost_init.py --tls-domain
+# or by adding this file to COMPOSE_FILE and public-tls to COMPOSE_PROFILES.
+services:
+  proxy-tls:
+    image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    profiles: [public-tls]
+    restart: unless-stopped
+    init: true
+    environment:
+      OLLOMI_TLS_DOMAIN: ${OLLOMI_TLS_DOMAIN:?Set the public DNS name for TLS}
+      OLLOMI_MAX_UPLOAD_MB: ${OLLOMI_MAX_UPLOAD_MB:-1024}
+    ports:
+      - '${OLLOMI_TLS_BIND:-0.0.0.0}:${OLLOMI_HTTP_PORT:-80}:80'
+      - '${OLLOMI_TLS_BIND:-0.0.0.0}:${OLLOMI_HTTPS_PORT:-443}:443'
+    volumes:
+      - ./deploy/Caddyfile.tls:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [private, ingress]
+    depends_on:
+      api: {condition: service_healthy}
+
+volumes:
+  caddy-data:
+  caddy-config:

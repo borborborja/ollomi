@@ -287,11 +287,7 @@ class _SpeechProfilePageState extends State<SpeechProfilePage> {
       // question/progress ever arrives (see STT_UNAVAILABLE handling below,
       // which only fires after already sitting in a dead recording screen).
       final available = await isSttAvailable();
-      // Backend STT down: transcribe on-device instead when this platform can,
-      // rather than dead-ending in a dialog. The voice print comes from the
-      // uploaded audio either way.
-      final useLocalStt = !available && await provider.enableLocalStt();
-      if (!available && !useLocalStt) {
+      if (!available) {
         if (!context.mounted) return;
         await showDialog(
           context: context,

@@ -1,7 +1,4 @@
-import 'package:omi/utils/platform/platform_manager.dart';
 import 'package:flutter/material.dart';
-
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:omi/utils/l10n_extensions.dart';
 
@@ -13,40 +10,6 @@ class ReferralPage extends StatefulWidget {
 }
 
 class _ReferralPageState extends State<ReferralPage> {
-  WebViewController? _controller;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-
-    PlatformManager.instance.analytics.pageOpened('Referral Program');
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      final controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onPageStarted: (String url) {
-              if (!mounted) return;
-              setState(() => _isLoading = true);
-            },
-            onPageFinished: (String url) {
-              if (!mounted) return;
-              setState(() => _isLoading = false);
-            },
-          ),
-        )
-        ..loadRequest(Uri.parse('https://affiliate.omi.me/'));
-
-      setState(() {
-        _controller = controller;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,12 +29,14 @@ class _ReferralPageState extends State<ReferralPage> {
         ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          if (_controller != null) WebViewWidget(controller: _controller!),
-          if (_isLoading || _controller == null)
-            const Center(child: CircularProgressIndicator(color: Colors.deepPurple)),
-        ],
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'This commercial referral programme is not part of Ollomi.',
+            textAlign: TextAlign.center,
+          ),
+        ),
       ),
     );
   }

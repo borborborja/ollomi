@@ -428,12 +428,8 @@ class _SpeechProfileWidgetState extends State<SpeechProfileWidget> {
                                       // socket connects and audio uploads, but no
                                       // question/progress ever arrives.
                                       final available = await isSttAvailable();
-                                      // Backend STT down: transcribe on-device instead when this
-                                      // platform can, rather than dead-ending in a dialog. The
-                                      // voice print comes from the uploaded audio either way.
-                                      final useLocalStt = !available && await provider.enableLocalStt();
                                       if (mounted) setState(() => _isCheckingAvailability = false);
-                                      if (!available && !useLocalStt) {
+                                      if (!available) {
                                         if (!context.mounted) return;
                                         await showDialog(
                                           context: context,

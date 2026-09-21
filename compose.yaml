@@ -7,7 +7,9 @@ x-backend: &backend
   image: ollomi-backend:local
   restart: unless-stopped
   init: true
-  env_file: [.env]
+  # Defaults to the private instance file. OLLOMI_ENV_FILE is useful for a
+  # read-only configuration check or a deliberately named deployment file.
+  env_file: ["${OLLOMI_ENV_FILE:-.env}"]
   environment: &environment
     OLLOMI_SECRET_KEY: ${OLLOMI_SECRET_KEY:?Run python3 scripts/selfhost_init.py}
     OLLOMI_DATABASE_URL: postgresql+psycopg://ollomi:${POSTGRES_PASSWORD:?Set database password}@postgres/ollomi
@@ -51,7 +53,7 @@ services:
       timeout: 3s
       retries: 20
   typesense:
-    image: typesense/typesense:29.0
+    image: typesense/typesense:29.0@sha256:316b7e71c21f7e5e5caa8daa150e1b3f2be8c876081ee1f77bc2d92cd7f137d0
     command: [--data-dir, /data, --api-key, '${TYPESENSE_API_KEY}', --enable-cors=false]
     restart: unless-stopped
     volumes: [search:/data]
@@ -68,7 +70,7 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
     healthcheck:
-      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health")']
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health/ready")']
       interval: 15s
       timeout: 5s
       retries: 10
@@ -119,7 +121,7 @@ services:
     entrypoint: [python, /srv/download_models.py]
     command: [--stt, '${WHISPER_MODEL:-small}']
   ollama:
-    image: ollama/ollama:0.11.10
+    image: ollama/ollama:0.11.10@sha256:828f1ca255c720ac19b564e47b79a52419dba40557d258667c3d311c1c3e261b
     profiles: [local-ollama]
     restart: unless-stopped
     environment:

@@ -37,7 +37,7 @@ Map<String, dynamic> _validControlJson({
 
 class _CutoverTestEnv implements EnvFields {
   @override
-  String? get apiBaseUrl => 'https://api.omi.me/';
+  String? get apiBaseUrl => 'https://ollomi.example.test/';
 
   @override
   String? get googleClientId => null;
@@ -416,10 +416,10 @@ void main() {
     expect(runtime.control.accountGeneration, 3);
   });
 
-  test('account generation header attaches only to authenticated Omi API mutations', () {
+  test('account generation header attaches only to authenticated Ollomi API mutations', () {
     expect(
       shouldAttachAccountGenerationHeader(
-        url: 'https://api.omi.me/v1/conversations',
+        url: 'https://ollomi.example.test/v1/conversations',
         method: 'POST',
         requireAuthCheck: true,
       ),
@@ -427,7 +427,7 @@ void main() {
     );
     expect(
       shouldAttachAccountGenerationHeader(
-        url: 'https://api.omi.me/v1/conversations',
+        url: 'https://ollomi.example.test/v1/conversations',
         method: 'GET',
         requireAuthCheck: true,
       ),
@@ -451,10 +451,10 @@ void main() {
     );
   });
 
-  test('account generation header attaches to authenticated Omi product WebSockets', () {
+  test('account generation header attaches to authenticated Ollomi product WebSockets', () {
     expect(
       shouldAttachAccountGenerationHeader(
-        url: 'wss://api.omi.me/v4/listen',
+        url: 'wss://ollomi.example.test/v4/listen',
         requireAuthCheck: true,
         forWebSocket: true,
       ),
@@ -468,13 +468,14 @@ void main() {
       ),
       isFalse,
     );
-    expect(shouldAttachAccountGenerationHeader(url: 'wss://api.omi.me/v4/listen', requireAuthCheck: true), isFalse);
+    expect(shouldAttachAccountGenerationHeader(url: 'wss://ollomi.example.test/v4/listen', requireAuthCheck: true),
+        isFalse);
   });
 
-  test('omi API host match is scheme-neutral for https and wss', () {
+  test('Ollomi API host match is scheme-neutral for HTTP and WebSocket', () {
     expect(
-      normalizeOmiApiUrlForHostMatch('https://api.omi.me/v1/x'),
-      normalizeOmiApiUrlForHostMatch('wss://api.omi.me/v1/x'),
+      normalizeApiUrlForHostMatch('https://ollomi.example.test/v1/x'),
+      normalizeApiUrlForHostMatch('wss://ollomi.example.test/v1/x'),
     );
   });
 }

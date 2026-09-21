@@ -7,14 +7,21 @@ import 'package:omi/env/env.dart';
 import 'package:omi/utils/logger.dart';
 
 Future<bool> userHasSpeakerProfile() async {
-  var response = await makeApiCall(url: '${Env.apiBaseUrl}v3/speech-profile', headers: {}, method: 'GET', body: '');
+  var response = await makeApiCall(
+    url: '${Env.apiBaseUrl}v1/speech-profile',
+    headers: {},
+    method: 'GET',
+    body: '',
+  );
   if (response == null) return true;
   Logger.debug('userHasSpeakerProfile: ${response.body}');
   if (response.statusCode == 200) {
     try {
-      return wire.GeneratedHasSpeechProfileResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      ).hasProfile;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      // A server without a configured voiceprint service cannot enroll the
+      // user. Treat it as complete so onboarding does not lead to a failing
+      // recording flow; the server controls this capability through .env.
+      return data['available'] != true || data['has_profile'] == true;
     } catch (e) {
       Logger.debug('Failed to parse userHasSpeakerProfile response: $e');
       return true;
@@ -51,32 +58,29 @@ Future<bool> isSttAvailable() async {
 }
 
 Future<String?> getUserSpeechProfile() async {
-  var response = await makeApiCall(url: '${Env.apiBaseUrl}v4/speech-profile', headers: {}, method: 'GET', body: '');
-  if (response == null) return null;
-  Logger.debug('userHasSpeakerProfile: ${response.body}');
-  if (response.statusCode == 200) {
-    return wire.GeneratedSpeechProfileResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>).url;
-  }
+  // Ollomi persists an encrypted embedding, never raw enrollment audio, so
+  // there is intentionally no playback URL.
   return null;
 }
 
 Future<bool> uploadProfile(File file) async {
   try {
     var response = await makeMultipartApiCall(
-      url: '${Env.apiBaseUrl}v3/upload-audio',
+      url: '${Env.apiBaseUrl}v1/speech-profile',
       files: [file],
       fileFieldName: 'file',
     );
 
     if (response.statusCode == 200) {
-      final data = wire.GeneratedSpeechProfileUploadResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      );
-      Logger.debug('uploadProfile Response url: ${data.url}');
-      return true;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['has_profile'] == true;
     } else {
-      Logger.debug('Failed to upload sample. Status code: ${response.statusCode} body: ${response.body}');
-      throw Exception('Failed to upload sample (${response.statusCode}): ${response.body}');
+      Logger.debug(
+        'Failed to upload sample. Status code: ${response.statusCode} body: ${response.body}',
+      );
+      throw Exception(
+        'Failed to upload sample (${response.statusCode}): ${response.body}',
+      );
     }
   } catch (e) {
     Logger.debug('An error occurred uploadSample: $e');
@@ -85,31 +89,18 @@ Future<bool> uploadProfile(File file) async {
 }
 
 Future<List<String>> getExpandedProfileSamples() async {
-  var response = await makeApiCall(
-    url: '${Env.apiBaseUrl}v3/speech-profile/expand',
-    headers: {},
-    method: 'GET',
-    body: '',
-  );
-  if (response == null) return [];
-  Logger.debug('getExpandedProfileSamples: ${response.body}');
-  if (response.statusCode == 200) {
-    try {
-      final decoded = jsonDecode(response.body);
-      if (decoded is! List<dynamic>) return [];
-      return wire.GeneratedExpandedSpeechProfileSamplesResponse.fromJsonList(decoded).items;
-    } catch (e) {
-      Logger.debug('Failed to parse getExpandedProfileSamples response: $e');
-      return [];
-    }
-  }
+  // Ollomi does not retain enrollment recordings, so there are no expandable
+  // samples to list or play back.
   return [];
 }
 
-Future<bool> deleteProfileSample(String conversationId, int segmentIdx, {String? personId}) async {
+Future<bool> deleteProfileSample(
+  String conversationId,
+  int segmentIdx, {
+  String? personId,
+}) async {
   var response = await makeApiCall(
-    url:
-        '${Env.apiBaseUrl}v3/speech-profile/expand?memory_id=$conversationId&segment_idx=$segmentIdx&person_id=$personId',
+    url: '${Env.apiBaseUrl}v1/speech-profile',
     headers: {},
     method: 'DELETE',
     body: '',
@@ -118,10 +109,7 @@ Future<bool> deleteProfileSample(String conversationId, int segmentIdx, {String?
   Logger.debug('deleteProfileSample: ${response.body}');
   if (response.statusCode == 200) {
     try {
-      final data = wire.GeneratedSpeechProfileMutationResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      );
-      return data.status == 'ok';
+      return (jsonDecode(response.body) as Map<String, dynamic>)['status'] == 'ok';
     } catch (e) {
       Logger.debug('Failed to parse deleteProfileSample response: $e');
       return false;

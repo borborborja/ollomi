@@ -39,8 +39,8 @@ class AnalyticsManager {
 
   /// Inject the analytics adapter at boot. Must be called before [init].
   /// Calling without ever configuring leaves every method as a no-op, which
-  /// is the right behavior for environments without an analytics key (e.g.
-  /// local dev with no PostHog token).
+  /// is the right behavior for self-hosted environments without an analytics
+  /// adapter.
   static void configure(AnalyticsAdapter adapter) {
     assert(!_initStarted, 'AnalyticsManager.configure() must be called before init().');
     _adapter = adapter;

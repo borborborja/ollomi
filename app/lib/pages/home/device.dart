@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:omi/backend/preferences.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
@@ -379,25 +378,7 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
           // Charging Issues
           const Divider(height: 1, color: Color(0xFF3C3C43)),
           GestureDetector(
-            onTap: () async {
-              if (PlatformService.isIntercomSupported) {
-                await IntercomManager.instance.displayChargingArticle(provider.pairedDevice?.name ?? 'DevKit1');
-              } else {
-                final deviceName = provider.pairedDevice?.name ?? 'DevKit1';
-                String url;
-                if (deviceName == 'Omi DevKit 2') {
-                  url = 'https://www.omi.me/pages/charging-devkit2';
-                } else if (deviceName == 'Omi') {
-                  url = 'https://www.omi.me/pages/charging-omi';
-                } else {
-                  url = 'https://www.omi.me/pages/charging';
-                }
-                final uri = Uri.parse(url);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              }
-            },
+            onTap: () => IntercomManager.instance.displayChargingArticle(provider.pairedDevice?.name ?? 'DevKit1'),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               child: Row(

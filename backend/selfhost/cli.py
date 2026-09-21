@@ -5,11 +5,13 @@ import sys
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import select, update
+from sqlalchemy import select, text, update
 from pathlib import Path
 
 from selfhost.accounts import create_admin, normalize_email, validate_password
-from selfhost.db import Session, User, transaction
+from selfhost.db import Job, Session, User, transaction
+from selfhost.profiles import selected_profile
+from selfhost.search import purge_all_text_index
 from selfhost.security import passwords
 
 
@@ -36,9 +38,33 @@ def _read_password(args, parser):
         parser.error(str(error))
 
 
+def rebuild_search_index():
+    """Discard derived search data and queue a complete owner-scoped rebuild.
+
+    Resolve profiles before deleting either index, so a bad restored provider
+    configuration leaves the existing derived data untouched and fails loudly.
+    """
+    with transaction() as db:
+        profiles = [
+            (user.id, selected_profile(db, user.id, "embedding"))
+            for user in db.scalars(select(User).where(User.enabled.is_(True)))
+        ]
+    purge_all_text_index()
+    with transaction() as db:
+        # Both stores are derived from records.  Clearing all vector generations
+        # avoids retaining incompatible or stale vectors after a restore.
+        db.execute(text("DELETE FROM embeddings"))
+        for user_id, profile in profiles:
+            db.add(Job(user_id=user_id, kind="reindex", payload={"embedding": profile}))
+    return len(profiles)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="ollomi")
-    parser.add_argument("command", choices=["migrate", "create-admin", "reset-password"])
+    parser.add_argument(
+        "command",
+        choices=["migrate", "create-admin", "reset-password", "rebuild-search-index"],
+    )
     parser.add_argument("--email")
     source = parser.add_mutually_exclusive_group()
     source.add_argument(
@@ -54,6 +80,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == "migrate":
         command.upgrade(Config(str(Path(__file__).with_name("alembic.ini"))), "head")
+        return
+    if args.command == "rebuild-search-index":
+        queued = rebuild_search_index()
+        print(f"Search index cleared; queued rebuild for {queued} enabled user(s)")
         return
     try:
         email = normalize_email(args.email or input("Email: "))

@@ -3,7 +3,7 @@ package com.friend.ios.batch
 import okhttp3.Request
 import org.json.JSONObject
 
-internal const val CONVERSATION_GEOLOCATION_HEADER = "X-Omi-Conversation-Geolocation"
+internal const val CONVERSATION_GEOLOCATION_HEADER = "X-Ollomi-Conversation-Geolocation"
 internal const val CONVERSATION_GEOLOCATION_HEADER_MAX_BYTES = 4096
 
 internal fun addConversationGeolocationHeader(builder: Request.Builder, rawGeolocation: String?): Request.Builder {

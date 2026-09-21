@@ -11,7 +11,7 @@ void main() {
       // called debugPrint — invisible in profile and release builds.
       final error = StateError(
         'Profile local_dev requires a loopback or private-network API endpoint; '
-        'use mobile_beta for https://api.omiapi.com/.',
+        'use mobile_beta for https://ollomi.example.test/.',
       );
 
       await tester.pumpWidget(StartupFailureApp(error: error, stack: StackTrace.current));

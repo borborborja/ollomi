@@ -22,9 +22,28 @@ PROVIDER_DEFAULTS = {
     "openrouter": ("https://openrouter.ai/api/v1", True),
     "ollama-cloud": ("https://ollama.com/v1", True),
     "ollama_cloud": ("https://ollama.com/v1", True),
+    "gemini": ("https://generativelanguage.googleapis.com", True),
+    "assemblyai": ("https://api.assemblyai.com/v2", True),
+    "deepgram": ("https://api.deepgram.com/v1", True),
+    "voyage": ("https://api.voyageai.com/v1", True),
+    "cohere": ("https://api.cohere.com/v2", True),
     "ollama": (None, False),
     "whisper": (None, False),
     "custom": (None, False),
+}
+PROVIDER_PURPOSES = {
+    "openai": {"stt", "chat", "embedding"},
+    "openrouter": {"chat"},
+    "ollama-cloud": {"chat"},
+    "ollama_cloud": {"chat"},
+    "gemini": {"stt"},
+    "assemblyai": {"stt"},
+    "deepgram": {"stt"},
+    "voyage": {"embedding"},
+    "cohere": {"embedding"},
+    "ollama": {"chat", "embedding"},
+    "whisper": {"stt"},
+    "custom": set(PURPOSES),
 }
 logger = logging.getLogger(__name__)
 
@@ -127,6 +146,8 @@ def env_profiles():
             provider = os.getenv(base + "PROVIDER", "custom").strip().lower()
             if provider not in PROVIDER_DEFAULTS:
                 raise ValueError(f"Unsupported provider in {base}PROVIDER")
+            if purpose not in PROVIDER_PURPOSES[provider]:
+                raise ValueError(f"{provider} cannot be used for {purpose} in {base}PROVIDER")
             default_url, default_external = PROVIDER_DEFAULTS[provider]
             if provider == "ollama":
                 default_url = settings().ollama_url
@@ -238,7 +259,9 @@ def _ordered_env_rows(db, purpose):
 def selected_profile(db, user_id, purpose):
     env_rows = _ordered_env_rows(db, purpose)
     if env_rows:
-        profiles = [snapshot(row) for row in env_rows]
+        preferred_id = (db.get(User, user_id).preferences or {}).get("ai_profiles", {}).get(purpose)
+        preferred = next((row for row in env_rows if row.id == preferred_id), env_rows[0])
+        profiles = [snapshot(preferred), *[snapshot(row) for row in env_rows if row.id != preferred.id]]
         return {**profiles[0], "fallbacks": profiles[1:]}
     user = db.get(User, user_id)
     profile_id = (user.preferences or {}).get("ai_profiles", {}).get(purpose)
@@ -338,9 +361,18 @@ def provider_client(profile, timeout=300):
                 raise HTTPException(503, "Inference profile is disabled")
     validate_url(profile["base_url"], profile.get("external", False))
     key = unseal(profile.get("encrypted_key", ""))
+    provider = (profile.get("capabilities") or {}).get("provider", "custom").lower()
+    headers = {}
+    if key:
+        if provider == "gemini":
+            headers = {"x-goog-api-key": key}
+        elif provider == "assemblyai":
+            headers = {"Authorization": key}
+        else:
+            headers = {"Authorization": f"Bearer {key}"}
     return httpx.Client(
         base_url=profile["base_url"].rstrip("/") + "/",
-        headers={"Authorization": f"Bearer {key}"} if key else {},
+        headers=headers,
         timeout=httpx.Timeout(timeout, connect=10),
         follow_redirects=False,
         trust_env=False,
@@ -379,20 +411,47 @@ def completion(profile, messages, *, json_output=False, tools=None, fallback=Tru
     return request(profile)
 
 
-def embed(profile, texts, *, fallback=True):
+def embed(profile, texts, *, fallback=True, input_type=None):
     if not texts:
         return []
 
     def request(candidate):
         dimensions = (candidate.get("capabilities") or {}).get("dimensions")
-        body = {"model": candidate["model"], "input": texts}
-        if dimensions:
-            body["dimensions"] = dimensions
+        options = dict((candidate.get("capabilities") or {}).get("options", {}))
+        provider = (candidate.get("capabilities") or {}).get("provider", "custom").lower()
+        if provider == "cohere":
+            body = {
+                "model": candidate["model"],
+                "texts": texts,
+                "input_type": options.pop("input_type", input_type or "search_document"),
+                "embedding_types": ["float"],
+                **options,
+            }
+            if dimensions:
+                body["output_dimension"] = dimensions
+            endpoint = "embed"
+        else:
+            body = {"model": candidate["model"], "input": texts, **options}
+            if dimensions:
+                body["output_dimension" if provider == "voyage" else "dimensions"] = dimensions
+            if provider == "voyage":
+                requested_input_type = body.pop("input_type", input_type or "document")
+                # Ollomi's internal names distinguish indexing from querying;
+                # Voyage's API calls those roles document and query.
+                body["input_type"] = {
+                    "search_document": "document",
+                    "search_query": "query",
+                }.get(requested_input_type, requested_input_type)
+            endpoint = "embeddings"
         with provider_client(candidate) as client:
-            response = client.post("embeddings", json=body)
+            response = client.post(endpoint, json=body)
             response.raise_for_status()
-            rows = sorted(response.json()["data"], key=lambda item: item["index"])
-            vectors = [row["embedding"] for row in rows]
+            response_data = response.json()
+            if provider == "cohere":
+                vectors = response_data.get("embeddings", {}).get("float", [])
+            else:
+                rows = sorted(response_data["data"], key=lambda item: item.get("index", 0))
+                vectors = [row["embedding"] for row in rows]
         if (
             len(vectors) != len(texts)
             or not vectors

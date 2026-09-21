@@ -1,5 +1,8 @@
 import wave
 
+import pytest
+from starlette.websockets import WebSocketDisconnect
+
 from selfhost.worker import merge_audio_part
 
 
@@ -16,6 +19,41 @@ def test_reconnected_recording_retains_parts_and_retry_is_idempotent():
     assert combined[1]["start"] == 5
     data["transcript_segments"] = combined
     assert merge_audio_part(data, "two", second, 4) == combined
+
+
+def test_live_capture_socket_requires_auth_and_preserves_conversation_owner(client, admin):
+    conversation_id = "00000000-0000-0000-0000-000000000111"
+    path = (
+        "/v4/listen?codec=pcm16&sample_rate=16000&client_conversation_id="
+        + conversation_id
+    )
+
+    with pytest.raises(WebSocketDisconnect) as rejected:
+        with client.websocket_connect(path):
+            pass
+    assert rejected.value.code == 4401
+
+    with client.websocket_connect(path, headers=admin) as socket:
+        assert socket.receive_json() == {
+            "type": "last_memory",
+            "memory_id": conversation_id,
+        }
+        socket.send_json({"type": "stop"})
+
+    from selfhost.db import Record, transaction
+
+    with transaction() as db:
+        conversation = db.get(Record, conversation_id)
+        assert conversation is not None
+        assert conversation.user_id == client.get("/v1/auth/me", headers=admin).json()["uid"]
+        assert conversation.data["status"] == "in_progress"
+
+
+def test_live_capture_socket_rejects_unsupported_codec(client, admin):
+    with pytest.raises(WebSocketDisconnect) as rejected:
+        with client.websocket_connect("/v4/listen?codec=mp3", headers=admin):
+            pass
+    assert rejected.value.code == 4400
 
 
 def test_playback_ticket_is_owner_bound_and_revoked_at_logout(client, admin, other):

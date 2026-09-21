@@ -11,7 +11,7 @@ class AsanaService {
   bool _isAuthenticated = false;
   String? _userGid;
 
-  /// Check if user is authenticated (updated by provider from Firebase)
+  /// Check whether the current Ollomi account has this integration connected.
   bool get isAuthenticated => _isAuthenticated;
 
   String? get currentUserGid => _userGid;

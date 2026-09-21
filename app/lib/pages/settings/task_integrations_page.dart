@@ -250,7 +250,7 @@ class _TaskIntegrationsPageState extends State<TaskIntegrationsPage> with Widget
               );
             }
             await provider.setSelectedApp(app);
-            // Note: OAuth callback will save connection to Firebase
+            // The OAuth callback saves the connection on the Ollomi backend.
             // Provider will refresh when user returns to this page
             Logger.debug('✓ Task integration enabled: ${app.displayName} (${app.key}) - authentication in progress');
           } else {

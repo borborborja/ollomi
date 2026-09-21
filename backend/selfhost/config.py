@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,17 +23,63 @@ class Settings(BaseSettings):
     ollama_url: str = "http://ollama:11434/v1"
     seed_local_whisper: bool = True
     seed_local_ollama: bool = True
+    # Environment profiles remain the administrator's policy unless this is
+    # explicitly enabled. The API enforces this; the mobile control is only a
+    # presentation of the same policy.
+    allow_user_model_selection: bool = False
     tts_url: str = "http://stt:8000"
     local_only: bool = True
     allow_private_http: bool = True
     audio_retention_days: int = 0  # 0 keeps original audio until explicit deletion
     job_lease_seconds: int = 900
+    mcp_enabled: bool = False
+    mcp_public_url: str = ""
+    mcp_access_minutes: int = 15
+    mcp_refresh_days: int = 30
+    # A speaker embedding service deliberately lives outside the main stack:
+    # ECAPA is CPU-heavy and many deployments run it on a separate host.
+    # An empty URL disables voiceprint enrollment/recognition entirely.
+    voiceprint_url: str = ""
+    voiceprint_api_key: SecretStr = SecretStr("")
+    voiceprint_threshold: float = 0.72
 
     def validate_runtime(self):
         if len(self.secret_key.get_secret_value()) < 32:
             raise ValueError("OLLOMI_SECRET_KEY must contain at least 32 characters")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         (self.data_dir / "files").mkdir(exist_ok=True)
+        if self.mcp_enabled:
+            parsed = urlsplit(self.mcp_public_url)
+            if (
+                parsed.scheme != "https"
+                or not parsed.hostname
+                or parsed.username
+                or parsed.password
+                or parsed.query
+                or parsed.fragment
+            ):
+                raise ValueError(
+                    "OLLOMI_MCP_PUBLIC_URL must be an absolute HTTPS URL without credentials, query or fragment"
+                )
+            if not 1 <= self.mcp_access_minutes <= 60:
+                raise ValueError("OLLOMI_MCP_ACCESS_MINUTES must be between 1 and 60")
+            if not 1 <= self.mcp_refresh_days <= 365:
+                raise ValueError("OLLOMI_MCP_REFRESH_DAYS must be between 1 and 365")
+        if self.voiceprint_url:
+            parsed = urlsplit(self.voiceprint_url)
+            if (
+                parsed.scheme not in {"http", "https"}
+                or not parsed.hostname
+                or parsed.username
+                or parsed.password
+                or parsed.query
+                or parsed.fragment
+            ):
+                raise ValueError(
+                    "OLLOMI_VOICEPRINT_URL must be an absolute HTTP(S) URL without credentials, query or fragment"
+                )
+            if not 0.5 <= self.voiceprint_threshold <= 0.95:
+                raise ValueError("OLLOMI_VOICEPRINT_THRESHOLD must be between 0.5 and 0.95")
 
 
 @lru_cache

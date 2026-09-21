@@ -16,12 +16,9 @@ import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/message_event.dart';
 import 'package:omi/backend/schema/transcript_segment.dart';
-import 'package:omi/models/custom_stt_config.dart';
 import 'package:omi/providers/device_provider.dart';
 import 'package:omi/services/devices.dart';
-import 'package:omi/services/freemium_transcription_service.dart';
 import 'package:omi/services/services.dart';
-import 'package:omi/services/sockets/on_device_apple_provider.dart';
 import 'package:omi/services/sockets/transcription_service.dart';
 import 'package:omi/utils/audio/wav_bytes.dart';
 import 'package:omi/utils/constants.dart';
@@ -81,7 +78,6 @@ class SpeechProfileProvider extends ChangeNotifier
   Timer? _reconnectTimer;
   bool _reconnecting = false;
   int _sessionGeneration = 0;
-  int? _fallbackGeneration;
   bool _disposed = false;
 
   bool _isCurrentSession(int generation) => !_disposed && generation == _sessionGeneration;
@@ -114,14 +110,6 @@ class SpeechProfileProvider extends ChangeNotifier
   // routers/listen/runtime.py's _bootstrap for why that distinction exists.
   bool _isOnboardingFlow = false;
 
-  /// True while the question flow is transcribed on-device instead of by the
-  /// backend's streaming STT — entered up front when the pre-flight
-  /// availability check fails, or mid-session after repeated 1011 closes with
-  /// no captured speech. The voice print is unaffected either way: it is
-  /// computed server-side from the WAV uploaded at finalize(), never from the
-  /// transcript, so a locally transcribed session yields the same profile.
-  bool usingLocalStt = false;
-  CustomSttConfig? _localSttConfig;
   String currentQuestion = '';
   int currentQuestionIndex = 0;
   int totalQuestions = 0;
@@ -317,7 +305,6 @@ class SpeechProfileProvider extends ChangeNotifier
       language: language,
       force: force,
       speechProfileRedo: !_isOnboardingFlow,
-      customSttConfig: usingLocalStt ? _localSttConfig : null,
     );
     if (!_isCurrentSession(generation)) {
       // The session was closed or reset while the socket was being created.
@@ -345,7 +332,6 @@ class SpeechProfileProvider extends ChangeNotifier
     required String language,
     required bool force,
     bool speechProfileRedo = false,
-    CustomSttConfig? customSttConfig,
   }) {
     return ServiceManager.instance().socket.speechProfile(
           codec: codec,
@@ -353,70 +339,7 @@ class SpeechProfileProvider extends ChangeNotifier
           language: language,
           speechProfileRedo: speechProfileRedo,
           force: force,
-          customSttConfig: customSttConfig,
         );
-  }
-
-  /// Switches this session to on-device transcription. Returns false, leaving
-  /// the session untouched, when this platform has no usable local model
-  /// (Apple speech on iOS is always available; Android needs a downloaded
-  /// Whisper model). Safe to call before initialise() (pre-flight) or while a
-  /// session is live (the next socket attempt picks the new mode up).
-  Future<bool> enableLocalStt() async {
-    final generation = _sessionGeneration;
-    if (_disposed) return false;
-    final config = await resolveLocalSttConfig();
-    if (!_isCurrentSession(generation) || config == null) return false;
-    _localSttConfig = config;
-    usingLocalStt = true;
-    notifyListeners();
-    return true;
-  }
-
-  /// Resolves the on-device STT config. Overridden in tests so the fallback
-  /// path can be exercised without a real model or platform channel.
-  @visibleForTesting
-  Future<CustomSttConfig?> resolveLocalSttConfig() async {
-    final freemium = FreemiumTranscriptionService();
-    if (await freemium.checkReadiness() != FreemiumReadiness.ready) return null;
-    final config = freemium.getFreemiumConfig();
-    if (config == null) return null;
-    // The readiness check treats iOS as always ready, but on-device
-    // recognition only works once the language model for the locale is
-    // installed; ask the OS so the fallback is never entered blind.
-    if (Platform.isIOS && !await OnDeviceAppleProvider.isOnDeviceAvailable(config.language ?? 'en')) {
-      Logger.debug('On-device speech recognition unavailable for ${config.language}; no local STT fallback');
-      return null;
-    }
-    return config;
-  }
-
-  /// Backend STT is down mid-session: keep the flow alive on on-device
-  /// transcription instead of dead-ending in STT_UNAVAILABLE, when we can.
-  void _fallBackToLocalStt() {
-    final generation = _sessionGeneration;
-    if (_disposed || _fallbackGeneration == generation) return;
-    _fallbackGeneration = generation;
-    unawaited(() async {
-      try {
-        final enabled = await enableLocalStt();
-        if (!_isCurrentSession(generation) || !startedRecording || profileCompleted || uploadingProfile) return;
-        if (enabled) {
-          _sttUnavailableCloseCount = 0;
-          notifyInfo('LOCAL_STT_FALLBACK');
-          _scheduleReconnect();
-        } else {
-          notifyError('STT_UNAVAILABLE');
-        }
-      } catch (e) {
-        if (_isCurrentSession(generation) && startedRecording && !profileCompleted && !uploadingProfile) {
-          Logger.debug('Speech profile local STT availability failed: $e');
-          notifyError('STT_UNAVAILABLE');
-        }
-      } finally {
-        if (_fallbackGeneration == generation) _fallbackGeneration = null;
-      }
-    }());
   }
 
   /// Uploads the recorded speech-profile audio. Overridden in tests to avoid
@@ -689,8 +612,6 @@ class SpeechProfileProvider extends ChangeNotifier
     profileCompleted = false;
     usePhoneMic = false;
     _isOnboardingFlow = false;
-    usingLocalStt = false;
-    _localSttConfig = null;
     micLevel = 0.0;
     isInitialised = false;
     _sttUnavailableCloseCount = 0;
@@ -754,10 +675,6 @@ class SpeechProfileProvider extends ChangeNotifier
       if (sttUnavailable && _sttUnavailableCloseCount >= _maxSttUnavailableCloses) {
         _reconnectTimer?.cancel();
         _reconnectTimer = null;
-        if (!usingLocalStt) {
-          _fallBackToLocalStt();
-          return;
-        }
         notifyError('STT_UNAVAILABLE');
         return;
       }

@@ -1,5 +1,4 @@
 import 'package:omi/utils/platform/platform_manager.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -18,8 +17,6 @@ import 'package:omi/pages/apps/widgets/app_metadata_widget.dart';
 import 'package:omi/pages/apps/widgets/external_trigger_fields_widget.dart';
 import 'package:omi/widgets/media_viewer_page.dart';
 import 'package:omi/pages/apps/widgets/notification_scopes_chips_widget.dart';
-import 'package:omi/pages/payments/payment_method_provider.dart';
-import 'package:omi/pages/payments/payments_page.dart';
 import 'package:omi/providers/app_provider.dart';
 import 'package:omi/utils/other/temp.dart';
 import 'package:omi/widgets/confirmation_dialog.dart';
@@ -30,7 +27,11 @@ class AddAppPage extends StatefulWidget {
   final bool presetForConversationAnalysis;
   final bool presetExternalIntegration;
 
-  const AddAppPage({super.key, this.presetForConversationAnalysis = false, this.presetExternalIntegration = false});
+  const AddAppPage({
+    super.key,
+    this.presetForConversationAnalysis = false,
+    this.presetExternalIntegration = false,
+  });
 
   @override
   State<AddAppPage> createState() => _AddAppPageState();
@@ -69,21 +70,38 @@ class _AddAppPageState extends State<AddAppPage> {
                     borderRadius: BorderRadius.circular(20),
                     child: InkWell(
                       onTap: () {
-                        PlatformManager.instance.analytics.pageOpened('App Submission Help');
-                        launchUrl(Uri.parse('https://docs.omi.me/doc/developer/apps/Introduction'));
+                        PlatformManager.instance.analytics.pageOpened(
+                          'App Submission Help',
+                        );
+                        launchUrl(
+                          Uri.parse(
+                            'https://docs.omi.me/doc/developer/apps/Introduction',
+                          ),
+                        );
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               context.l10n.docs,
-                              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 12),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
                             ),
                             const SizedBox(width: 4),
-                            const FaIcon(FontAwesomeIcons.arrowUpRightFromSquare, color: Colors.black, size: 10),
+                            const FaIcon(
+                              FontAwesomeIcons.arrowUpRightFromSquare,
+                              color: Colors.black,
+                              size: 10,
+                            ),
                           ],
                         ),
                       ),
@@ -101,7 +119,9 @@ class _AddAppPageState extends State<AddAppPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
                       const SizedBox(height: 14),
                       Text(
                         provider.isSubmitting ? context.l10n.submittingYourApp : context.l10n.holdOnPreparingForm,
@@ -140,7 +160,9 @@ class _AddAppPageState extends State<AddAppPage> {
                               categories: provider.categories,
                               setAppCategory: provider.setAppCategory,
                               imageFile: provider.imageFile,
-                              category: provider.mapCategoryIdToName(provider.appCategory),
+                              category: provider.mapCategoryIdToName(
+                                provider.appCategory,
+                              ),
                             ),
                             const SizedBox(height: 18),
                             Container(
@@ -165,7 +187,10 @@ class _AddAppPageState extends State<AddAppPage> {
                                         ),
                                         child: Text(
                                           context.l10n.previewScreenshots,
-                                          style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                          style: TextStyle(
+                                            color: Colors.grey.shade300,
+                                            fontSize: 16,
+                                          ),
                                         ),
                                       ),
                                       if (provider.thumbnailUrls.isEmpty)
@@ -175,7 +200,9 @@ class _AddAppPageState extends State<AddAppPage> {
                                             width: 36,
                                             height: 36,
                                             decoration: BoxDecoration(
-                                              color: Colors.grey.withValues(alpha: 0.3),
+                                              color: Colors.grey.withValues(
+                                                alpha: 0.3,
+                                              ),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Center(
@@ -188,7 +215,11 @@ class _AddAppPageState extends State<AddAppPage> {
                                                         color: Colors.white,
                                                       ),
                                                     )
-                                                  : const FaIcon(FontAwesomeIcons.image, size: 16, color: Colors.white),
+                                                  : const FaIcon(
+                                                      FontAwesomeIcons.image,
+                                                      size: 16,
+                                                      color: Colors.white,
+                                                    ),
                                             ),
                                           ),
                                         ),
@@ -198,7 +229,12 @@ class _AddAppPageState extends State<AddAppPage> {
                                     SizedBox(
                                       height: 180,
                                       child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+                                        padding: const EdgeInsets.fromLTRB(
+                                          8,
+                                          16,
+                                          8,
+                                          8,
+                                        ),
                                         child: ListView.builder(
                                           scrollDirection: Axis.horizontal,
                                           itemCount: provider.thumbnailUrls.length + 1,
@@ -210,10 +246,16 @@ class _AddAppPageState extends State<AddAppPage> {
                                                 child: Container(
                                                   width: 120,
                                                   height: 180,
-                                                  margin: const EdgeInsets.only(right: 8),
+                                                  margin: const EdgeInsets.only(
+                                                    right: 8,
+                                                  ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFF35343B),
-                                                    borderRadius: BorderRadius.circular(8),
+                                                    color: const Color(
+                                                      0xFF35343B,
+                                                    ),
+                                                    borderRadius: BorderRadius.circular(
+                                                      8,
+                                                    ),
                                                   ),
                                                   child: provider.isUploadingThumbnail
                                                       ? const Center(
@@ -245,9 +287,14 @@ class _AddAppPageState extends State<AddAppPage> {
                                                       MaterialPageRoute(
                                                         builder: (context) => MediaViewerPage(
                                                           items: provider.thumbnailUrls
-                                                              .map((url) => MediaViewerItem(
-                                                                    imageUrl: url,
-                                                                  ))
+                                                              .map(
+                                                                (
+                                                                  url,
+                                                                ) =>
+                                                                    MediaViewerItem(
+                                                                  imageUrl: url,
+                                                                ),
+                                                              )
                                                               .toList(),
                                                           initialIndex: index,
                                                           maxScaleMultiplier: 2,
@@ -259,38 +306,73 @@ class _AddAppPageState extends State<AddAppPage> {
                                                   },
                                                   child: CachedNetworkImage(
                                                     imageUrl: provider.thumbnailUrls[index],
-                                                    imageBuilder: (context, imageProvider) => Container(
+                                                    imageBuilder: (
+                                                      context,
+                                                      imageProvider,
+                                                    ) =>
+                                                        Container(
                                                       width: 120,
                                                       height: 180, // 2:3 ratio (120 * 1.5)
-                                                      margin: const EdgeInsets.only(right: 8),
+                                                      margin: const EdgeInsets.only(
+                                                        right: 8,
+                                                      ),
                                                       decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(8),
-                                                        border: Border.all(color: const Color(0xFF424242), width: 1),
-                                                        image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                                        borderRadius: BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                        border: Border.all(
+                                                          color: const Color(
+                                                            0xFF424242,
+                                                          ),
+                                                          width: 1,
+                                                        ),
+                                                        image: DecorationImage(
+                                                          image: imageProvider,
+                                                          fit: BoxFit.cover,
+                                                        ),
                                                       ),
                                                     ),
-                                                    placeholder: (context, url) => ShimmerWithTimeout(
+                                                    placeholder: (
+                                                      context,
+                                                      url,
+                                                    ) =>
+                                                        ShimmerWithTimeout(
                                                       baseColor: Colors.grey[900]!,
                                                       highlightColor: Colors.grey[800]!,
                                                       child: Container(
                                                         width: 120,
                                                         height: 180,
-                                                        margin: const EdgeInsets.only(right: 8),
+                                                        margin: const EdgeInsets.only(
+                                                          right: 8,
+                                                        ),
                                                         decoration: BoxDecoration(
                                                           color: Colors.black,
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderRadius: BorderRadius.circular(
+                                                            8,
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
-                                                    errorWidget: (context, url, error) => Container(
+                                                    errorWidget: (
+                                                      context,
+                                                      url,
+                                                      error,
+                                                    ) =>
+                                                        Container(
                                                       width: 120,
                                                       height: 180,
-                                                      margin: const EdgeInsets.only(right: 8),
+                                                      margin: const EdgeInsets.only(
+                                                        right: 8,
+                                                      ),
                                                       decoration: BoxDecoration(
                                                         color: Colors.grey[900],
-                                                        borderRadius: BorderRadius.circular(8),
+                                                        borderRadius: BorderRadius.circular(
+                                                          8,
+                                                        ),
                                                       ),
-                                                      child: const FaIcon(FontAwesomeIcons.triangleExclamation),
+                                                      child: const FaIcon(
+                                                        FontAwesomeIcons.triangleExclamation,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
@@ -300,7 +382,9 @@ class _AddAppPageState extends State<AddAppPage> {
                                                   child: GestureDetector(
                                                     onTap: () => provider.removeThumbnail(index),
                                                     child: Container(
-                                                      padding: const EdgeInsets.all(4),
+                                                      padding: const EdgeInsets.all(
+                                                        4,
+                                                      ),
                                                       decoration: const BoxDecoration(
                                                         color: Colors.white,
                                                         shape: BoxShape.circle,
@@ -328,30 +412,47 @@ class _AddAppPageState extends State<AddAppPage> {
                                 color: const Color(0xFF1F1F25),
                                 borderRadius: BorderRadius.circular(18.0),
                               ),
-                              padding: const EdgeInsets.fromLTRB(14.0, 20.0, 14.0, 14.0),
+                              padding: const EdgeInsets.fromLTRB(
+                                14.0,
+                                20.0,
+                                14.0,
+                                14.0,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                    padding: const EdgeInsets.only(
+                                      left: 8.0,
+                                      right: 8.0,
+                                    ),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text.rich(
                                           TextSpan(
                                             text: context.l10n.capabilities,
-                                            style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                            style: TextStyle(
+                                              color: Colors.grey.shade300,
+                                              fontSize: 16,
+                                            ),
                                             children: const [
                                               TextSpan(
                                                 text: '*',
-                                                style: TextStyle(color: Colors.red),
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
                                         GestureDetector(
                                           onTap: () {
-                                            launchUrl(Uri.parse('https://docs.omi.me/doc/developer/apps/Introduction'));
+                                            launchUrl(
+                                              Uri.parse(
+                                                'https://docs.omi.me/doc/developer/apps/Introduction',
+                                              ),
+                                            );
                                           },
                                           child: FaIcon(
                                             FontAwesomeIcons.solidCircleQuestion,
@@ -385,21 +486,31 @@ class _AddAppPageState extends State<AddAppPage> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF1F1F25),
-                                          borderRadius: BorderRadius.circular(18.0),
+                                          borderRadius: BorderRadius.circular(
+                                            18.0,
+                                          ),
                                         ),
                                         padding: const EdgeInsets.all(14.0),
                                         child: Column(
                                           children: [
-                                            if (provider.isCapabilitySelectedById('chat'))
+                                            if (provider.isCapabilitySelectedById(
+                                              'chat',
+                                            ))
                                               PromptTextField(
                                                 controller: provider.chatPromptController,
                                                 label: context.l10n.chatPrompt,
                                                 hint: context.l10n.chatPromptPlaceholder,
                                               ),
-                                            if (provider.isCapabilitySelectedById('memories') &&
-                                                provider.isCapabilitySelectedById('chat'))
+                                            if (provider.isCapabilitySelectedById(
+                                                  'memories',
+                                                ) &&
+                                                provider.isCapabilitySelectedById(
+                                                  'chat',
+                                                ))
                                               const SizedBox(height: 20),
-                                            if (provider.isCapabilitySelectedById('memories'))
+                                            if (provider.isCapabilitySelectedById(
+                                              'memories',
+                                            ))
                                               PromptTextField(
                                                 controller: provider.conversationPromptController,
                                                 label: context.l10n.conversationPrompt,
@@ -413,7 +524,9 @@ class _AddAppPageState extends State<AddAppPage> {
                                 ],
                               ),
                             const ExternalTriggerFieldsWidget(),
-                            if (provider.isCapabilitySelectedById('proactive_notification'))
+                            if (provider.isCapabilitySelectedById(
+                              'proactive_notification',
+                            ))
                               Column(
                                 children: [
                                   const SizedBox(height: 12),
@@ -422,16 +535,24 @@ class _AddAppPageState extends State<AddAppPage> {
                                       color: const Color(0xFF1F1F25),
                                       borderRadius: BorderRadius.circular(18.0),
                                     ),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 20.0),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14.0,
+                                      vertical: 20.0,
+                                    ),
                                     width: double.infinity,
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 8.0,
+                                          ),
                                           child: Text(
                                             context.l10n.notificationScopes,
-                                            style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                            style: TextStyle(
+                                              color: Colors.grey.shade300,
+                                              fontSize: 16,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 16),
@@ -441,8 +562,12 @@ class _AddAppPageState extends State<AddAppPage> {
                                   ),
                                 ],
                               ),
-                            if (provider.isCapabilitySelectedById('external_integration') ||
-                                provider.isCapabilitySelectedById('proactive_notification'))
+                            if (provider.isCapabilitySelectedById(
+                                  'external_integration',
+                                ) ||
+                                provider.isCapabilitySelectedById(
+                                  'proactive_notification',
+                                ))
                               Column(
                                 children: [
                                   const SizedBox(height: 12),
@@ -456,15 +581,22 @@ class _AddAppPageState extends State<AddAppPage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 8.0,
+                                          ),
                                           child: Text.rich(
                                             TextSpan(
                                               text: 'GitHub Repository URL',
-                                              style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+                                              style: TextStyle(
+                                                color: Colors.grey.shade300,
+                                                fontSize: 16,
+                                              ),
                                               children: const [
                                                 TextSpan(
                                                   text: ' *',
-                                                  style: TextStyle(color: Colors.red),
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -472,10 +604,15 @@ class _AddAppPageState extends State<AddAppPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 8.0,
+                                          ),
                                           child: Text(
                                             'Link to your app\'s source code repository',
-                                            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 13,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 12),
@@ -483,28 +620,44 @@ class _AddAppPageState extends State<AddAppPage> {
                                           controller: provider.sourceCodeUrlController,
                                           decoration: InputDecoration(
                                             hintText: 'https://github.com/username/repo',
-                                            hintStyle: const TextStyle(color: Colors.grey),
+                                            hintStyle: const TextStyle(
+                                              color: Colors.grey,
+                                            ),
                                             border: OutlineInputBorder(
                                               borderRadius: BorderRadius.circular(12),
-                                              borderSide: const BorderSide(color: Colors.grey),
+                                              borderSide: const BorderSide(
+                                                color: Colors.grey,
+                                              ),
                                             ),
                                             enabledBorder: OutlineInputBorder(
                                               borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: Colors.grey.shade800),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey.shade800,
+                                              ),
                                             ),
                                             focusedBorder: OutlineInputBorder(
                                               borderRadius: BorderRadius.circular(12),
-                                              borderSide: const BorderSide(color: Colors.white),
+                                              borderSide: const BorderSide(
+                                                color: Colors.white,
+                                              ),
                                             ),
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                            contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 14,
+                                            ),
                                           ),
-                                          style: const TextStyle(color: Colors.white),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
                                           keyboardType: TextInputType.url,
                                           validator: (value) {
                                             if (value == null || value.trim().isEmpty) {
                                               return 'GitHub repository URL is required';
                                             }
-                                            if (!Uri.tryParse(value.trim())!.isAbsolute) {
+                                            if (!Uri.tryParse(
+                                              value.trim(),
+                                            )!
+                                                .isAbsolute) {
                                               return 'Please enter a valid URL';
                                             }
                                             return null;
@@ -534,7 +687,9 @@ class _AddAppPageState extends State<AddAppPage> {
                                         height: 40,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF2A2A2E),
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                         child: Center(
                                           child: FaIcon(
@@ -562,7 +717,10 @@ class _AddAppPageState extends State<AddAppPage> {
                                               provider.makeAppPublic
                                                   ? context.l10n.anyoneCanDiscover
                                                   : context.l10n.onlyYouCanUse,
-                                              style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                              style: TextStyle(
+                                                color: Colors.grey.shade500,
+                                                fontSize: 13,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -572,15 +730,22 @@ class _AddAppPageState extends State<AddAppPage> {
                                         onChanged: (value) {
                                           provider.setIsPrivate(value);
                                         },
-                                        activeThumbColor: const Color(0xFF6366F1),
+                                        activeThumbColor: const Color(
+                                          0xFF6366F1,
+                                        ),
                                       ),
                                     ],
                                   ),
 
                                   if (provider.allowPaidApps) ...[
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      child: Divider(color: Colors.grey.shade800, height: 1),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      child: Divider(
+                                        color: Colors.grey.shade800,
+                                        height: 1,
+                                      ),
                                     ),
 
                                     // Paid toggle
@@ -591,7 +756,9 @@ class _AddAppPageState extends State<AddAppPage> {
                                           height: 40,
                                           decoration: BoxDecoration(
                                             color: const Color(0xFF2A2A2E),
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                           child: Center(
                                             child: FaIcon(
@@ -619,7 +786,10 @@ class _AddAppPageState extends State<AddAppPage> {
                                                 provider.isPaid
                                                     ? context.l10n.usersPayToUse
                                                     : context.l10n.freeForEveryone,
-                                                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade500,
+                                                  fontSize: 13,
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -629,7 +799,9 @@ class _AddAppPageState extends State<AddAppPage> {
                                           onChanged: (value) {
                                             provider.setIsPaid(value);
                                           },
-                                          activeThumbColor: const Color(0xFF22C55E),
+                                          activeThumbColor: const Color(
+                                            0xFF22C55E,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -638,10 +810,15 @@ class _AddAppPageState extends State<AddAppPage> {
                                     if (provider.isPaid) ...[
                                       const SizedBox(height: 16),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 14,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF2A2A2E),
-                                          borderRadius: BorderRadius.circular(14),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
                                         ),
                                         child: Row(
                                           children: [
@@ -657,7 +834,9 @@ class _AddAppPageState extends State<AddAppPage> {
                                             Expanded(
                                               child: TextField(
                                                 controller: provider.priceController,
-                                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                keyboardType: const TextInputType.numberWithOptions(
+                                                  decimal: true,
+                                                ),
                                                 style: const TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 20,
@@ -665,7 +844,10 @@ class _AddAppPageState extends State<AddAppPage> {
                                                 ),
                                                 decoration: InputDecoration(
                                                   hintText: '0.00',
-                                                  hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 20),
+                                                  hintStyle: TextStyle(
+                                                    color: Colors.grey.shade600,
+                                                    fontSize: 20,
+                                                  ),
                                                   border: InputBorder.none,
                                                   isDense: true,
                                                   contentPadding: EdgeInsets.zero,
@@ -674,7 +856,10 @@ class _AddAppPageState extends State<AddAppPage> {
                                             ),
                                             Text(
                                               context.l10n.perMonth,
-                                              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                                              style: TextStyle(
+                                                color: Colors.grey.shade500,
+                                                fontSize: 14,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -694,7 +879,12 @@ class _AddAppPageState extends State<AddAppPage> {
           bottomNavigationBar: (provider.isLoading || provider.isSubmitting)
               ? null
               : Container(
-                  padding: const EdgeInsets.only(left: 16.0, right: 16, bottom: 30, top: 10),
+                  padding: const EdgeInsets.only(
+                    left: 16.0,
+                    right: 16,
+                    bottom: 30,
+                    top: 10,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12.0),
                     color: const Color(0xFF1F1F25),
@@ -752,82 +942,12 @@ class _AddAppPageState extends State<AddAppPage> {
                                           if (appId != null && context.mounted) {
                                             app = await context.read<AppProvider>().getAppFromId(appId);
                                           }
-                                          var paymentProvider = PaymentMethodProvider();
-                                          await paymentProvider.getPaymentMethodsStatus();
-
                                           if (app != null && mounted && context.mounted) {
-                                            if (app.isPaid && paymentProvider.activeMethod == null) {
-                                              showCupertinoModalPopup(
-                                                context: context,
-                                                builder: (ctx) => Container(
-                                                  padding: const EdgeInsets.all(20),
-                                                  decoration: const BoxDecoration(
-                                                    color: Color(0xFF1F1F25),
-                                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                                  ),
-                                                  child: Material(
-                                                    color: Colors.transparent,
-                                                    child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Container(
-                                                          width: 40,
-                                                          height: 4,
-                                                          margin: const EdgeInsets.only(bottom: 20),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors.grey.shade700,
-                                                            borderRadius: BorderRadius.circular(2),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(height: 20),
-                                                        Text(
-                                                          context.l10n.startEarning,
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 24,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(height: 12),
-                                                        Text(
-                                                          context.l10n.connectStripeOrPayPal,
-                                                          textAlign: TextAlign.center,
-                                                          style: const TextStyle(color: Colors.grey, fontSize: 16),
-                                                        ),
-                                                        const SizedBox(height: 32),
-                                                        CupertinoButton(
-                                                          color: Colors.white,
-                                                          borderRadius: BorderRadius.circular(12),
-                                                          onPressed: () {
-                                                            Navigator.pop(ctx);
-                                                            routeToPage(context, const PaymentsPage());
-                                                          },
-                                                          child: Text(
-                                                            context.l10n.connectNow,
-                                                            style: const TextStyle(
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w600,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(height: 8),
-                                                        CupertinoButton(
-                                                          onPressed: () => Navigator.pop(ctx),
-                                                          child: Text(
-                                                            context.l10n.maybeLater,
-                                                            style: TextStyle(color: Colors.grey.shade400),
-                                                          ),
-                                                        ),
-                                                        SizedBox(height: MediaQuery.of(context).padding.bottom),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            } else {
-                                              Navigator.pop(context);
-                                              routeToPage(context, AppDetailPage(app: app));
-                                            }
+                                            Navigator.pop(context);
+                                            routeToPage(
+                                              context,
+                                              AppDetailPage(app: app),
+                                            );
                                           }
                                         },
                                         onCancel: () {
@@ -846,7 +966,10 @@ class _AddAppPageState extends State<AddAppPage> {
                           ),
                           child: Text(
                             context.l10n.submitApp,
-                            style: const TextStyle(color: Colors.black, fontSize: 16),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -859,7 +982,10 @@ class _AddAppPageState extends State<AddAppPage> {
                         child: Text.rich(
                           TextSpan(
                             text: context.l10n.bySubmittingYouAgreeToOmi,
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 10,
+                            ),
                             children: [
                               TextSpan(
                                 text: context.l10n.termsAndPrivacyPolicy,

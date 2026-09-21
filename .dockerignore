@@ -4,5 +4,8 @@
 !backend/selfhost/**
 !deploy/
 !deploy/Dockerfile
+!services/
+!services/voiceprint/
+!services/voiceprint/**
 **/__pycache__
 **/.pytest_cache

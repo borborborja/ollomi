@@ -4,8 +4,10 @@ import mimetypes
 import shutil
 import os
 import subprocess
+import time
 import wave
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import (
     APIRouter,
@@ -66,8 +68,7 @@ def enqueue_audio(
             kind="file",
             data={
                 "name": Path(filename).name,
-                "content_type": mimetypes.guess_type(filename)[0]
-                or "application/octet-stream",
+                "content_type": mimetypes.guess_type(filename)[0] or "application/octet-stream",
             },
         )
         db.add(file_row)
@@ -100,10 +101,7 @@ def enqueue_audio(
                 "conversation_id": row.id,
                 "language": language,
                 "file_count": file_count,
-                **{
-                    p: selected_profile(db, uid, p)
-                    for p in ("stt", "chat", "embedding")
-                },
+                **{p: selected_profile(db, uid, p) for p in ("stt", "chat", "embedding")},
             },
         )
         db.add(job)
@@ -135,24 +133,16 @@ async def import_audio(
         with destination.open("wb") as output:
             while chunk := await file.read(1024 * 1024):
                 size += len(chunk)
-                if shutil.disk_usage(destination.parent).free < 256 * 1024 * 1024 + len(
-                    chunk
-                ):
-                    raise HTTPException(
-                        507, "Insufficient server storage; retry after freeing space"
-                    )
+                if shutil.disk_usage(destination.parent).free < 256 * 1024 * 1024 + len(chunk):
+                    raise HTTPException(507, "Insufficient server storage; retry after freeing space")
                 if size > settings().max_upload_mb * 1024 * 1024:
-                    raise HTTPException(
-                        413, "Audio exceeds the configured upload limit"
-                    )
+                    raise HTTPException(413, "Audio exceeds the configured upload limit")
                 await run_in_threadpool(output.write, chunk)
             await run_in_threadpool(output.flush)
             await run_in_threadpool(os.fsync, output.fileno())
         if not size:
             raise HTTPException(422, "Audio is empty")
-        return await run_in_threadpool(
-            enqueue_audio, user.id, file_id, file.filename or "audio.mp3", language
-        )
+        return await run_in_threadpool(enqueue_audio, user.id, file_id, file.filename or "audio.mp3", language)
     except BaseException:
         destination.unlink(missing_ok=True)
         raise
@@ -192,11 +182,7 @@ def job_action(job_id: str, operation: str, user=Depends(current_user)):
     from sqlalchemy import select
 
     with transaction() as db:
-        job = db.scalar(
-            select(Job)
-            .where(Job.id == job_id, Job.user_id == user.id)
-            .with_for_update()
-        )
+        job = db.scalar(select(Job).where(Job.id == job_id, Job.user_id == user.id).with_for_update())
         if not job:
             raise HTTPException(404, "Job not found")
         if operation == "cancel" and job.status in {"queued", "running", "failed"}:
@@ -254,10 +240,7 @@ def probe_audio(path):
     )
     info = json.loads(result.stdout)
     duration = float(info.get("format", {}).get("duration", 0))
-    if (
-        not any(s.get("codec_type") == "audio" for s in info.get("streams", []))
-        or duration <= 0
-    ):
+    if not any(s.get("codec_type") == "audio" for s in info.get("streams", [])) or duration <= 0:
         raise ValueError("Invalid audio file")
     if duration > settings().max_audio_seconds:
         raise ValueError("Audio exceeds configured duration limit")
@@ -265,7 +248,7 @@ def probe_audio(path):
 
 
 def transcribe_file(profile, path, language="auto", diarize=True):
-    def request(candidate):
+    def openai_compatible(candidate):
         options = dict((candidate.get("capabilities") or {}).get("options", {}))
         response_format = options.pop("response_format", "verbose_json")
         data = {
@@ -287,7 +270,181 @@ def transcribe_file(profile, path, language="auto", diarize=True):
                 files={"file": ("audio.wav", file, "audio/wav")},
             )
             response.raise_for_status()
-            result = response.json()
+            return response.json()
+
+    def deepgram(candidate):
+        options = dict((candidate.get("capabilities") or {}).get("options", {}))
+        params = {
+            "model": candidate["model"],
+            "smart_format": "true",
+            "diarize": str(diarize).lower(),
+            "utterances": "true",
+            **options,
+        }
+        if language != "auto":
+            params["language"] = language
+        with provider_client(candidate, timeout=600) as client, Path(path).open("rb") as file:
+            response = client.post("listen", params=params, content=file, headers={"Content-Type": "audio/wav"})
+            response.raise_for_status()
+            payload = response.json()
+        alternative = payload["results"]["channels"][0]["alternatives"][0]
+        segments = [
+            {
+                "start": row.get("start", 0),
+                "end": row.get("end", 0),
+                "text": row.get("transcript", ""),
+                "speaker": f"spk_{row['speaker']}" if row.get("speaker") is not None else None,
+            }
+            for row in payload.get("results", {}).get("utterances", [])
+        ]
+        return {"text": alternative.get("transcript", ""), "segments": segments}
+
+    def assemblyai(candidate):
+        options = dict((candidate.get("capabilities") or {}).get("options", {}))
+        with provider_client(candidate, timeout=600) as client, Path(path).open("rb") as file:
+            upload = client.post("upload", content=file, headers={"Content-Type": "application/octet-stream"})
+            upload.raise_for_status()
+            upload_url = upload.json().get("upload_url")
+            if not isinstance(upload_url, str) or not upload_url:
+                raise ValueError("AssemblyAI did not return an upload URL")
+            body = {
+                "audio_url": upload_url,
+                "speech_models": [candidate["model"]],
+                "speaker_labels": diarize,
+                "language_detection": language == "auto",
+                **options,
+            }
+            if language != "auto":
+                body["language_code"] = language
+            submitted = client.post("transcript", json=body)
+            submitted.raise_for_status()
+            transcript_id = submitted.json().get("id")
+            if not isinstance(transcript_id, str) or not transcript_id:
+                raise ValueError("AssemblyAI did not return a transcript ID")
+            deadline = time.monotonic() + 600
+            while True:
+                response = client.get("transcript/" + transcript_id)
+                response.raise_for_status()
+                result = response.json()
+                if result.get("status") == "completed":
+                    break
+                if result.get("status") == "error":
+                    raise ValueError("AssemblyAI transcription failed: " + str(result.get("error", "unknown error")))
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("AssemblyAI transcription timed out")
+                time.sleep(3)
+        return {
+            "text": result.get("text", ""),
+            "segments": [
+                {
+                    "start": float(row.get("start", 0)) / 1000,
+                    "end": float(row.get("end", 0)) / 1000,
+                    "text": row.get("text", ""),
+                    "speaker": f"spk_{row['speaker']}" if row.get("speaker") is not None else None,
+                }
+                for row in result.get("utterances", [])
+            ],
+        }
+
+    def gemini(candidate):
+        options = dict((candidate.get("capabilities") or {}).get("options", {}))
+        generation_config = dict(options.pop("generation_config", {}))
+        transcription = dict(generation_config.pop("transcription_config", options.pop("transcription_config", {})))
+        # Preserve configurations written for Ollomi's early Gemini adapter.
+        if "audioTranscriptionConfig" in options:
+            transcription = {**dict(options.pop("audioTranscriptionConfig")), **transcription}
+        if "customVocabulary" in transcription:
+            transcription["custom_vocabulary"] = transcription.pop("customVocabulary")
+        if language != "auto":
+            transcription["language_codes"] = [language]
+        if diarize:
+            if transcription.get("custom_vocabulary"):
+                raise ValueError("Gemini cannot combine custom_vocabulary with diarization")
+            mode = transcription.get("mode", {})
+            if isinstance(mode, str):
+                if mode == "smart":
+                    raise ValueError("Gemini smart mode cannot combine with diarization")
+                raise ValueError("Gemini transcription mode is invalid")
+            if not isinstance(mode, dict):
+                raise ValueError("Gemini transcription mode is invalid")
+            transcription["mode"] = {"type": "verbatim", **mode, "diarization_mode": "speaker"}
+        with provider_client(candidate, timeout=600) as client, Path(path).open("rb") as file:
+            uploaded = client.post(
+                "upload/v1beta/files",
+                content=file,
+                headers={
+                    "Content-Type": "audio/wav",
+                    "X-Goog-Upload-Protocol": "raw",
+                    "X-Goog-Upload-File-Name": "audio.wav",
+                },
+            )
+            uploaded.raise_for_status()
+            file_uri = uploaded.json().get("file", {}).get("uri")
+            if not isinstance(file_uri, str) or not file_uri:
+                raise ValueError("Gemini did not return an uploaded file URI")
+            try:
+                response = client.post(
+                    "v1beta/interactions",
+                    json={
+                        "model": candidate["model"],
+                        "input": [{"type": "audio", "uri": file_uri, "mime_type": "audio/wav"}],
+                        "generation_config": {"transcription_config": transcription, **generation_config},
+                        **options,
+                    },
+                )
+                response.raise_for_status()
+                result = response.json()
+            finally:
+                uploaded_uri = urlsplit(file_uri)
+                provider_uri = urlsplit(candidate["base_url"])
+                if (
+                    uploaded_uri.scheme == provider_uri.scheme
+                    and uploaded_uri.netloc == provider_uri.netloc
+                    and uploaded_uri.path.startswith("/v1beta/files/")
+                ):
+                    try:
+                        client.delete(uploaded_uri.path.lstrip("/"))
+                    except Exception:
+                        # A successful transcription must not become a failed job because a provider's cleanup failed.
+                        pass
+        words = []
+        for step in result.get("steps", []):
+            for content in step.get("content", []):
+                for annotation in content.get("annotations", []):
+                    if annotation.get("type") != "word_info" or not isinstance(annotation.get("text"), str):
+                        continue
+                    try:
+                        start = float(str(annotation.get("start_offset", "0")).removesuffix("s"))
+                        end = float(str(annotation.get("end_offset", start)).removesuffix("s"))
+                    except ValueError:
+                        continue
+                    words.append(
+                        {
+                            "start": start,
+                            "end": end,
+                            "text": annotation["text"],
+                            "speaker": annotation.get("speaker"),
+                        }
+                    )
+        segments = []
+        for word in words:
+            if segments and segments[-1]["speaker"] == word["speaker"] and word["start"] <= segments[-1]["end"] + 2:
+                segments[-1]["end"] = word["end"]
+                segments[-1]["text"] += " " + word["text"]
+            else:
+                segments.append(word)
+        return {"text": result.get("output_text", ""), "segments": segments or None}
+
+    def request(candidate):
+        provider = (candidate.get("capabilities") or {}).get("provider", "custom").lower()
+        if provider == "deepgram":
+            result = deepgram(candidate)
+        elif provider == "assemblyai":
+            result = assemblyai(candidate)
+        elif provider == "gemini":
+            result = gemini(candidate)
+        else:
+            result = openai_compatible(candidate)
         if not isinstance(result.get("text"), str):
             raise ValueError("STT response has no text")
         return result
@@ -345,9 +502,7 @@ async def listen(socket: WebSocket):
     await socket.accept()
     file_id, conversation_id = (
         ident(),
-        socket.query_params.get("conversation_id")
-        or socket.query_params.get("client_conversation_id")
-        or ident(),
+        socket.query_params.get("conversation_id") or socket.query_params.get("client_conversation_id") or ident(),
     )
 
     def setup():

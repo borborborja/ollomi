@@ -197,7 +197,7 @@ class OmiBleForegroundService : Service() {
 
             startStabilityTimer(addr)
             bleManager.startRssiKeepAlive(addr)
-            updateNotification("Connected to Omi")
+            updateNotification("Connected to Ollomi")
         }
 
         override fun onGattDisconnected(address: String, gattHash: Int, status: Int) {
@@ -420,7 +420,7 @@ class OmiBleForegroundService : Service() {
             managed.currentGattHash = gatt.hashCode()
             managed.connectionStartTime = System.currentTimeMillis()
             managed.currentAttemptEstablished = false
-            updateNotification("Connecting to Omi...")
+            updateNotification("Connecting to Ollomi...")
         }
     }
 
@@ -466,7 +466,7 @@ class OmiBleForegroundService : Service() {
         managed.currentGattHash = bleManager.connectedGatts[addr]?.hashCode()
         managed.hasEverConnected = true
         managed.currentAttemptEstablished = true
-        updateNotification("Connected to Omi")
+        updateNotification("Connected to Ollomi")
         notifyReadyForConnectedGatt(addr)
     }
 
@@ -720,7 +720,7 @@ class OmiBleForegroundService : Service() {
         // a process kill with the screen locked, or a CompanionDeviceService callback. An uncaught throw
         // silently kills the whole process ("app just disappears"). Stop cleanly instead of crashing.
         try {
-            startForeground(NOTIFICATION_ID, buildNotification("Connecting to Omi..."))
+            startForeground(NOTIFICATION_ID, buildNotification("Connecting to Ollomi..."))
         } catch (e: Exception) {
             Log.e(TAG, "startForeground failed; stopping service instead of crashing", e)
             stopSelf()
@@ -957,10 +957,10 @@ class OmiBleForegroundService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Omi BLE Connection",
+            "Ollomi BLE Connection",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Shows Omi device connection status"
+            description = "Shows Ollomi device connection status"
             setShowBadge(false)
         }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
@@ -973,7 +973,7 @@ class OmiBleForegroundService : Service() {
         } else null
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Omi")
+            .setContentTitle("Ollomi")
             .setContentText(contentText)
             .setSmallIcon(applicationInfo.icon)
             .setPriority(NotificationCompat.PRIORITY_LOW)

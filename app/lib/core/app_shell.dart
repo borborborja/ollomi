@@ -12,7 +12,6 @@ import 'package:omi/pages/action_items/widgets/accept_shared_tasks_sheet.dart';
 import 'package:omi/pages/apps/app_detail/app_detail.dart';
 import 'package:omi/pages/settings/asana_settings_page.dart';
 import 'package:omi/pages/settings/clickup_settings_page.dart';
-import 'package:omi/pages/settings/usage_page.dart';
 import 'package:omi/pages/settings/wrapped_2025_page.dart';
 import 'package:omi/providers/action_items_provider.dart';
 import 'package:omi/providers/app_provider.dart';
@@ -22,7 +21,6 @@ import 'package:omi/providers/integration_provider.dart';
 import 'package:omi/providers/message_provider.dart';
 import 'package:omi/providers/people_provider.dart';
 import 'package:omi/providers/task_integration_provider.dart';
-import 'package:omi/providers/usage_provider.dart';
 import 'package:omi/providers/user_provider.dart';
 import 'package:omi/services/integrations/asana_service.dart';
 import 'package:omi/services/integrations/clickup_service.dart';
@@ -69,11 +67,18 @@ class _AppShellState extends State<AppShell> {
 
     if (uri.pathSegments.first == 'apps' && uri.pathSegments.length > 1) {
       if (mounted) {
-        var app = await context.read<AppProvider>().getAppFromId(uri.pathSegments[1]);
+        var app = await context.read<AppProvider>().getAppFromId(
+              uri.pathSegments[1],
+            );
         if (app != null) {
-          PlatformManager.instance.analytics.track('App Opened From DeepLink', properties: {'appId': app.id});
+          PlatformManager.instance.analytics.track(
+            'App Opened From DeepLink',
+            properties: {'appId': app.id},
+          );
           if (mounted) {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => AppDetailPage(app: app)));
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => AppDetailPage(app: app)),
+            );
           }
         } else {
           Logger.debug('App not found: ${uri.pathSegments[1]}');
@@ -84,20 +89,21 @@ class _AppShellState extends State<AppShell> {
       }
     } else if (uri.pathSegments.first == 'wrapped') {
       if (mounted) {
-        PlatformManager.instance.analytics.track('Wrapped Opened From DeepLink');
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Wrapped2025Page()));
+        PlatformManager.instance.analytics.track(
+          'Wrapped Opened From DeepLink',
+        );
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const Wrapped2025Page()),
+        );
       }
     } else if (uri.pathSegments.first == 'tasks' && uri.pathSegments.length > 1) {
       if (mounted) {
         final token = uri.pathSegments[1];
-        PlatformManager.instance.analytics.track('Shared Tasks Opened From DeepLink', properties: {'token': token});
+        PlatformManager.instance.analytics.track(
+          'Shared Tasks Opened From DeepLink',
+          properties: {'token': token},
+        );
         _handleSharedTasksDeepLink(token);
-      }
-    } else if (uri.pathSegments.first == 'unlimited') {
-      if (mounted) {
-        if (!context.read<UsageProvider>().showSubscriptionUI) return;
-        PlatformManager.instance.analytics.track('Plans Opened From DeepLink');
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const UsagePage(showUpgradeDialog: true)));
       }
     } else if (uri.host == 'todoist' && uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'callback') {
       // Handle Todoist OAuth callback
@@ -110,7 +116,7 @@ class _AppShellState extends State<AppShell> {
 
       final success = uri.queryParameters['success'];
       if (success == 'true') {
-        Logger.debug('Todoist OAuth successful (tokens in Firebase)');
+        Logger.debug('Todoist OAuth successful (tokens stored by Ollomi)');
         _handleTodoistCallback();
       } else {
         Logger.debug('Todoist callback received but no success flag');
@@ -127,7 +133,7 @@ class _AppShellState extends State<AppShell> {
       final success = uri.queryParameters['success'];
       final requiresSetup = uri.queryParameters['requires_setup'];
       if (success == 'true') {
-        Logger.debug('Asana OAuth successful (tokens in Firebase)');
+        Logger.debug('Asana OAuth successful (tokens stored by Ollomi)');
         _handleAsanaCallback(requiresSetup == 'true');
       } else {
         Logger.debug('Asana callback received but no success flag');
@@ -143,7 +149,7 @@ class _AppShellState extends State<AppShell> {
 
       final success = uri.queryParameters['success'];
       if (success == 'true') {
-        Logger.debug('Google Tasks OAuth successful (tokens in Firebase)');
+        Logger.debug('Google Tasks OAuth successful (tokens stored by Ollomi)');
         _handleGoogleTasksCallback();
       } else {
         Logger.debug('Google Tasks callback received but no success flag');
@@ -160,13 +166,18 @@ class _AppShellState extends State<AppShell> {
       final success = uri.queryParameters['success'];
       final requiresSetup = uri.queryParameters['requires_setup'];
       if (success == 'true') {
-        Logger.debug('ClickUp OAuth successful (tokens in Firebase)');
+        Logger.debug('ClickUp OAuth successful (tokens stored by Ollomi)');
         _handleClickUpCallback(requiresSetup == 'true');
       } else {
         Logger.debug('ClickUp callback received but no success flag');
       }
     } else if (uri.host == 'google_calendar' && uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'callback') {
-      await _handleOAuthCallback(uri, 'Google', 'Google Calendar', _handleGoogleCalendarCallback);
+      await _handleOAuthCallback(
+        uri,
+        'Google',
+        'Google Calendar',
+        _handleGoogleCalendarCallback,
+      );
     } else {
       Logger.debug('Unknown link: $uri');
     }
@@ -181,13 +192,15 @@ class _AppShellState extends State<AppShell> {
     final error = uri.queryParameters['error'];
     if (error != null) {
       Logger.debug('$oauthLogName OAuth error: $error');
-      AppSnackbar.showSnackbarError(context.l10n.failedToConnectServiceWithError(errorDisplayName, error));
+      AppSnackbar.showSnackbarError(
+        context.l10n.failedToConnectServiceWithError(errorDisplayName, error),
+      );
       return;
     }
 
     final success = uri.queryParameters['success'];
     if (success == 'true') {
-      Logger.debug('$oauthLogName OAuth successful (tokens in Firebase)');
+      Logger.debug('$oauthLogName OAuth successful (tokens stored by Ollomi)');
       await onSuccess();
     } else {
       Logger.debug('$oauthLogName callback received but no success flag');
@@ -211,7 +224,12 @@ class _AppShellState extends State<AppShell> {
         token: token,
         senderName: data['sender_name'] ?? 'Someone',
         tasks: (data['tasks'] as List<dynamic>? ?? [])
-            .map((t) => {'description': t['description'] ?? '', 'due_at': t['due_at']})
+            .map(
+              (t) => {
+                'description': t['description'] ?? '',
+                'due_at': t['due_at'],
+              },
+            )
             .toList(),
         onAccepted: () {
           // Refresh action items after accepting
@@ -230,15 +248,22 @@ class _AppShellState extends State<AppShell> {
     if (!mounted) return;
 
     if (success) {
-      PlatformManager.instance.analytics.taskIntegrationEnabled(appName: 'todoist', success: true);
+      PlatformManager.instance.analytics.taskIntegrationEnabled(
+        appName: 'todoist',
+        success: true,
+      );
       Logger.debug('✓ Todoist authentication completed successfully');
-      Logger.debug('✓ Task integration enabled: Todoist - authentication complete');
+      Logger.debug(
+        '✓ Task integration enabled: Todoist - authentication complete',
+      );
       AppSnackbar.showSnackbar(context.l10n.successfullyConnectedTodoist);
 
-      // Notify task integration provider to refresh UI from Firebase
+      // Notify the provider to refresh task-integration state from Ollomi.
       context.read<TaskIntegrationProvider>().refresh();
     } else {
-      PlatformManager.instance.analytics.taskIntegrationAuthFailed(appName: 'todoist');
+      PlatformManager.instance.analytics.taskIntegrationAuthFailed(
+        appName: 'todoist',
+      );
       Logger.debug('Failed to complete Todoist authentication');
       AppSnackbar.showSnackbarError(context.l10n.failedToConnectTodoistRetry);
     }
@@ -251,20 +276,29 @@ class _AppShellState extends State<AppShell> {
     if (!mounted) return;
 
     if (success) {
-      PlatformManager.instance.analytics.taskIntegrationEnabled(appName: 'asana', success: true);
+      PlatformManager.instance.analytics.taskIntegrationEnabled(
+        appName: 'asana',
+        success: true,
+      );
       Logger.debug('✓ Asana authentication completed successfully');
-      Logger.debug('✓ Task integration enabled: Asana - authentication complete');
+      Logger.debug(
+        '✓ Task integration enabled: Asana - authentication complete',
+      );
       AppSnackbar.showSnackbar(context.l10n.successfullyConnectedAsana);
 
-      // Notify task integration provider to refresh UI from Firebase
+      // Notify the provider to refresh task-integration state from Ollomi.
       context.read<TaskIntegrationProvider>().refresh();
 
       // Auto-open settings page for configuration
       if (requiresSetup && mounted) {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AsanaSettingsPage()));
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const AsanaSettingsPage()),
+        );
       }
     } else {
-      PlatformManager.instance.analytics.taskIntegrationAuthFailed(appName: 'asana');
+      PlatformManager.instance.analytics.taskIntegrationAuthFailed(
+        appName: 'asana',
+      );
       Logger.debug('Failed to complete Asana authentication');
       AppSnackbar.showSnackbarError(context.l10n.failedToConnectAsanaRetry);
     }
@@ -277,17 +311,26 @@ class _AppShellState extends State<AppShell> {
     if (!mounted) return;
 
     if (success) {
-      PlatformManager.instance.analytics.taskIntegrationEnabled(appName: 'google_tasks', success: true);
+      PlatformManager.instance.analytics.taskIntegrationEnabled(
+        appName: 'google_tasks',
+        success: true,
+      );
       Logger.debug('✓ Google Tasks authentication completed successfully');
-      Logger.debug('✓ Task integration enabled: Google Tasks - authentication complete');
+      Logger.debug(
+        '✓ Task integration enabled: Google Tasks - authentication complete',
+      );
       AppSnackbar.showSnackbar(context.l10n.successfullyConnectedGoogleTasks);
 
-      // Notify task integration provider to refresh UI from Firebase
+      // Notify the provider to refresh task-integration state from Ollomi.
       context.read<TaskIntegrationProvider>().refresh();
     } else {
-      PlatformManager.instance.analytics.taskIntegrationAuthFailed(appName: 'google_tasks');
+      PlatformManager.instance.analytics.taskIntegrationAuthFailed(
+        appName: 'google_tasks',
+      );
       Logger.debug('Failed to complete Google Tasks authentication');
-      AppSnackbar.showSnackbarError(context.l10n.failedToConnectGoogleTasksRetry);
+      AppSnackbar.showSnackbarError(
+        context.l10n.failedToConnectGoogleTasksRetry,
+      );
     }
   }
 
@@ -298,20 +341,29 @@ class _AppShellState extends State<AppShell> {
     if (!mounted) return;
 
     if (success) {
-      PlatformManager.instance.analytics.taskIntegrationEnabled(appName: 'clickup', success: true);
+      PlatformManager.instance.analytics.taskIntegrationEnabled(
+        appName: 'clickup',
+        success: true,
+      );
       Logger.debug('✓ ClickUp authentication completed successfully');
-      Logger.debug('✓ Task integration enabled: ClickUp - authentication complete');
+      Logger.debug(
+        '✓ Task integration enabled: ClickUp - authentication complete',
+      );
       AppSnackbar.showSnackbar(context.l10n.successfullyConnectedClickUp);
 
-      // Notify task integration provider to refresh UI from Firebase
+      // Notify the provider to refresh task-integration state from Ollomi.
       context.read<TaskIntegrationProvider>().refresh();
 
       // Auto-open settings page for configuration
       if (requiresSetup && mounted) {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ClickUpSettingsPage()));
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const ClickUpSettingsPage()),
+        );
       }
     } else {
-      PlatformManager.instance.analytics.taskIntegrationAuthFailed(appName: 'clickup');
+      PlatformManager.instance.analytics.taskIntegrationAuthFailed(
+        appName: 'clickup',
+      );
       Logger.debug('Failed to complete ClickUp authentication');
       AppSnackbar.showSnackbarError(context.l10n.failedToConnectClickUpRetry);
     }
@@ -364,7 +416,9 @@ class _AppShellState extends State<AppShell> {
       context.read<UserProvider>().initialize();
       context.read<PeopleProvider>().initialize();
       try {
-        await PlatformManager.instance.intercom.loginIdentifiedUser(SharedPreferencesUtil().uid);
+        await PlatformManager.instance.intercom.loginIdentifiedUser(
+          SharedPreferencesUtil().uid,
+        );
       } catch (e) {
         Logger.debug('Failed to login to Intercom: $e');
       }
@@ -373,7 +427,6 @@ class _AppShellState extends State<AppShell> {
       context.read<MessageProvider>().setMessagesFromCache();
       context.read<AppProvider>().setAppsFromCache();
       context.read<MessageProvider>().refreshMessages();
-      context.read<UsageProvider>().fetchSubscription();
       context.read<TaskIntegrationProvider>().loadFromBackend();
       // Same fire-and-forget as task integrations: chat/settings must not
       // treat an empty in-memory map as "not connected" after process death.

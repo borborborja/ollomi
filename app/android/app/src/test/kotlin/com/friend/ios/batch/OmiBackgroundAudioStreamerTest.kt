@@ -17,7 +17,8 @@ class OmiBackgroundAudioStreamerTest {
     private class Preferences : NativeBlePreferences {
         val values = ConcurrentHashMap<String, Any>(mapOf(
             "nativeBleStreamingEnabled" to true,
-            "nativeBleStreamConfig" to """{"deviceId":"device","serviceUuid":"service","characteristicUuid":"audio","deviceType":"omi"}""",
+            "ollomi.server" to "https://ollomi.example.test/",
+            "nativeBleStreamConfig" to """{"deviceId":"device","serviceUuid":"service","characteristicUuid":"audio","deviceType":"omi","apiBaseUrl":"https://ollomi.example.test/"}""",
             "uid" to "account-a", "nativeAuthToken" to "token-a",
         ))
         @Volatile var afterBooleanRead: ((String) -> Unit)? = null
@@ -100,20 +101,18 @@ class OmiBackgroundAudioStreamerTest {
         assertTrue(OmiBackgroundAudioStreamer.drainCachedTranscriptMessages().isEmpty())
     }
 
-    @Test fun `custom stt changes fail closed and recovery drops revoked frames`() {
+    @Test fun `legacy STT preferences cannot redirect or disable the selected server`() {
         val h = Harness()
         h.frame(1)
         val original = h.sockets.single()
         h.prefs.values["customSttConfig"] = """{"provider":"deepgram","send_raw_audio_to_omi":false}"""
         h.frame(2)
-        assertTrue(original.closed)
+        assertFalse(original.closed)
         h.prefs.values["customSttConfig"] = "malformed"
         h.frame(3)
         assertEquals(1, h.sockets.size)
-        h.prefs.values.remove("customSttConfig")
-        h.frame(4)
-        h.sockets.last().open()
-        assertEquals(listOf(4), h.sockets.last().values())
+        original.open()
+        assertEquals(listOf(1, 2, 3), original.values())
     }
 
     @Test fun `missing credentials stop forwarding and legacy auth still works`() {
@@ -150,7 +149,9 @@ class OmiBackgroundAudioStreamerTest {
         assertEquals("fr", request.url.queryParameter("language"))
         assertEquals("enabled", request.url.queryParameter("vad_gate"))
         assertEquals("45", request.url.queryParameter("conversation_timeout"))
-        assertEquals("deepgram", request.url.queryParameter("stt_service"))
+        assertEquals("ollomi.example.test", request.url.host)
+        assertNull(request.url.queryParameter("uid"))
+        assertNull(request.url.queryParameter("stt_service"))
         assertEquals("hash-b", request.header("X-Device-Id-Hash"))
         h.prefs.values["nativeBleStreamConfig"] = "broken"
         h.frame()
@@ -195,6 +196,33 @@ class OmiBackgroundAudioStreamerTest {
         h.sockets.single().open()
         assertTrue(h.sockets.single().closed)
         assertTrue(h.sockets.single().frames.isEmpty())
+    }
+
+    @Test fun `only the selected Ollomi server can receive native BLE audio`() {
+        for (apiBaseUrl in listOf(
+            "",
+            "https://api.omi.me/",
+            "https://parakeet.omiapi.com/",
+            "https://different-server.example.test/",
+        )) {
+            val h = Harness()
+            val original = h.prefs.values["nativeBleStreamConfig"] as String
+            h.prefs.values["nativeBleStreamConfig"] = original.replace(
+                "https://ollomi.example.test/", apiBaseUrl,
+            )
+            h.frame()
+            assertTrue(h.sockets.isEmpty())
+        }
+    }
+
+    @Test fun `changing selected server stops an existing native BLE stream`() {
+        val h = Harness()
+        h.frame(1)
+        val original = h.sockets.single()
+        h.prefs.values["ollomi.server"] = "https://different-server.example.test/"
+        h.frame(2)
+        assertTrue(original.closed)
+        assertEquals(1, h.sockets.size)
     }
 
     @Test fun `auth refreshed before onOpen reconnects and preserves queue`() {

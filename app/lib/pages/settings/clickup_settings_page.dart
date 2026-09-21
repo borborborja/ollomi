@@ -43,7 +43,7 @@ class _ClickUpSettingsPageState extends State<ClickUpSettingsPage> {
 
     if (!mounted) return;
 
-    // Get saved team from Firebase (via provider)
+    // Get the saved team from the backend through the provider.
     final provider = context.read<TaskIntegrationProvider>();
     final clickupDetails = provider.getConnectionDetails('clickup');
     final savedTeamId = clickupDetails?['team_id'] as String?;
@@ -68,7 +68,7 @@ class _ClickUpSettingsPageState extends State<ClickUpSettingsPage> {
 
     if (!mounted) return;
 
-    // Get saved space from Firebase (via provider)
+    // Get the saved space from the backend through the provider.
     final provider = context.read<TaskIntegrationProvider>();
     final clickupDetails = provider.getConnectionDetails('clickup');
     final savedSpaceId = clickupDetails?['space_id'] as String?;
@@ -91,7 +91,7 @@ class _ClickUpSettingsPageState extends State<ClickUpSettingsPage> {
 
     if (!mounted) return;
 
-    // Get saved list from Firebase (via provider)
+    // Get the saved list from the backend through the provider.
     final provider = context.read<TaskIntegrationProvider>();
     final clickupDetails = provider.getConnectionDetails('clickup');
     final savedListId = clickupDetails?['list_id'] as String?;

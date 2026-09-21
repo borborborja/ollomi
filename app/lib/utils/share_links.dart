@@ -1,11 +1,14 @@
-// Public share-link base URL for self-hosting (#4339).
+import 'package:omi/env/env.dart';
+
+// Public sharing is optional and must never default to an upstream Omi host.
+// If a deployment deliberately exposes compatible public-share routes, it may
+// override the selected Ollomi server at build time.
 //
-// Matches backend `OMI_SHARE_BASE_URL` / desktop share helpers.
-// Override at build time with `--dart-define=OMI_SHARE_BASE_URL=https://share.example.com`.
+// Override with `--dart-define=OLLOMI_SHARE_BASE_URL=https://share.example.com`.
 
-const defaultShareBaseUrl = 'https://h.omi.me';
+const defaultShareBaseUrl = Env.productionApiBaseUrl;
 
-const _shareBaseFromDefine = String.fromEnvironment('OMI_SHARE_BASE_URL');
+const _shareBaseFromDefine = String.fromEnvironment('OLLOMI_SHARE_BASE_URL');
 
 final _hostOk = RegExp(r'^[A-Za-z0-9.-]+$');
 
@@ -15,7 +18,7 @@ final _hostOk = RegExp(r'^[A-Za-z0-9.-]+$');
 String shareBaseUrl([String? raw]) {
   var value = (raw ?? _shareBaseFromDefine).trim();
   if (value.isEmpty) {
-    value = defaultShareBaseUrl;
+    value = Env.apiBaseUrl ?? defaultShareBaseUrl;
   }
   if (!value.contains('://')) {
     value = 'https://$value';
@@ -28,7 +31,7 @@ String shareBaseUrl([String? raw]) {
       uri.hasFragment ||
       (uri.scheme != 'http' && uri.scheme != 'https') ||
       !_hostOk.hasMatch(uri.host)) {
-    return defaultShareBaseUrl;
+    return Env.apiBaseUrl ?? defaultShareBaseUrl;
   }
   final origin = uri.hasPort ? '${uri.scheme}://${uri.host}:${uri.port}' : '${uri.scheme}://${uri.host}';
   final path = uri.path.replaceFirst(RegExp(r'/+$'), '');

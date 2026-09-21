@@ -39,7 +39,7 @@ class TaskIntegrationProvider extends ChangeNotifier {
       if (response != null) {
         _connectionDetails = response.integrations;
 
-        // Update service authentication status based on Firebase data
+        // Update service authentication status from the Ollomi server response.
         TodoistService().setAuthenticated(
           _connectionDetails['todoist']?['connected'] == true && _connectionDetails['todoist']?['access_token'] != null,
         );

@@ -1,0 +1,15 @@
+{$OLLOMI_TLS_DOMAIN} {
+	request_body {
+		max_size {$OLLOMI_MAX_UPLOAD_MB:1024}MB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+	reverse_proxy ollomi-api:8080 {
+		flush_interval -1
+	}
+}

@@ -1,0 +1,31 @@
+# Deploy this on the separate CPU server selected for voice recognition.
+name: ollomi-voiceprint
+
+services:
+  voiceprint:
+    build:
+      context: ../../..
+      dockerfile: services/voiceprint/Dockerfile
+      args:
+        VOICEPRINT_MODEL_REPOSITORY: ${VOICEPRINT_MODEL_REPOSITORY:-speechbrain/spkrec-ecapa-voxceleb}
+        VOICEPRINT_MODEL_REVISION: ${VOICEPRINT_MODEL_REVISION:-0f99f2d0ebe89ac095bcc5903c4dd8f72b367286}
+    restart: unless-stopped
+    init: true
+    env_file: [.env]
+    environment:
+      HF_HOME: /models/huggingface
+      XDG_CACHE_HOME: /models/cache
+    ports: ['${VOICEPRINT_BIND:-127.0.0.1}:${VOICEPRINT_PORT:-8091}:8091']
+    volumes: [model-cache:/models]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8091/health")']
+      start_period: 90s
+      interval: 30s
+      timeout: 10s
+      retries: 6
+
+volumes:
+  model-cache:

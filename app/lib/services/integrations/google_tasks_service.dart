@@ -10,7 +10,7 @@ class GoogleTasksService {
 
   bool _isAuthenticated = false;
 
-  /// Check if user is authenticated (updated by provider from Firebase)
+  /// Check whether the current Ollomi account has this integration connected.
   bool get isAuthenticated => _isAuthenticated;
 
   void setAuthenticated(bool value) {
@@ -44,7 +44,7 @@ class GoogleTasksService {
     }
   }
 
-  /// Handle OAuth callback (tokens stored in backend Firebase)
+  /// Handle OAuth callback after the Ollomi backend has stored the connection.
   Future<bool> handleCallback() async {
     _isAuthenticated = true;
     Logger.debug('Google Tasks authentication successful');
@@ -69,7 +69,7 @@ class GoogleTasksService {
     }
   }
 
-  /// Disconnect from Google Tasks (remove from Firebase)
+  /// Disconnect from Google Tasks on the Ollomi backend.
   Future<void> disconnect() async {
     try {
       await deleteTaskIntegration('google_tasks');

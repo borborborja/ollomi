@@ -15,15 +15,7 @@ router = APIRouter()
 
 def generation(profile):
     return hashlib.sha256(
-        (
-            profile["id"]
-            + ":"
-            + profile["base_url"]
-            + ":"
-            + profile["model"]
-            + ":"
-            + str(profile["revision"])
-        ).encode()
+        (profile["id"] + ":" + profile["base_url"] + ":" + profile["model"] + ":" + str(profile["revision"])).encode()
     ).hexdigest()[:32]
 
 
@@ -38,7 +30,12 @@ def record_text(row):
     if row.kind in {"goal", "calendar_event"}:
         return "\n".join(
             str(value)
-            for value in (data.get("title"), data.get("description"), data.get("location"), " ".join(data.get("tags", [])))
+            for value in (
+                data.get("title"),
+                data.get("description"),
+                data.get("location"),
+                " ".join(data.get("tags", [])),
+            )
             if value
         )
     return "\n".join(
@@ -57,7 +54,7 @@ def index_record(uid, record_id, profile):
         source_hash = hashlib.sha256(content.encode()).hexdigest()
     # Small chunks stay within the default embedding model's context window.
     chunks = [content[i : i + 2000] for i in range(0, len(content), 1800)] or [""]
-    vectors = embed(profile, chunks)
+    vectors = embed(profile, chunks, input_type="search_document")
     with transaction() as db:
         row = db.scalar(select(Record).where(Record.id == record_id).with_for_update())
         if row is None or row.user_id != uid:
@@ -131,7 +128,7 @@ def index_text(uid, record_id, kind, content):
 def semantic_search(uid, query, limit=10):
     with transaction() as db:
         profile = selected_profile(db, uid, "embedding")
-    vector = embed(profile, [query])[0]
+    vector = embed(profile, [query], input_type="search_query")[0]
     with transaction() as db:
         rows = db.execute(
             text(
@@ -193,17 +190,11 @@ def search(
             return {
                 "results": [
                     {"record": wire(row), "kind": row.kind}
-                    for row in db.scalars(
-                        select(Record).where(
-                            Record.id.in_(ids), Record.user_id == user.id
-                        )
-                    )
+                    for row in db.scalars(select(Record).where(Record.id.in_(ids), Record.user_id == user.id))
                 ]
             }
     except httpx.HTTPError:
-        raise HTTPException(
-            503, "Search provider unavailable; indexing may still be pending"
-        ) from None
+        raise HTTPException(503, "Search provider unavailable; indexing may still be pending") from None
 
 
 def purge_index(ids):
@@ -216,8 +207,19 @@ def purge_index(ids):
 
 def purge_owner_index(uid):
     with typesense() as client:
-        response = client.delete(
-            "collections/records/documents", params={"filter_by": f"user_id:={uid}"}
-        )
+        response = client.delete("collections/records/documents", params={"filter_by": f"user_id:={uid}"})
+        if response.status_code != 404:
+            response.raise_for_status()
+
+
+def purge_all_text_index():
+    """Remove only the derived Typesense collection before a full rebuild.
+
+    Records and vector embeddings remain in PostgreSQL.  This is deliberately
+    separate from owner deletion: recovery needs to discard an index that may
+    belong to a newer database snapshot without touching primary user data.
+    """
+    with typesense() as client:
+        response = client.delete("collections/records")
         if response.status_code != 404:
             response.raise_for_status()

@@ -16,6 +16,7 @@ from selfhost.db import Job, Record, User, emit, ident, now, owned, transaction
 from selfhost.extraction import normalize_extraction
 from selfhost.profiles import completion
 from selfhost.search import index_record, purge_index
+from selfhost.voiceprint import classify_segments, diarize_segments
 
 logger = logging.getLogger(__name__)
 celery = Celery("ollomi", broker=settings().redis_url)
@@ -35,6 +36,24 @@ celery.conf.update(
 
 class Cancelled(Exception):
     pass
+
+
+def enrich_speaker_labels(user_id, clip, batch, job_id):
+    """Keep transcription usable if optional voice analysis is unavailable."""
+    # Native provider labels take precedence; otherwise the local
+    # voice-analysis service supplies speaker turns.  It makes speaker
+    # differentiation available with text-only Whisper/OpenAI STT too.
+    try:
+        batch = diarize_segments(clip, batch)
+    except Exception as error:  # noqa: BLE001 - optional privacy feature
+        logger.warning("Voiceprint diarization skipped for audio job %s: %s", job_id, error)
+    # Identify an explicitly enrolled owner before clip-local labels are
+    # renumbered. A remote voice-analysis outage never loses a valid transcript.
+    try:
+        classify_segments(user_id, clip, batch)
+    except Exception as error:  # noqa: BLE001 - optional privacy feature
+        logger.warning("Voiceprint classification skipped for audio job %s: %s", job_id, error)
+    return batch
 
 
 def claim(job_id):
@@ -343,6 +362,7 @@ def process_audio(job):
             batch = transcribe_file(
                 job.payload["stt"], clip, job.payload.get("language", "auto")
             )
+            batch = enrich_speaker_labels(job.user_id, clip, batch, job.id)
             for segment in batch:
                 segment["start"] += offset
                 segment["end"] += offset

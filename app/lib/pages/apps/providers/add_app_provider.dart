@@ -102,9 +102,6 @@ class AddAppProvider extends ChangeNotifier {
     if (capabilities.isEmpty) {
       await getAppCapabilities();
     }
-    if (paymentPlans.isEmpty) {
-      await getPaymentPlans();
-    }
 
     // Preset values for conversation analysis template
     if (presetForConversationAnalysis) {
@@ -141,12 +138,11 @@ class AddAppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setIsPaid(bool paid) {
-    if (!paid) {
-      priceController.clear();
-      selectePaymentPlan = null;
-    }
-    isPaid = paid;
+  void setIsPaid(bool _paid) {
+    // Ollomi keeps apps free; pricing is an upstream Omi marketplace feature.
+    priceController.clear();
+    selectePaymentPlan = null;
+    isPaid = false;
     checkValidity();
     notifyListeners();
   }
@@ -173,18 +169,15 @@ class AddAppProvider extends ChangeNotifier {
     if (categories.isEmpty) {
       await getCategories();
     }
-    if (paymentPlans.isEmpty) {
-      await getPaymentPlans();
-    }
     setAppCategory(app.category);
-    setPaymentPlan(app.paymentPlan);
-    isPaid = app.isPaid;
+    selectePaymentPlan = null;
+    isPaid = false;
     termsAgreed = true;
     updateAppId = app.id;
     imageUrl = app.image;
     appNameController.text = app.name.decodeString;
     appDescriptionController.text = app.description.decodeString;
-    priceController.text = app.price.toString();
+    priceController.clear();
     makeAppPublic = !app.private;
     selectedCapabilities = app.getCapabilitiesFromIds(capabilities);
     if (app.externalIntegration != null) {
@@ -337,12 +330,10 @@ class AddAppProvider extends ChangeNotifier {
   }
 
   Future<void> getPaymentPlans() async {
-    paymentPlans = await getPaymentPlansServer();
-    if (paymentPlans.isNotEmpty) {
-      allowPaidApps = true;
-    } else {
-      allowPaidApps = false;
-    }
+    // Retained only for legacy call sites while the upstream marketplace UI is
+    // still present in the Flutter source tree. Never contact billing APIs.
+    paymentPlans = [];
+    allowPaidApps = false;
     notifyListeners();
   }
 
@@ -575,9 +566,9 @@ class AddAppProvider extends ChangeNotifier {
       'category': appCategory,
       'private': !makeAppPublic,
       'id': updateAppId,
-      'is_paid': isPaid,
-      'price': priceController.text.isNotEmpty ? double.parse(priceController.text) : 0.0,
-      'payment_plan': selectePaymentPlan,
+      'is_paid': false,
+      'price': 0.0,
+      'payment_plan': null,
       'thumbnails': thumbnailIds,
       'source_code_url': sourceCodeUrlController.text.trim().isNotEmpty ? sourceCodeUrlController.text.trim() : null,
     };
@@ -682,9 +673,9 @@ class AddAppProvider extends ChangeNotifier {
       'uid': SharedPreferencesUtil().uid,
       'category': appCategory,
       'private': !makeAppPublic,
-      'is_paid': isPaid,
-      'price': priceController.text.isNotEmpty ? double.parse(priceController.text) : 0.0,
-      'payment_plan': selectePaymentPlan,
+      'is_paid': false,
+      'price': 0.0,
+      'payment_plan': null,
       'thumbnails': thumbnailIds,
       'source_code_url': sourceCodeUrlController.text.trim().isNotEmpty ? sourceCodeUrlController.text.trim() : null,
     };

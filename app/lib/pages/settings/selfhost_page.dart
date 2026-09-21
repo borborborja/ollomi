@@ -19,7 +19,11 @@ import 'package:omi/pages/conversation_detail/page.dart';
 import 'package:omi/services/auth_service.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 
-Future<dynamic> localApi(String endpoint, {String method = 'GET', Object? data}) async {
+Future<dynamic> localApi(
+  String endpoint, {
+  String method = 'GET',
+  Object? data,
+}) async {
   final response = await makeApiCall(
     url: '${AuthService.instance.serverUrl}$endpoint',
     headers: {},
@@ -34,8 +38,17 @@ Future<dynamic> localApi(String endpoint, {String method = 'GET', Object? data})
 
 class EnvironmentAiProfileList extends StatelessWidget {
   final Map<String, dynamic> purposeStatus;
+  final String? selectedId;
+  final bool selectionAllowed;
+  final ValueChanged<String> onSelected;
 
-  const EnvironmentAiProfileList({super.key, required this.purposeStatus});
+  const EnvironmentAiProfileList({
+    super.key,
+    required this.purposeStatus,
+    required this.selectedId,
+    required this.selectionAllowed,
+    required this.onSelected,
+  });
 
   String _statusText(BuildContext context, String status) => switch (status) {
         'healthy' => context.l10n.connected,
@@ -68,8 +81,15 @@ class EnvironmentAiProfileList extends StatelessWidget {
               subtitle: Text(
                 '${profile['provider']} · ${profile['model']} · ${_statusText(context, profile['status'] ?? 'unknown')}',
               ),
-              trailing:
-                  purposeStatus['active_profile_id'] == profile['id'] ? Chip(label: Text(context.l10n.active)) : null,
+              trailing: Radio<String>(
+                value: profile['id'],
+                groupValue: selectedId,
+                onChanged: selectionAllowed
+                    ? (value) {
+                        if (value != null) onSelected(value);
+                      }
+                    : null,
+              ),
             ),
         ],
       );
@@ -105,7 +125,9 @@ class _SelfHostPageState extends State<SelfHostPage> {
 
   Future<void> _load() async {
     try {
-      final profiles = await localApi(AuthService.instance.isAdmin ? 'v1/admin/ai-profiles' : 'v1/ai-profiles');
+      final profiles = await localApi(
+        AuthService.instance.isAdmin ? 'v1/admin/ai-profiles' : 'v1/ai-profiles',
+      );
       final me = await localApi('v1/auth/me');
       final aiStatus = await localApi('v1/ai-status');
       if (mounted) {
@@ -124,12 +146,145 @@ class _SelfHostPageState extends State<SelfHostPage> {
     }
   }
 
+  Future<void> _selectAiProfile(String purpose, String profileId) async {
+    try {
+      await localApi(
+        'v1/users/me/ai-profiles',
+        method: 'PUT',
+        data: {purpose: profileId},
+      );
+      await _load();
+    } catch (_) {
+      if (mounted) setState(() => _error = context.l10n.somethingWentWrongTryAgain);
+    }
+  }
+
+  Future<void> _configureConnection() async {
+    final server = TextEditingController(text: AuthService.instance.serverUrl);
+    final email = TextEditingController(
+      text: AuthService.instance.currentUser?.email ?? '',
+    );
+    final password = TextEditingController();
+    var testing = false;
+    var connecting = false;
+    String? status;
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (context, update) => AlertDialog(
+          title: Text(context.l10n.serverUrl),
+          content: SizedBox(
+            width: 440,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: server,
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.serverUrl,
+                  ),
+                ),
+                TextField(
+                  controller: email,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  decoration: InputDecoration(labelText: context.l10n.email),
+                ),
+                TextField(
+                  controller: password,
+                  obscureText: true,
+                  autocorrect: false,
+                  decoration: InputDecoration(labelText: context.l10n.password),
+                ),
+                if (status != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(status!),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              style: localTextButtonStyle,
+              onPressed: testing || connecting ? null : () => Navigator.pop(context),
+              child: Text(context.l10n.cancel),
+            ),
+            OutlinedButton(
+              onPressed: testing || connecting
+                  ? null
+                  : () async {
+                      update(() {
+                        testing = true;
+                        status = null;
+                      });
+                      try {
+                        await AuthService.instance.testServer(server.text);
+                        update(() => status = context.l10n.connected);
+                      } catch (_) {
+                        update(() => status = context.l10n.connectionError);
+                      } finally {
+                        update(() => testing = false);
+                      }
+                    },
+              child: testing
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(),
+                    )
+                  : Text(context.l10n.refresh),
+            ),
+            FilledButton(
+              style: localFilledButtonStyle,
+              onPressed: testing || connecting
+                  ? null
+                  : () async {
+                      update(() {
+                        connecting = true;
+                        status = null;
+                      });
+                      try {
+                        await AuthService.instance.signIn(
+                          server.text,
+                          email.text,
+                          password.text,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        if (mounted) await _load();
+                      } catch (_) {
+                        update(
+                          () => status = context.l10n.authenticationFailed,
+                        );
+                      } finally {
+                        if (context.mounted) update(() => connecting = false);
+                      }
+                    },
+              child: connecting
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(),
+                    )
+                  : Text(context.l10n.connect),
+            ),
+          ],
+        ),
+      ),
+    );
+    server.dispose();
+    email.dispose();
+    password.dispose();
+  }
+
   Future<void> _edit([Map<String, dynamic>? profile]) async {
     final name = TextEditingController(text: profile?['name'] ?? '');
     final url = TextEditingController(text: profile?['base_url'] ?? '');
     final model = TextEditingController(text: profile?['model'] ?? '');
     final key = TextEditingController();
-    final options = TextEditingController(text: jsonEncode(profile?['capabilities']?['options'] ?? {}));
+    final options = TextEditingController(
+      text: jsonEncode(profile?['capabilities']?['options'] ?? {}),
+    );
     var purpose = profile?['purpose'] ?? 'chat';
     var external = profile?['external'] == true;
     var enabled = profile?['enabled'] != false;
@@ -158,7 +313,9 @@ class _SelfHostPageState extends State<SelfHostPage> {
                   TextField(
                     controller: url,
                     keyboardType: TextInputType.url,
-                    decoration: InputDecoration(labelText: context.l10n.serverUrl),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.serverUrl,
+                    ),
                   ),
                   TextField(
                     controller: model,
@@ -172,7 +329,9 @@ class _SelfHostPageState extends State<SelfHostPage> {
                   TextField(
                     controller: options,
                     maxLines: 3,
-                    decoration: InputDecoration(labelText: context.l10n.advancedSettings),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.advancedSettings,
+                    ),
                   ),
                   SwitchListTile(
                     title: Text(context.l10n.externalAppAccess),
@@ -246,31 +405,40 @@ class _SelfHostPageState extends State<SelfHostPage> {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    SelectableText(AuthService.instance.serverUrl),
-                    const SizedBox(height: 20),
+                    ListTile(
+                      leading: const Icon(Icons.dns),
+                      title: Text(context.l10n.serverUrl),
+                      subtitle: Text(AuthService.instance.serverUrl),
+                      trailing: const Icon(Icons.edit),
+                      onTap: _configureConnection,
+                    ),
+                    const SizedBox(height: 8),
                     if (_error != null) Text(_error!, style: const TextStyle(color: Colors.red)),
                     for (final purpose in ['stt', 'chat', 'embedding']) ...[
                       Text(purpose, style: Theme.of(context).textTheme.titleLarge),
                       if (_aiStatus[purpose]?['managed_by_env'] == true)
-                        EnvironmentAiProfileList(purposeStatus: Map<String, dynamic>.from(_aiStatus[purpose]))
+                        EnvironmentAiProfileList(
+                          purposeStatus: Map<String, dynamic>.from(
+                            _aiStatus[purpose],
+                          ),
+                          selectedId: _selected[purpose],
+                          selectionAllowed: _aiStatus[purpose]?['selection_allowed'] == true,
+                          onSelected: (profileId) => _selectAiProfile(purpose, profileId),
+                        )
                       else
-                        for (final profile in _profiles.where((p) => p['purpose'] == purpose))
+                        for (final profile in _profiles.where(
+                          (p) => p['purpose'] == purpose,
+                        ))
                           ListTile(
                             title: Text(profile['name']),
                             subtitle: Text(profile['model']),
                             leading: Radio<String>(
                               value: profile['id'],
                               groupValue: _selected[purpose],
-                              onChanged: profile['enabled'] != true
+                              onChanged: _aiStatus[purpose]?['selection_allowed'] != true || profile['enabled'] != true
                                   ? null
-                                  : (value) async {
-                                      try {
-                                        await localApi('v1/users/me/ai-profiles',
-                                            method: 'PUT', data: {purpose: value});
-                                        await _load();
-                                      } catch (_) {
-                                        if (mounted) setState(() => _error = context.l10n.somethingWentWrongTryAgain);
-                                      }
+                                  : (value) {
+                                      if (value != null) _selectAiProfile(purpose, value);
                                     },
                             ),
                             trailing: AuthService.instance.isAdmin && profile['managed_by'] != 'env'
@@ -288,16 +456,25 @@ class _SelfHostPageState extends State<SelfHostPage> {
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(
                                                 context,
-                                              ).showSnackBar(SnackBar(content: Text(context.l10n.saved)));
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(context.l10n.saved),
+                                                ),
+                                              );
                                             }
                                           } catch (_) {
-                                            if (mounted) setState(() => _error = context.l10n.connectionError);
+                                            if (mounted)
+                                              setState(
+                                                () => _error = context.l10n.connectionError,
+                                              );
                                           }
                                         },
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.edit),
-                                        onPressed: () => _edit(Map<String, dynamic>.from(profile)),
+                                        onPressed: () => _edit(
+                                          Map<String, dynamic>.from(profile),
+                                        ),
                                       ),
                                     ],
                                   )
@@ -305,7 +482,9 @@ class _SelfHostPageState extends State<SelfHostPage> {
                           ),
                     ],
                     if (AuthService.instance.isAdmin &&
-                        ['stt', 'chat', 'embedding'].any((purpose) => _aiStatus[purpose]?['managed_by_env'] != true))
+                        ['stt', 'chat', 'embedding'].any(
+                          (purpose) => _aiStatus[purpose]?['managed_by_env'] != true,
+                        ))
                       FilledButton.icon(
                         style: localFilledButtonStyle,
                         onPressed: _edit,
@@ -316,25 +495,44 @@ class _SelfHostPageState extends State<SelfHostPage> {
                       ListTile(
                         leading: const Icon(Icons.manage_accounts),
                         title: Text(context.l10n.account),
-                        onTap: () =>
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const LocalAccountsPage())),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LocalAccountsPage(),
+                          ),
+                        ),
                       ),
                     ListTile(
                       leading: const Icon(Icons.cable),
                       title: Text(context.l10n.integrations),
-                      onTap: () =>
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const LocalIntegrationsPage())),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LocalIntegrationsPage(),
+                        ),
+                      ),
                     ),
                     if (_voices.isNotEmpty)
                       DropdownButtonFormField<String>(
                         initialValue: _voices.any((v) => v['id'] == _voice) ? _voice : _voices.first['id'],
-                        decoration: InputDecoration(labelText: context.l10n.voiceResponseAudio),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.voiceResponseAudio,
+                        ),
                         items: _voices
-                            .map((v) => DropdownMenuItem<String>(value: v['id'], child: Text(v['name'])))
+                            .map(
+                              (v) => DropdownMenuItem<String>(
+                                value: v['id'],
+                                child: Text(v['name']),
+                              ),
+                            )
                             .toList(),
                         onChanged: (value) async {
                           try {
-                            await localApi('v1/users/me', method: 'PATCH', data: {'voice': value});
+                            await localApi(
+                              'v1/users/me',
+                              method: 'PATCH',
+                              data: {'voice': value},
+                            );
                           } catch (_) {
                             if (mounted) setState(() => _error = context.l10n.connectionError);
                           }
@@ -347,7 +545,9 @@ class _SelfHostPageState extends State<SelfHostPage> {
                         try {
                           await localApi('v1/users/me/reindex', method: 'POST');
                           if (context.mounted)
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.saved)));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(context.l10n.saved)),
+                            );
                         } catch (_) {
                           if (mounted) setState(() => _error = context.l10n.connectionError);
                         }
@@ -357,7 +557,10 @@ class _SelfHostPageState extends State<SelfHostPage> {
                     ListTile(
                       leading: const Icon(Icons.audio_file),
                       title: Text(context.l10n.importData),
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportAudioPage())),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ImportAudioPage()),
+                      ),
                     ),
                     ListTile(
                       leading: const Icon(Icons.download),
@@ -365,11 +568,18 @@ class _SelfHostPageState extends State<SelfHostPage> {
                       onTap: () async {
                         try {
                           final data = await localApi('v1/export');
-                          final file = File('${(await getTemporaryDirectory()).path}/ollomi-export.json');
+                          final file = File(
+                            '${(await getTemporaryDirectory()).path}/ollomi-export.json',
+                          );
                           await file.writeAsString(jsonEncode(data), flush: true);
-                          await Share.shareXFiles([XFile(file.path)], sharePositionOrigin: shareSheetOrigin());
+                          await Share.shareXFiles([
+                            XFile(file.path),
+                          ], sharePositionOrigin: shareSheetOrigin());
                         } catch (_) {
-                          if (mounted) setState(() => _error = context.l10n.somethingWentWrongTryAgain);
+                          if (mounted)
+                            setState(
+                              () => _error = context.l10n.somethingWentWrongTryAgain,
+                            );
                         }
                       },
                     ),
@@ -382,7 +592,11 @@ class _SelfHostPageState extends State<SelfHostPage> {
 class ImportAudioPage extends StatefulWidget {
   final List<String> sharedPaths;
   final bool pickOnOpen;
-  const ImportAudioPage({super.key, this.sharedPaths = const [], this.pickOnOpen = false});
+  const ImportAudioPage({
+    super.key,
+    this.sharedPaths = const [],
+    this.pickOnOpen = false,
+  });
   @override
   State<ImportAudioPage> createState() => _ImportAudioPageState();
 }
@@ -411,15 +625,18 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
   }
 
   bool get _sameOwner => _owner == '${AuthService.instance.instanceId}/${AuthService.instance.currentUser?.uid}';
-  Future<Directory> _directory() async =>
-      Directory('${(await getApplicationSupportDirectory()).path}/imports/$_owner').create(recursive: true);
+  Future<Directory> _directory() async => Directory(
+        '${(await getApplicationSupportDirectory()).path}/imports/$_owner',
+      ).create(recursive: true);
   Future<void> _loadShared() async {
     try {
       for (final file in widget.sharedPaths) {
         await _keep(File(file));
       }
       if (widget.sharedPaths.isNotEmpty) {
-        await const MethodChannel('ollomi/audio_import').invokeMethod('acknowledge', {'paths': widget.sharedPaths});
+        await const MethodChannel(
+          'ollomi/audio_import',
+        ).invokeMethod('acknowledge', {'paths': widget.sharedPaths});
       }
       await _load();
     } catch (_) {
@@ -429,7 +646,9 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
 
   Future<void> _keep(File source) async {
     if (!await source.exists()) return;
-    final destination = File('${(await _directory()).path}/${const Uuid().v4()}${path.extension(source.path)}');
+    final destination = File(
+      '${(await _directory()).path}/${const Uuid().v4()}${path.extension(source.path)}',
+    );
     await source.copy(destination.path);
   }
 
@@ -462,14 +681,19 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
     });
     final client = http.Client();
     try {
-      final request = http.MultipartRequest('POST', Uri.parse('${AuthService.instance.serverUrl}v1/import/audio'))
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${AuthService.instance.serverUrl}v1/import/audio'),
+      )
         ..followRedirects = false
         ..headers.addAll(await buildHeaders(requireAuthCheck: true));
       request.files.add(await http.MultipartFile.fromPath('file', file.path));
       if (!_sameOwner || request.url.toString() != '${AuthService.instance.serverUrl}v1/import/audio') {
         throw const LocalAuthError(401);
       }
-      final response = await http.Response.fromStream(await client.send(request).timeout(const Duration(minutes: 30)));
+      final response = await http.Response.fromStream(
+        await client.send(request).timeout(const Duration(minutes: 30)),
+      );
       if (response.statusCode != 202 || jsonDecode(response.body)['job_id'] == null) {
         throw LocalAuthError(response.statusCode);
       }
@@ -520,21 +744,30 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
                   title: Text(path.basename(file.path)),
                   leading: const Icon(Icons.audio_file),
                   subtitle: Text(context.l10n.saved),
-                  trailing: IconButton(icon: const Icon(Icons.upload), onPressed: _busy ? null : () => _upload(file)),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.upload),
+                    onPressed: _busy ? null : () => _upload(file),
+                  ),
                 ),
               for (final job in _jobs)
                 ListTile(
                   title: Text(job['status']),
-                  subtitle: Text('${job['progress']}%${job['error'] == null ? '' : '\n${job['error']}'}'),
+                  subtitle: Text(
+                    '${job['progress']}%${job['error'] == null ? '' : '\n${job['error']}'}',
+                  ),
                   onTap: job['status'] != 'completed'
                       ? null
                       : () async {
-                          final data = await localApi('v1/conversations/${job['result']['conversation_id']}');
+                          final data = await localApi(
+                            'v1/conversations/${job['result']['conversation_id']}',
+                          );
                           if (context.mounted) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ConversationDetailPage(conversation: ServerConversation.fromJson(data)),
+                                builder: (_) => ConversationDetailPage(
+                                  conversation: ServerConversation.fromJson(data),
+                                ),
                               ),
                             );
                           }
@@ -542,7 +775,9 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
                   trailing: job['status'] == 'completed'
                       ? const Icon(Icons.chevron_right)
                       : IconButton(
-                          icon: Icon(['failed', 'cancelled'].contains(job['status']) ? Icons.refresh : Icons.cancel),
+                          icon: Icon(
+                            ['failed', 'cancelled'].contains(job['status']) ? Icons.refresh : Icons.cancel,
+                          ),
                           onPressed: () async {
                             try {
                               await localApi(
@@ -554,7 +789,10 @@ class _ImportAudioPageState extends State<ImportAudioPage> {
                               );
                               await _load();
                             } catch (_) {
-                              if (mounted) setState(() => _error = context.l10n.somethingWentWrongTryAgain);
+                              if (mounted)
+                                setState(
+                                  () => _error = context.l10n.somethingWentWrongTryAgain,
+                                );
                             }
                           },
                         ),

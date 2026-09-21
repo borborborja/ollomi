@@ -8,7 +8,7 @@ void main() {
   test('Android leave/background multipart abort is transient (#4587)', () {
     final abort = http.ClientException(
       'ClientSoftware caused connection abort',
-      Uri.parse('https://api.omi.me/v2/sync-local-files'),
+      Uri.parse('https://ollomi.example.test/v2/sync-local-files'),
     );
     expect(isTransientNetworkError(abort), isTrue);
     expect(isTransientNetworkError(Exception('Software caused connection abort')), isTrue);

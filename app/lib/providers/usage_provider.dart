@@ -1,7 +1,5 @@
-import 'package:omi/utils/platform/platform_manager.dart';
 import 'package:flutter/material.dart';
 
-import 'package:omi/backend/http/api/payment.dart';
 import 'package:omi/backend/http/api/users.dart';
 import 'package:omi/models/subscription.dart';
 import 'package:omi/models/user_usage.dart';
@@ -12,8 +10,7 @@ class UsageProvider with ChangeNotifier {
   UserSubscriptionResponse? _subscription;
   UserSubscriptionResponse? get subscription => _subscription;
 
-  /// Defaults to true when the subscription response hasn't loaded yet, so a
-  /// network blip doesn't silently hide paid surfaces from real users.
+  /// Ollomi is self-hosted and deliberately has no paid plan surface.
   bool get showSubscriptionUI => false;
   UsageStats? _todayUsage;
   UsageStats? get todayUsage => _todayUsage;
@@ -65,24 +62,10 @@ class UsageProvider with ChangeNotifier {
   // straight to the existing unlimited behavior.
   PhoneCallQuota? get phoneCallQuota => _subscription?.phoneCallQuota;
 
-  bool get _isPaidPlan => _subscription?.subscription.plan.isPaid ?? false;
-
-  bool get canAccessPhoneCalls {
-    if (_isPaidPlan) return true;
-    final quota = phoneCallQuota;
-    if (quota == null) return false;
-    return quota.hasAccess;
-  }
-
-  bool get shouldShowPhoneCallsEntry {
-    if (_isPaidPlan) return true;
-    final quota = phoneCallQuota;
-    final freeTierEnabled = quota != null && (quota.monthlyLimit ?? 0) > 0;
-    if (freeTierEnabled) return true;
-    // Free tier disabled → only surface the entry for real users who can still
-    // see the paywall. Hidden-paywall builds (App Review) keep it off-screen.
-    return showSubscriptionUI;
-  }
+  /// Device and OS support determine whether calls work; there is no payment
+  /// gate in a self-hosted installation.
+  bool get canAccessPhoneCalls => true;
+  bool get shouldShowPhoneCallsEntry => true;
 
   // Payment-related state
   Map<String, dynamic>? _availablePlans;
@@ -90,19 +73,7 @@ class UsageProvider with ChangeNotifier {
   bool _isLoadingPlans = false;
   bool get isLoadingPlans => _isLoadingPlans;
 
-  bool get isOutOfCredits {
-    if (_forceOutOfCredits) return true;
-    if (_subscription == null) return false;
-    final plan = _subscription!.subscription.plan;
-    // Plus is paid but metered, so it falls through to the usage check below.
-    if (plan.hasUnlimitedTranscription) return false;
-    // For metered plans, check if used is >= limit and limit is not 0 (unlimited).
-    if (_subscription!.transcriptionSecondsLimit > 0 &&
-        _subscription!.transcriptionSecondsUsed >= _subscription!.transcriptionSecondsLimit) {
-      return true;
-    }
-    return false;
-  }
+  bool get isOutOfCredits => false;
 
   @visibleForTesting
   void debugSetSubscription(UserSubscriptionResponse? value) {
@@ -135,41 +106,17 @@ class UsageProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> markAsOutOfCreditsAndRefresh() async {
-    if (!_forceOutOfCredits) {
-      _forceOutOfCredits = true;
-      notifyListeners(); // Immediate UI update
-    }
-    await fetchSubscription(); // Sync with backend
-  }
+  Future<void> markAsOutOfCreditsAndRefresh() async {}
 
   Future<void> fetchSubscription() async {
-    if (_isSubscriptionLoading) return;
-
-    final generation = _sessionGeneration;
-    _isSubscriptionLoading = true;
-    _error = null;
+    // Do not call the upstream subscription endpoint: Ollomi has neither
+    // billing nor transcription credit limits. Keeping this method makes the
+    // retained capture lifecycle harmless while Kotlin migration is pending.
+    if (_subscription == null && !_forceOutOfCredits) return;
+    _subscription = null;
+    _forceOutOfCredits = false;
+    TranscriptionAllowanceCache.clear();
     notifyListeners();
-
-    try {
-      final subscription = await getUserSubscription();
-      if (generation != _sessionGeneration) return; // Session cleared mid-flight; discard stale response.
-      _subscription = subscription;
-      if (subscription != null) {
-        TranscriptionAllowanceCache.replace(subscription.transcriptionAllowance);
-        PlatformManager.instance.analytics.setSubscriptionTier(subscription.subscription.plan.name);
-      }
-    } catch (e) {
-      if (generation != _sessionGeneration) return;
-      _error = 'Failed to load subscription data. Please try again later.';
-      Logger.debug('Failed to fetch subscription: $e');
-    } finally {
-      if (generation == _sessionGeneration) {
-        _isSubscriptionLoading = false;
-        _forceOutOfCredits = false; // Reset optimistic flag
-        notifyListeners();
-      }
-    }
   }
 
   /// Alias for fetchSubscription - refreshes subscription data from backend
@@ -220,115 +167,20 @@ class UsageProvider with ChangeNotifier {
     }
   }
 
-  // Payment-related methods
+  // Compatibility no-ops for legacy widgets that will disappear with the
+  // Kotlin UI migration. They must never contact an upstream billing API.
   Future<void> loadAvailablePlans() async {
-    if (_isLoadingPlans) return;
-
-    _isLoadingPlans = true;
-    _error = null;
+    _availablePlans = null;
+    _isLoadingPlans = false;
     notifyListeners();
-
-    try {
-      final response = await getAvailablePlans();
-      if (response != null) {
-        _availablePlans = response;
-      } else {
-        _error = 'Failed to load available plans. Please try again later.';
-      }
-    } catch (e) {
-      _error = 'Failed to load available plans. Please try again later.';
-      Logger.debug('Error loading available plans: $e');
-    } finally {
-      _isLoadingPlans = false;
-      notifyListeners();
-    }
   }
 
-  Future<bool> cancelUserSubscription({String? reason, String? reasonDetails}) async {
-    if (_isPaymentLoading) return false;
+  Future<bool> cancelUserSubscription({String? reason, String? reasonDetails}) async => false;
 
-    _isPaymentLoading = true;
-    _error = null;
-    notifyListeners();
+  Future<Map<String, dynamic>?> upgradeUserSubscription({required String priceId, String? promotionCode}) async => null;
 
-    try {
-      final success = await cancelSubscription(reason: reason, reasonDetails: reasonDetails);
-      if (success) {
-        await fetchSubscription();
-        await loadAvailablePlans();
-      }
-      return success;
-    } catch (e) {
-      _error = 'Failed to cancel subscription. Please try again later.';
-      Logger.debug('Error canceling subscription: $e');
-      return false;
-    } finally {
-      _isPaymentLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<Map<String, dynamic>?> createUserCheckoutSession({required String priceId, String? promotionCode}) async =>
+      null;
 
-  Future<Map<String, dynamic>?> upgradeUserSubscription({required String priceId, String? promotionCode}) async {
-    if (_isPaymentLoading) return null;
-
-    _isPaymentLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final result = await upgradeSubscription(priceId: priceId, promotionCode: promotionCode);
-      if (result != null && result['error'] != true) {
-        await fetchSubscription();
-        await loadAvailablePlans();
-      }
-      return result;
-    } catch (e) {
-      _error = 'Failed to upgrade subscription. Please try again later.';
-      Logger.debug('Error upgrading subscription: $e');
-      return null;
-    } finally {
-      _isPaymentLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<Map<String, dynamic>?> createUserCheckoutSession({required String priceId, String? promotionCode}) async {
-    if (_isPaymentLoading) return null;
-
-    _isPaymentLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final sessionData = await createCheckoutSession(priceId: priceId, promotionCode: promotionCode);
-      return sessionData;
-    } catch (e) {
-      _error = 'Failed to create checkout session. Please try again later.';
-      Logger.debug('Error creating checkout session: $e');
-      return null;
-    } finally {
-      _isPaymentLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<Map<String, String>?> openCustomerPortal() async {
-    if (_isPaymentLoading) return null;
-
-    _isPaymentLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final sessionData = await createCustomerPortalSession();
-      return sessionData;
-    } catch (e) {
-      _error = 'Failed to open customer portal. Please try again.';
-      Logger.debug('Error opening customer portal: $e');
-      return null;
-    } finally {
-      _isPaymentLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<Map<String, String>?> openCustomerPortal() async => null;
 }

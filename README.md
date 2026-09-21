@@ -2,8 +2,6 @@
 
 Fork autoalojable de Omi: Android permite grabar con el teléfono o un dispositivo compatible conectado, importar MP3/M4A/WAV/OGG/FLAC y elegir el servidor. Todo el backend se ejecuta con Docker Compose sobre PostgreSQL/pgvector, Typesense, Redis, Whisper y Ollama o endpoints compatibles con OpenAI, sin Firebase.
 
-[![Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml/badge.svg)](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml)
-
 - [Instalación, modelos, Android y copias de seguridad](docs/OLLomi_SELF_HOSTING.es.md)
 - [Compose autónomo para usar solo APIs externas](deploy/examples/external-api/README.md)
 - [Investigación y decisiones](docs/OLLomi_RESEARCH.es.md)
@@ -16,40 +14,67 @@ El backend activo es `backend/selfhost`; el backend cloud upstream se conserva c
 
 Requiere Docker Engine y Docker Compose v2 en una máquina `linux/amd64`:
 
+### Servidor con modelos en LAN o proveedores externos
+
+Para una instalación nueva sin modelos locales (la configuración apropiada
+para un servidor CPU que delega la IA), copie la plantilla, sustituya **todos**
+los valores `CHANGE_ME` y las direcciones `192.168.1.x`, y arranque el stack:
+
 ```bash
-git clone https://github.com/borborborja/ollomi.git
+git clone https://github.com/YOUR_GITHUB_OWNER/ollomi.git
+cd ollomi
+cp .env.example .env
+chmod 600 .env
+${EDITOR:-vi} .env
+docker compose config --quiet
+docker compose build
+docker compose up -d
+```
+
+La plantilla incluye PostgreSQL/pgvector, Redis, Typesense, API y workers, y
+exige un perfil numerado para STT, chat y embeddings. No arranca Whisper ni
+Ollama ni descarga pesos. El primer inicio crea `OLLOMI_ADMIN_EMAIL`; tras
+iniciar sesión, borre `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker
+compose up -d --force-recreate migrate api worker scheduler`. Para MCP OAuth o
+acceso público, active antes la modalidad TLS documentada; una URL HTTP de LAN
+no es una identidad OAuth válida.
+
+### Inicialización asistida y modelos locales opcionales
+
+```bash
+git clone https://github.com/YOUR_GITHUB_OWNER/ollomi.git
 cd ollomi
 read -rsp 'Contraseña inicial: ' INITIAL_ADMIN_PASSWORD; echo
 export INITIAL_ADMIN_PASSWORD
-python3 scripts/selfhost_init.py --bind 0.0.0.0 \
+python3 scripts/selfhost_init.py --source-build --bind 0.0.0.0 \
   --admin-email admin@example.com \
   --admin-password-env INITIAL_ADMIN_PASSWORD
 unset INITIAL_ADMIN_PASSWORD
 
-docker compose pull
+docker compose build
 docker compose run --rm model-downloader --stt small
-docker compose -f compose.yaml -f deploy/compose.ghcr.yaml \
-  -f deploy/compose.connected.yaml --profile local-ollama up -d ollama
+docker compose -f compose.yaml -f deploy/compose.connected.yaml \
+  --profile local-ollama up -d ollama
 docker compose exec ollama ollama pull qwen3:4b
 docker compose exec ollama ollama pull embeddinggemma
 docker compose up -d
 ```
 
-El inicializador escribe `COMPOSE_FILE` en `.env`, usa las imágenes públicas de `borborborja` y busca un puerto libre empezando por 8080 y 8090. Consulte `OLLOMI_PORT` y abra `http://IP_DEL_SERVIDOR:PUERTO/health`; debe devolver `{"status":"ok"}`. Tras el primer acceso, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker compose up -d --force-recreate migrate api worker scheduler`. El seed es idempotente y nunca cambia una cuenta existente.
+El inicializador escribe `COMPOSE_FILE` en `.env`, construye esta revisión del código por defecto y busca un puerto libre empezando por 8080 y 8090. Consulte `OLLOMI_PORT` y abra `http://IP_DEL_SERVIDOR:PUERTO/health`; debe devolver `{"status":"ok"}`. Tras el primer acceso, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker compose up -d --force-recreate migrate api worker scheduler`. El seed es idempotente y nunca cambia una cuenta existente.
 
-Para usar únicamente IA en la LAN o en la nube, inicialice con `--external-ai`. Esto añade automáticamente `deploy/compose.connected.yaml`, no activa Whisper ni Ollama, no descarga pesos y deja ejemplos de OpenAI, OpenRouter, Ollama Cloud y endpoints OpenAI-compatible en `.env`. Configure STT, chat y embeddings antes de ejecutar `docker compose up -d`. También hay un [Compose autónomo con todas las variables de ejemplo](deploy/examples/external-api/README.md) que solo descarga la imagen del backend. Instale la APK desde la [última Release](https://github.com/borborborja/ollomi/releases/latest) y use la URL del servidor en Android.
+Para usar únicamente IA en la LAN o en la nube, inicialice con `--external-ai`. Esto añade automáticamente `deploy/compose.connected.yaml`, no activa Whisper ni Ollama, no descarga pesos y deja ejemplos de OpenAI, OpenRouter, Ollama Cloud y endpoints OpenAI-compatible en `.env`. Configure STT, chat y embeddings antes de ejecutar `docker compose up -d`. También hay un [Compose autónomo con todas las variables de ejemplo](deploy/examples/external-api/README.md), utilizable después de publicar una imagen revisada desde el fork. Instale una APK creada por el workflow de su fork y use la URL del servidor en Android.
 
 Antes de procesar audio hay que instalar los modelos locales o configurar proveedores externos en `.env`. La [guía completa](docs/OLLomi_SELF_HOSTING.es.md) incluye Whisper, Ollama, fallbacks, actualización, copias de seguridad y diagnóstico.
 
 ## Imágenes y compilación
 
-Cada cambio en `main` ejecuta [Publish Ollomi](https://github.com/borborborja/ollomi/actions/workflows/ollomi-release.yml): publica las imágenes `linux/amd64` [`ollomi-backend`](https://github.com/borborborja/ollomi/pkgs/container/ollomi-backend) y [`ollomi-speech`](https://github.com/borborborja/ollomi/pkgs/container/ollomi-speech) en GHCR, y compila una APK `prod` firmada como artefacto de Actions. Las etiquetas Git `v*` adjuntan también la APK y su SHA-256 a la Release.
+Cada cambio en `main` de un fork con Actions habilitado ejecuta `Publish Ollomi`: publica las imágenes `linux/amd64` `ollomi-backend` y `ollomi-speech` en el GHCR de ese fork, y compila una APK de depuración para validación de dispositivo como artefacto. Solo las etiquetas Git `v*` compilan la APK `prod` firmada y adjuntan esta y su SHA-256 a la Release.
 
-Las imágenes publicadas se pueden descargar directamente. Sustituya `v0.3.1` por una release concreta o use `latest` para seguir `main`:
+Tras una release que haya pasado las puertas de validación, las imágenes se pueden descargar directamente. Sustituya ambos marcadores por el owner y tag de ese fork; no use una imagen de Omi upstream ni `latest` sin revisión:
 
 ```bash
-docker pull ghcr.io/borborborja/ollomi-backend:v0.3.1
-docker pull ghcr.io/borborborja/ollomi-speech:v0.3.1
+docker pull ghcr.io/YOUR_GITHUB_OWNER/ollomi-backend:REVIEWED_TAG
+docker pull ghcr.io/YOUR_GITHUB_OWNER/ollomi-speech:REVIEWED_TAG
 ```
 
 Para compilar las mismas imágenes desde el código:

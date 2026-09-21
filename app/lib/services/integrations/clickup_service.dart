@@ -11,7 +11,7 @@ class ClickUpService {
   bool _isAuthenticated = false;
   String? _userId;
 
-  /// Check if user is authenticated (updated by provider from Firebase)
+  /// Check whether the current Ollomi account has this integration connected.
   bool get isAuthenticated => _isAuthenticated;
 
   String? get currentUserId => _userId;

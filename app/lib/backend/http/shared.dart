@@ -36,8 +36,8 @@ class AuthTokenUnavailableException implements Exception {
 
 // Normal-mode connectivity failures on mobile (no network, DNS failure,
 // connection reset, TLS handshake during reconnect, request timeout, OS abort
-// when the app backgrounds mid-upload). Reporting these to Crashlytics drowns
-// out real signal — caller logs them locally and either returns null or
+// when the app backgrounds mid-upload). Reporting these to local diagnostics
+// drowns out real signal — caller logs them locally and either returns null or
 // rethrows for the upstream sync state machine.
 bool isTransientNetworkError(Object e) {
   if (e is SocketException) return true;
@@ -156,9 +156,9 @@ Future<Map<String, String>> buildHeaders({
 }
 
 @visibleForTesting
-String normalizeOmiApiUrlForHostMatch(String url) {
-  // HTTP helpers and product sockets share one API host; compare scheme-neutrally
-  // so `wss://` listen URLs still count as Omi API traffic.
+String normalizeApiUrlForHostMatch(String url) {
+  // HTTP helpers and product sockets share the selected Ollomi API host;
+  // compare scheme-neutrally so `wss://` listen URLs match as well.
   return url
       .replaceFirst(RegExp(r'^https://', caseSensitive: false), '')
       .replaceFirst(RegExp(r'^http://', caseSensitive: false), '')
@@ -167,12 +167,10 @@ String normalizeOmiApiUrlForHostMatch(String url) {
 }
 
 bool _isRequiredAuthCheck(String url) {
-  // Agent VM endpoints always hit prod even when app uses dev
-  if (url.contains('api.omi.me')) return true;
   final base = Env.apiBaseUrl;
   if (base != null && base.isNotEmpty) {
-    final normalizedUrl = normalizeOmiApiUrlForHostMatch(url);
-    final normalizedBase = normalizeOmiApiUrlForHostMatch(base);
+    final normalizedUrl = normalizeApiUrlForHostMatch(url);
+    final normalizedBase = normalizeApiUrlForHostMatch(base);
     if (normalizedBase.isNotEmpty && normalizedUrl.contains(normalizedBase)) {
       return true;
     }
@@ -182,8 +180,8 @@ bool _isRequiredAuthCheck(String url) {
 
 const _mutatingHttpMethods = {'POST', 'PUT', 'PATCH', 'DELETE'};
 
-/// `X-Account-Generation` is only for authenticated Omi API mutation traffic and
-/// product WebSocket admission — never arbitrary third-party hosts (e.g. zip CDN).
+/// `X-Account-Generation` is only for authenticated Ollomi API mutation
+/// traffic and product WebSocket admission — never arbitrary third-party hosts.
 @visibleForTesting
 bool shouldAttachAccountGenerationHeader({
   String? url,

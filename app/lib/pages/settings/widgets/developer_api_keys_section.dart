@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:omi/pages/settings/widgets/create_dev_api_key_sheet.dart';
 import 'package:omi/pages/settings/widgets/dev_api_key_list_item.dart';
@@ -12,27 +11,6 @@ import 'package:omi/utils/l10n_extensions.dart';
 
 class DeveloperApiKeysSection extends StatelessWidget {
   const DeveloperApiKeysSection({super.key});
-
-  Widget _buildDocsButton(BuildContext context, String url, String label) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: () {
-          launchUrl(Uri.parse(url));
-          PlatformManager.instance.analytics.pageOpened('$label Docs');
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Text(
-            context.l10n.docs,
-            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 12),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildCreateKeyButton(BuildContext context) {
     return Material(
@@ -70,7 +48,8 @@ class DeveloperApiKeysSection extends StatelessWidget {
         builder: (context) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Header with Docs and Create Key buttons
+            // The self-hosted server owns the key contract; upstream public
+            // documentation is intentionally not linked from this APK.
             Padding(
               padding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
               child: Row(
@@ -80,8 +59,6 @@ class DeveloperApiKeysSection extends StatelessWidget {
                     style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
                   ),
                   const Spacer(),
-                  _buildDocsButton(context, 'https://docs.omi.me/doc/developer/api', 'Developer API'),
-                  const SizedBox(width: 8),
                   _buildCreateKeyButton(context),
                 ],
               ),

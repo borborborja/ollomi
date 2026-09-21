@@ -160,9 +160,3 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3'
 }
-
-// Local dev uses the non-production Firebase emulator project. Do not try to
-// upload its mapping files to Crashlytics; production variants retain uploads.
-tasks.matching { task -> task.name.startsWith('uploadCrashlyticsMappingFileDev') }.configureEach {
-    enabled = false
-}

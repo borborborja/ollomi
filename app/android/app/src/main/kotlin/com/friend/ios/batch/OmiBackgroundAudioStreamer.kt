@@ -14,7 +14,6 @@ import okhttp3.WebSocketListener
 import okio.ByteString.Companion.toByteString
 import java.net.URLEncoder
 import java.util.ArrayDeque
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class OmiBackgroundAudioStreamer internal constructor(
@@ -36,7 +35,6 @@ class OmiBackgroundAudioStreamer internal constructor(
     companion object {
         private const val TAG = "OmiBle.BgAudio"
         private const val FLUTTER_PREFS = "FlutterSharedPreferences"
-        private const val DEFAULT_API_BASE_URL = "http://127.0.0.1:8080/"
         private const val MAX_PENDING_FRAMES = 200
         private const val RECONNECT_BACKOFF_MS = 3_000L
         private const val MAX_CACHED_TRANSCRIPT_MESSAGES = 200
@@ -350,35 +348,22 @@ class OmiBackgroundAudioStreamer internal constructor(
 
     private fun buildUrl(settings: NativeBleStreamSettings): String {
         val config = settings.config
-        val base = normalizeBaseUrl(config.apiBaseUrl.ifEmpty { DEFAULT_API_BASE_URL })
+        val base = websocketBaseUrl(config.apiBaseUrl)
         val params = mutableListOf(
             "language=${enc(settings.language)}",
             "sample_rate=${config.sampleRate}",
             "codec=${enc(config.codec)}",
-            "uid=${enc(settings.uid)}",
-            "include_speech_profile=true",
-            "stt_service=${enc(settings.sttService)}",
             "conversation_timeout=${settings.timeout}"
         )
         if (config.source.isNotEmpty()) params.add("source=${enc(config.source)}")
-        params.add("speaker_auto_assign=enabled")
         if (settings.vadGate) params.add("vad_gate=enabled")
         return "${base}v4/listen?${params.joinToString("&")}"
     }
 
-    private fun normalizeBaseUrl(value: String): String {
-        var base = value.trim().ifEmpty { DEFAULT_API_BASE_URL }
-        val lowerBase = base.lowercase(Locale.US)
-        if (lowerBase.startsWith("wss://") || lowerBase.startsWith("ws://")) {
-            base = lowerBase.substringBefore("://") + "://" + base.substringAfter("://")
-            return if (base.endsWith("/")) base else "$base/"
-        }
-        base = when {
-            lowerBase.startsWith("https://") -> "wss://" + base.substring("https://".length)
-            lowerBase.startsWith("http://") -> "ws://" + base.substring("http://".length)
-            else -> "wss://$base"
-        }
-        return if (base.endsWith("/")) base else "$base/"
+    private fun websocketBaseUrl(httpBase: String): String = when {
+        httpBase.startsWith("https://") -> "wss://${httpBase.removePrefix("https://")}"
+        httpBase.startsWith("http://") -> "ws://${httpBase.removePrefix("http://")}"
+        else -> error("Native BLE endpoint was not validated as HTTP(S)")
     }
 
     private fun enc(value: String): String = URLEncoder.encode(value, "UTF-8")

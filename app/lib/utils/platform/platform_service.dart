@@ -1,7 +1,5 @@
 import 'dart:io';
 
-
-
 /// A utility class to handle platform-specific service availability.
 /// The app targets mobile only (iOS/Android). Desktop lives in desktop/.
 class PlatformService {
@@ -12,7 +10,7 @@ class PlatformService {
   // Dispatch only to an explicitly configured adapter. Ollomi configures none.
   static bool get isAnalyticsSupported => true;
   static bool get isIntercomSupported => false;
-  static bool get isCrashlyticsSupported => true;
+  static bool get isLocalDiagnosticsSupported => true;
 
   /// Execute a function only if the platform supports it
   static T? executeIfSupported<T>(

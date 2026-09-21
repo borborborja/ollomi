@@ -6,17 +6,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-os.environ.setdefault(
-    "OLLOMI_SECRET_KEY", "unit-test-instance-secret-not-for-deployment"
-)
+os.environ.setdefault("OLLOMI_SECRET_KEY", "unit-test-instance-secret-not-for-deployment")
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    monkeypatch.setenv(
-        "OLLOMI_DATABASE_URL", "sqlite:///" + str(tmp_path / "test.sqlite")
-    )
+    monkeypatch.setenv("OLLOMI_DATABASE_URL", "sqlite:///" + str(tmp_path / "test.sqlite"))
     monkeypatch.setenv("OLLOMI_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("OLLOMI_MCP_ENABLED", "true")
+    monkeypatch.setenv("OLLOMI_MCP_PUBLIC_URL", "https://ollomi.test")
     from selfhost.config import settings
     from selfhost.db import Base, User, engine, transaction
     from selfhost.security import passwords

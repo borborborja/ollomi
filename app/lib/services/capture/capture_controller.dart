@@ -822,8 +822,8 @@ class CaptureController extends ChangeNotifier
       return;
     }
 
-    // Check codec compatibility for custom STT - fallback to default if incompatible.
-    // On-device allowance never falls back to a billed Omi socket (S17).
+    // The self-hosted server owns provider selection. Legacy direct/on-device
+    // preferences never redirect a capture socket away from that server.
     CustomSttConfig? effectiveConfig = decision.customSttConfig;
     if (effectiveConfig != null && !TranscriptSocketServiceFactory.isCodecSupportedForCustomStt(codec)) {
       if (TranscriptSocketServiceFactory.shouldBlockUnsupportedCodecFallback(
@@ -832,7 +832,7 @@ class CaptureController extends ChangeNotifier
         allowanceOnDevice: decision.allowanceOnDevice,
       )) {
         Logger.warning(
-          '[CustomSTT] Codec $codec is unsupported; refusing Omi fallback (${decision.reason})',
+          '[CustomSTT] Codec $codec is unsupported; refusing server fallback (${decision.reason})',
         );
         await _abandonTranscriptionSocket(reason: 'unsupported custom STT codec');
         await _reconcileNativeBackgroundStreamingPolicy();
@@ -840,7 +840,7 @@ class CaptureController extends ChangeNotifier
         _startKeepAliveServices();
         return;
       }
-      Logger.debug('[CustomSTT] Codec $codec not supported, falling back to Omi');
+      Logger.debug('[CustomSTT] Codec $codec not supported, using the configured server');
       effectiveConfig = null;
     }
 
@@ -1285,7 +1285,7 @@ class CaptureController extends ChangeNotifier
           codec: codec.toString(),
           sampleRate: mapCodecToSampleRate(codec),
           source: _getConversationSourceFromDevice(),
-          apiBaseUrl: Env.apiBaseUrl ?? 'http://127.0.0.1:8080/',
+          apiBaseUrl: Env.apiBaseUrl,
           serviceUuid: audioTarget.key,
           characteristicUuid: audioTarget.value,
           deviceType: device.type.name,
@@ -1346,16 +1346,10 @@ class CaptureController extends ChangeNotifier
   /// background streaming lands with the native drain engine follow-up.
   bool get hasNativeBackgroundStreamRoute => hasNativeBleAudioRoute && _recordingDevice?.type != DeviceType.limitless;
 
-  bool get _nativeOmiRawAudioAllowed {
-    final config = SharedPreferencesUtil().customSttConfig;
-    return !config.isEnabled || config.sendRawAudioToOmi;
-  }
-
   bool get _shouldEnableNativeBackgroundStreaming =>
       !SharedPreferencesUtil().batchModeEnabled &&
       hasNativeBackgroundStreamRoute &&
-      SharedPreferencesUtil().backgroundModeEnabled &&
-      _nativeOmiRawAudioAllowed;
+      SharedPreferencesUtil().backgroundModeEnabled;
 
   Future<void> _reconcileNativeBackgroundStreamingPolicy() async {
     await SharedPreferencesUtil().saveBool('nativeBleStreamingEnabled', _shouldEnableNativeBackgroundStreaming);

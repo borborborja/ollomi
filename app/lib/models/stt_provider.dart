@@ -528,10 +528,10 @@ class SttProviderConfig {
         break;
 
       case SttProvider.omiParakeet:
-        config['url'] = 'https://parakeet.omiapi.com/v1/transcribe';
-        config['audio_field_name'] = 'file';
-        config['params'] = {'language': lang};
-        break;
+        // Ollomi has no direct client-to-Omi STT route. The self-hosted
+        // resolver sends audio to its authenticated backend, whose configured
+        // server-side catalogue may select a compatible model or fallback.
+        return {};
 
       default:
         return {};

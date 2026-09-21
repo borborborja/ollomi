@@ -30,7 +30,7 @@ class _AsanaSettingsPageState extends State<AsanaSettingsPage> {
   }
 
   Future<void> _initializeAsana() async {
-    // Load workspaces (user info is in Firebase)
+    // Load workspaces for the current Ollomi account.
     await _loadWorkspaces();
   }
 
@@ -41,7 +41,7 @@ class _AsanaSettingsPageState extends State<AsanaSettingsPage> {
 
     if (!mounted) return;
 
-    // Get saved workspace from Firebase (via provider)
+    // Get the saved workspace from the backend through the provider.
     final provider = context.read<TaskIntegrationProvider>();
     final asanaDetails = provider.getConnectionDetails('asana');
     final savedWorkspaceGid = asanaDetails?['workspace_gid'] as String?;
@@ -68,7 +68,7 @@ class _AsanaSettingsPageState extends State<AsanaSettingsPage> {
 
     if (!mounted) return;
 
-    // Get saved project from Firebase (via provider)
+    // Get the saved project from the backend through the provider.
     final provider = context.read<TaskIntegrationProvider>();
     final asanaDetails = provider.getConnectionDetails('asana');
     final savedProjectGid = asanaDetails?['project_gid'] as String?;

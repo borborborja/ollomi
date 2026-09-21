@@ -236,6 +236,9 @@ class _AppDetailPageState extends State<AppDetailPage> {
   @override
   void initState() {
     app = widget.app;
+    // Paid marketplace apps are an upstream Omi feature. A self-hosted Ollomi
+    // server treats every installed app as free, including migrated metadata.
+    app.isPaid = false;
 
     // Track app detail page viewed
     PlatformManager.instance.analytics.appDetailViewed(
@@ -269,6 +272,7 @@ class _AppDetailPageState extends State<AppDetailPage> {
     if (mounted) {
       setState(() {
         if (res != null) {
+          res.isPaid = false;
           app = res;
         }
       });
@@ -278,9 +282,6 @@ class _AppDetailPageState extends State<AppDetailPage> {
     if (mounted) {
       context.read<AppProvider>().checkIsAppOwner(app.uid);
       context.read<AppProvider>().setIsAppPublicToggled(!app.private);
-      if (app.isPaid) {
-        _loadSubscriptionData();
-      }
     }
   }
 

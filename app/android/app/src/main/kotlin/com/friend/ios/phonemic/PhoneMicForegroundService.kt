@@ -91,7 +91,7 @@ class PhoneMicForegroundService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Omi Phone Recording",
+            "Ollomi Phone Recording",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
             setShowBadge(false)
@@ -106,7 +106,7 @@ class PhoneMicForegroundService : Service() {
         } else null
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Omi")
+            .setContentTitle("Ollomi")
             .setContentText("Recording in progress")
             .setSmallIcon(applicationInfo.icon)
             .setPriority(NotificationCompat.PRIORITY_LOW)

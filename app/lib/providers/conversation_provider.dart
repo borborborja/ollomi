@@ -100,8 +100,8 @@ class ConversationProvider extends ChangeNotifier {
   // True when the last full conversations fetch failed (no response /
   // non-200) rather than legitimately returning zero results. The UI uses
   // this to keep showing a loading state and auto-retry instead of latching
-  // "No conversations yet" — e.g. on a cold start where the Firebase auth
-  // token wasn't ready yet for the very first request.
+  // "No conversations yet" — e.g. on a cold start where the session token
+  // wasn't ready yet for the very first request.
   bool conversationsLoadFailed = false;
   Timer? _initialFetchRetryTimer;
   int _initialFetchRetryCount = 0;

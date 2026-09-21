@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:omi/utils/platform/platform_manager.dart';
@@ -9,26 +10,22 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/pages/home/firmware_mixin.dart';
 import 'package:omi/backend/http/api/users.dart';
 import 'package:omi/backend/preferences.dart';
-import 'package:omi/env/env.dart';
-import 'package:omi/models/stt_provider.dart';
 import 'package:omi/pages/settings/conversation_display_settings.dart';
 import 'package:omi/pages/settings/conversation_timeout_dialog.dart';
 import 'package:omi/pages/settings/data_privacy_page.dart';
 import 'package:omi/pages/settings/import_history_page.dart';
-import 'package:omi/pages/payments/payments_page.dart';
 import 'package:omi/pages/settings/transcription_settings_page.dart';
 import 'package:omi/pages/settings/widgets/create_mcp_api_key_dialog.dart';
-import 'package:omi/pages/settings/widgets/developer_api_keys_section.dart';
 import 'package:omi/pages/settings/widgets/mcp_api_key_list_item.dart';
 import 'package:omi/providers/device_provider.dart';
 import 'package:omi/providers/developer_mode_provider.dart';
 import 'package:omi/providers/mcp_provider.dart';
+import 'package:omi/services/auth_service.dart';
 import 'package:omi/utils/alerts/app_snackbar.dart';
 import 'package:omi/utils/debug_log_manager.dart';
 import 'package:omi/utils/firmware_update_build_policy.dart';
@@ -58,7 +55,9 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      context.read<McpProvider>().fetchKeys();
+      if (AuthService.instance.supportsServerCapability('mcp')) {
+        context.read<McpProvider>().fetchKeys();
+      }
     });
     super.initState();
   }
@@ -75,40 +74,67 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
 
   Widget _buildSectionContainer({required List<Widget> children}) {
     return Container(
-      decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(children: children),
     );
   }
 
-  Widget _buildNavItem({required FaIconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildNavItem({
+    required FaIconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(14)),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1C1E),
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Row(
           children: [
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: const Color(0xFF2A2A2E), borderRadius: BorderRadius.circular(10)),
-              child: Center(child: FaIcon(icon, color: Colors.grey.shade400, size: 16)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2A2A2E),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: FaIcon(icon, color: Colors.grey.shade400, size: 16),
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-            FaIcon(FontAwesomeIcons.chevronRight, color: Colors.grey.shade600, size: 14),
+            FaIcon(
+              FontAwesomeIcons.chevronRight,
+              color: Colors.grey.shade600,
+              size: 14,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, {String? subtitle, Widget? trailing}) {
+  Widget _buildSectionHeader(
+    String title, {
+    String? subtitle,
+    Widget? trailing,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
       child: Column(
@@ -119,31 +145,46 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
             children: [
               Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               if (trailing != null) trailing,
             ],
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 6),
-            Text(subtitle, style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+            Text(
+              subtitle,
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            ),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildSttChip() {
-    final useCustom = SharedPreferencesUtil().useCustomStt;
-    final config = SharedPreferencesUtil().customSttConfig;
-    final label = useCustom ? SttProviderConfig.get(config.provider).displayName : 'Omi';
+  Widget _buildSttChip(BuildContext context) {
+    // Provider URLs and keys are server-owned in Ollomi. Never imply that the
+    // legacy Omi cloud STT path is selected just because no local override is
+    // stored on the phone.
+    final label = AuthService.instance.isSignedIn() ? 'Ollomi' : context.l10n.serverUrl;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade800,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Text(
         label,
-        style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w500),
+        style: const TextStyle(
+          color: Colors.grey,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -160,8 +201,13 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
         Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(color: const Color(0xFF2A2A2E), borderRadius: BorderRadius.circular(10)),
-          child: Center(child: FaIcon(icon, color: Colors.grey.shade400, size: 16)),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2A2A2E),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: FaIcon(icon, color: Colors.grey.shade400, size: 16),
+          ),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -170,14 +216,25 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
             children: [
               Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 2),
-              Text(description, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+              Text(
+                description,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              ),
             ],
           ),
         ),
-        Switch(value: value, onChanged: onChanged, activeThumbColor: const Color(0xFF22C55E)),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: const Color(0xFF22C55E),
+        ),
       ],
     );
   }
@@ -198,8 +255,13 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: const Color(0xFF2A2A2E), borderRadius: BorderRadius.circular(10)),
-              child: Center(child: FaIcon(icon, color: Colors.grey.shade400, size: 16)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2A2A2E),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: FaIcon(icon, color: Colors.grey.shade400, size: 16),
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -208,19 +270,33 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   const SizedBox(height: 2),
-                  Text(description, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                  Text(
+                    description,
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  ),
                 ],
               ),
             ),
-            Switch(value: isEnabled, onChanged: onToggle, activeThumbColor: const Color(0xFF22C55E)),
+            Switch(
+              value: isEnabled,
+              onChanged: onToggle,
+              activeThumbColor: const Color(0xFF22C55E),
+            ),
           ],
         ),
         if (isEnabled) ...[
           const SizedBox(height: 12),
-          _buildTextField(controller: controller, label: context.l10n.endpointUrl),
+          _buildTextField(
+            controller: controller,
+            label: context.l10n.endpointUrl,
+          ),
           if (extraField != null) ...[const SizedBox(height: 8), extraField],
         ],
       ],
@@ -234,7 +310,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
     TextInputType? keyboardType,
   }) {
     return Container(
-      decoration: BoxDecoration(color: const Color(0xFF2C2C2E), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2C2C2E),
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
@@ -244,7 +323,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
           hintText: hint,
           labelStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: OutlineInputBorder(
@@ -266,22 +348,36 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
         children: [
           Expanded(
             flex: 2,
-            child: Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+            ),
           ),
           Expanded(
             flex: 3,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(color: const Color(0xFF0D0D0D), borderRadius: BorderRadius.circular(6)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0D0D0D),
+                borderRadius: BorderRadius.circular(6),
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       value,
-                      style: const TextStyle(color: Colors.white, fontFamily: 'Ubuntu Mono', fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Ubuntu Mono',
+                        fontSize: 13,
+                      ),
                     ),
                   ),
-                  FaIcon(FontAwesomeIcons.copy, color: Colors.grey.shade600, size: 11),
+                  FaIcon(
+                    FontAwesomeIcons.copy,
+                    color: Colors.grey.shade600,
+                    size: 11,
+                  ),
                 ],
               ),
             ),
@@ -298,17 +394,31 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
           return Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(12)),
-            child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C1E),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
           );
         }
         if (provider.error != null) {
           return Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C1E),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Center(
-              child: Text('Error: ${provider.error}', style: TextStyle(color: Colors.red.shade300)),
+              child: Text(
+                'Error: ${provider.error}',
+                style: TextStyle(color: Colors.red.shade300),
+              ),
             ),
           );
         }
@@ -316,14 +426,27 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
           return Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C1E),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               children: [
-                FaIcon(FontAwesomeIcons.key, color: Colors.grey.shade600, size: 28),
+                FaIcon(
+                  FontAwesomeIcons.key,
+                  color: Colors.grey.shade600,
+                  size: 28,
+                ),
                 const SizedBox(height: 12),
-                Text(context.l10n.noApiKeysYet, style: TextStyle(color: Colors.grey.shade400, fontSize: 15)),
+                Text(
+                  context.l10n.noApiKeysYet,
+                  style: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+                ),
                 const SizedBox(height: 4),
-                Text(context.l10n.createKeyToGetStarted, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                Text(
+                  context.l10n.createKeyToGetStarted,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                ),
               ],
             ),
           );
@@ -344,33 +467,15 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
     );
   }
 
-  Widget _buildDocsButton(String url, String label) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: () {
-          launchUrl(Uri.parse(url));
-          PlatformManager.instance.analytics.pageOpened('$label Docs');
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Text(
-            context.l10n.docs,
-            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 12),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCreateKeyButton(VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -378,7 +483,11 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
             const SizedBox(width: 6),
             Text(
               context.l10n.createKey,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -418,13 +527,26 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                 const SizedBox(
                   width: 24,
                   height: 24,
-                  child: Center(child: FaIcon(FontAwesomeIcons.microchip, color: Colors.white, size: 16)),
+                  child: Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.microchip,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 14),
                 const Expanded(
-                  child: Text('Flash Custom Firmware', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: Text(
+                    'Flash Custom Firmware',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
-                Icon(Icons.chevron_right, color: Colors.grey.shade600, size: 20),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey.shade600,
+                  size: 20,
+                ),
               ],
             ),
           ),
@@ -450,7 +572,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
               ),
               title: Text(
                 context.l10n.developerSettings,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
               ),
               centerTitle: true,
               actions: [
@@ -472,22 +597,15 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Payment Methods
-                  _buildNavItem(
-                    icon: FontAwesomeIcons.solidCreditCard,
-                    title: context.l10n.paymentMethods,
-                    onTap: () =>
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PaymentsPage())),
-                  ),
-                  const SizedBox(height: 12),
-
                   // Conversation Display
                   _buildNavItem(
                     icon: FontAwesomeIcons.list,
                     title: context.l10n.conversationDisplay,
-                    onTap: () => Navigator.of(
-                      context,
-                    ).push(MaterialPageRoute(builder: (context) => const ConversationDisplaySettings())),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ConversationDisplaySettings(),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -495,17 +613,22 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                   _buildNavItem(
                     icon: FontAwesomeIcons.shield,
                     title: context.l10n.dataPrivacy,
-                    onTap: () =>
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const DataPrivacyPage())),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const DataPrivacyPage(),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
 
                   // Transcription Section
                   GestureDetector(
                     onTap: () async {
-                      await Navigator.of(
-                        context,
-                      ).push(MaterialPageRoute(builder: (context) => const TranscriptionSettingsPage()));
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const TranscriptionSettingsPage(),
+                        ),
+                      );
                       if (mounted) {
                         setState(() {});
                       }
@@ -526,7 +649,11 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Center(
-                              child: FaIcon(FontAwesomeIcons.microphone, color: Colors.grey.shade400, size: 16),
+                              child: FaIcon(
+                                FontAwesomeIcons.microphone,
+                                color: Colors.grey.shade400,
+                                size: 16,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -545,14 +672,21 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                 const SizedBox(height: 2),
                                 Text(
                                   context.l10n.configureSttProvider,
-                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          _buildSttChip(),
+                          _buildSttChip(context),
                           const SizedBox(width: 8),
-                          FaIcon(FontAwesomeIcons.chevronRight, color: Colors.grey.shade600, size: 14),
+                          FaIcon(
+                            FontAwesomeIcons.chevronRight,
+                            color: Colors.grey.shade600,
+                            size: 14,
+                          ),
                         ],
                       ),
                     ),
@@ -579,7 +713,13 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                               color: const Color(0xFF2A2A2E),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Center(child: FaIcon(FontAwesomeIcons.clock, color: Colors.grey.shade400, size: 16)),
+                            child: Center(
+                              child: FaIcon(
+                                FontAwesomeIcons.clock,
+                                color: Colors.grey.shade400,
+                                size: 16,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -597,12 +737,19 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                 const SizedBox(height: 2),
                                 Text(
                                   context.l10n.setWhenConversationsAutoEnd,
-                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          FaIcon(FontAwesomeIcons.chevronRight, color: Colors.grey.shade600, size: 14),
+                          FaIcon(
+                            FontAwesomeIcons.chevronRight,
+                            color: Colors.grey.shade600,
+                            size: 14,
+                          ),
                         ],
                       ),
                     ),
@@ -612,7 +759,11 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                   // Import Data Section
                   GestureDetector(
                     onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ImportHistoryPage()));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ImportHistoryPage(),
+                        ),
+                      );
                     },
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -630,7 +781,11 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Center(
-                              child: FaIcon(FontAwesomeIcons.fileImport, color: Colors.grey.shade400, size: 16),
+                              child: FaIcon(
+                                FontAwesomeIcons.fileImport,
+                                color: Colors.grey.shade400,
+                                size: 16,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -649,12 +804,19 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                 const SizedBox(height: 2),
                                 Text(
                                   context.l10n.importDataFromOtherSources,
-                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          FaIcon(FontAwesomeIcons.chevronRight, color: Colors.grey.shade600, size: 14),
+                          FaIcon(
+                            FontAwesomeIcons.chevronRight,
+                            color: Colors.grey.shade600,
+                            size: 14,
+                          ),
                         ],
                       ),
                     ),
@@ -665,7 +827,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                   _buildSectionHeader(context.l10n.debugAndDiagnostics),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(14)),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     child: Column(
                       children: [
                         // Debug Logs toggle
@@ -678,7 +843,13 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                 color: const Color(0xFF2A2A2E),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Center(child: FaIcon(FontAwesomeIcons.bug, color: Colors.grey.shade400, size: 16)),
+                              child: Center(
+                                child: FaIcon(
+                                  FontAwesomeIcons.bug,
+                                  color: Colors.grey.shade400,
+                                  size: 16,
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -698,7 +869,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                     SharedPreferencesUtil().devLogsToFileEnabled
                                         ? context.l10n.autoDeletesAfterThreeDays
                                         : context.l10n.helpsDiagnoseIssues,
-                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -725,7 +899,9 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                     final files = await DebugLogManager.listLogFiles();
                                     if (files.isEmpty) {
                                       if (context.mounted) {
-                                        AppSnackbar.showSnackbarError(context.l10n.noLogFilesFound);
+                                        AppSnackbar.showSnackbarError(
+                                          context.l10n.noLogFilesFound,
+                                        );
                                       }
                                       return;
                                     }
@@ -744,9 +920,13 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                     if (!context.mounted) return;
                                     final selected = await showModalBottomSheet<File>(
                                       context: context,
-                                      backgroundColor: const Color(0xFF1C1C1E),
+                                      backgroundColor: const Color(
+                                        0xFF1C1C1E,
+                                      ),
                                       shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(16),
+                                        ),
                                       ),
                                       builder: (ctx) {
                                         return SafeArea(
@@ -754,16 +934,24 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Container(
-                                                margin: const EdgeInsets.only(top: 8),
+                                                margin: const EdgeInsets.only(
+                                                  top: 8,
+                                                ),
                                                 height: 4,
                                                 width: 36,
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF3C3C43),
-                                                  borderRadius: BorderRadius.circular(2),
+                                                  color: const Color(
+                                                    0xFF3C3C43,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(
+                                                    2,
+                                                  ),
                                                 ),
                                               ),
                                               Padding(
-                                                padding: const EdgeInsets.all(16),
+                                                padding: const EdgeInsets.all(
+                                                  16,
+                                                ),
                                                 child: Text(
                                                   context.l10n.selectLogFile,
                                                   style: const TextStyle(
@@ -777,19 +965,32 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                                 child: ListView.separated(
                                                   shrinkWrap: true,
                                                   itemCount: files.length,
-                                                  separatorBuilder: (_, __) =>
-                                                      const Divider(height: 1, color: Color(0xFF3C3C43)),
+                                                  separatorBuilder: (_, __) => const Divider(
+                                                    height: 1,
+                                                    color: Color(
+                                                      0xFF3C3C43,
+                                                    ),
+                                                  ),
                                                   itemBuilder: (ctx, i) {
                                                     final f = files[i];
                                                     final name = f.uri.pathSegments.last;
                                                     return ListTile(
-                                                      title: Text(name, style: const TextStyle(color: Colors.white)),
+                                                      title: Text(
+                                                        name,
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
                                                       trailing: const FaIcon(
                                                         FontAwesomeIcons.chevronRight,
-                                                        color: Color(0xFF3C3C43),
+                                                        color: Color(
+                                                          0xFF3C3C43,
+                                                        ),
                                                         size: 14,
                                                       ),
-                                                      onTap: () => Navigator.of(ctx).pop(f),
+                                                      onTap: () => Navigator.of(
+                                                        ctx,
+                                                      ).pop(f),
                                                     );
                                                   },
                                                 ),
@@ -812,7 +1013,9 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                     }
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF2A2A2E),
                                       borderRadius: BorderRadius.circular(10),
@@ -820,7 +1023,11 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        FaIcon(FontAwesomeIcons.fileArrowUp, color: Colors.grey.shade300, size: 16),
+                                        FaIcon(
+                                          FontAwesomeIcons.fileArrowUp,
+                                          color: Colors.grey.shade300,
+                                          size: 16,
+                                        ),
                                         const SizedBox(width: 8),
                                         Text(
                                           context.l10n.shareLogs,
@@ -844,14 +1051,21 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                   AppSnackbar.showSnackbar(message);
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                    horizontal: 16,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.red.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Row(
                                     children: [
-                                      const FaIcon(FontAwesomeIcons.trash, color: Colors.redAccent, size: 14),
+                                      const FaIcon(
+                                        FontAwesomeIcons.trash,
+                                        color: Colors.redAccent,
+                                        size: 14,
+                                      ),
                                       const SizedBox(width: 6),
                                       Text(
                                         context.l10n.clear,
@@ -879,23 +1093,33 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                             if (provider.loadingExportMemories) return;
                             // Capture l10n before async gaps
                             final exportTitle = context.l10n.exportAllData;
-                            setState(() => provider.loadingExportMemories = true);
+                            setState(
+                              () => provider.loadingExportMemories = true,
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(context.l10n.exportStartedMayTakeFewSeconds),
+                                content: Text(
+                                  context.l10n.exportStartedMayTakeFewSeconds,
+                                ),
                                 duration: const Duration(seconds: 3),
                               ),
                             );
                             final directory = await getApplicationDocumentsDirectory();
                             final filePath = '${directory.path}/omi-export.json';
-                            final exportedPath = await exportUserDataToFile(filePath);
+                            final exportedPath = await exportUserDataToFile(
+                              filePath,
+                            );
                             if (exportedPath == null) {
                               // Always reset the flag so the button is re-enabled even if widget is unmounted
                               provider.loadingExportMemories = false;
                               if (context.mounted) {
-                                ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(const SnackBar(content: Text('Export failed. Please try again.')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Export failed. Please try again.',
+                                    ),
+                                  ),
+                                );
                                 setState(() {});
                               }
                               return;
@@ -931,7 +1155,11 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Center(
-                              child: FaIcon(FontAwesomeIcons.fileExport, color: Colors.grey.shade400, size: 16),
+                              child: FaIcon(
+                                FontAwesomeIcons.fileExport,
+                                color: Colors.grey.shade400,
+                                size: 16,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -950,7 +1178,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                                 const SizedBox(height: 2),
                                 Text(
                                   context.l10n.exportConversationsToJson,
-                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
@@ -959,447 +1190,427 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                             const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           else
-                            FaIcon(FontAwesomeIcons.chevronRight, color: Colors.grey.shade400, size: 16),
+                            FaIcon(
+                              FontAwesomeIcons.chevronRight,
+                              color: Colors.grey.shade400,
+                              size: 16,
+                            ),
                         ],
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  if (AuthService.instance.supportsServerCapability('mcp')) ...[
+                    const SizedBox(height: 32),
 
-                  // Developer API Keys Section
-                  const DeveloperApiKeysSection(),
-
-                  const SizedBox(height: 32),
-
-                  // MCP Section
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
-                    child: Row(
-                      children: [
-                        Text(
-                          context.l10n.mcp,
-                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
-                        ),
-                        const Spacer(),
-                        _buildDocsButton('https://docs.omi.me/doc/developer/MCP', 'MCP'),
-                        const SizedBox(width: 8),
-                        _buildCreateKeyButton(
-                          () => showDialog(context: context, builder: (context) => const CreateMcpApiKeyDialog()),
-                        ),
-                      ],
+                    // MCP Section
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 4,
+                        right: 4,
+                        bottom: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            context.l10n.mcp,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          _buildCreateKeyButton(
+                            () => showDialog(
+                              context: context,
+                              builder: (context) => const CreateMcpApiKeyDialog(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  _buildApiKeysList(context),
+                    _buildApiKeysList(context),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Claude Desktop Integration
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(14)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2A2A2E),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Center(
-                                child: FaIcon(FontAwesomeIcons.desktop, color: Colors.grey.shade400, size: 16),
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    context.l10n.claudeDesktop,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    context.l10n.addToClaudeDesktopConfig,
-                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // Code block with JSON syntax highlighting
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0D0D0D),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFF2A2A2E), width: 1),
-                          ),
-                          child: RichText(
-                            text: TextSpan(
-                              style: const TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 11, height: 1.6),
-                              children: [
-                                const TextSpan(
-                                  text: '{\n',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                const TextSpan(
-                                  text: '  ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"mcpServers"',
-                                  style: TextStyle(color: Colors.cyan.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ': {\n',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                const TextSpan(
-                                  text: '    ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"omi"',
-                                  style: TextStyle(color: Colors.cyan.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ': {\n',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                const TextSpan(
-                                  text: '      ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"command"',
-                                  style: TextStyle(color: Colors.cyan.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ': ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"docker"',
-                                  style: TextStyle(color: Colors.orange.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ',\n',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                const TextSpan(
-                                  text: '      ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"args"',
-                                  style: TextStyle(color: Colors.cyan.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ': [\n',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                const TextSpan(
-                                  text: '        ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"run"',
-                                  style: TextStyle(color: Colors.orange.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ', ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"--rm"',
-                                  style: TextStyle(color: Colors.orange.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ', ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"-i"',
-                                  style: TextStyle(color: Colors.orange.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ', ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"-e"',
-                                  style: TextStyle(color: Colors.orange.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ',\n',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                const TextSpan(
-                                  text: '        ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"OMI_API_KEY=<your_key>"',
-                                  style: TextStyle(color: Colors.orange.shade300),
-                                ),
-                                const TextSpan(
-                                  text: ',\n',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                const TextSpan(
-                                  text: '        ',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                TextSpan(
-                                  text: '"omiai/mcp-server:latest"',
-                                  style: TextStyle(color: Colors.orange.shade300),
-                                ),
-                                const TextSpan(
-                                  text: '\n      ]\n    }\n  }\n}',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        GestureDetector(
-                          onTap: () {
-                            const config = '''{
-  "mcpServers": {
-    "omi": {
-      "command": "docker",
-      "args": ["run", "--rm", "-i", "-e", "OMI_API_KEY=your_api_key_here", "omiai/mcp-server:latest"]
-    }
-  }
-}''';
-                            Clipboard.setData(const ClipboardData(text: config));
-                            AppSnackbar.showSnackbar(context.l10n.configCopiedToClipboard);
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2A2A2E),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                FaIcon(FontAwesomeIcons.copy, color: Colors.grey.shade300, size: 14),
-                                const SizedBox(width: 8),
-                                Text(
-                                  context.l10n.copyConfig,
-                                  style: TextStyle(
-                                    color: Colors.grey.shade300,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // MCP Server Section
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(14)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2A2A2E),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Center(
-                                child: FaIcon(FontAwesomeIcons.server, color: Colors.grey.shade400, size: 16),
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    context.l10n.mcpServer,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    context.l10n.connectAiAssistantsToYourData,
-                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Server URL
-                        Text(
-                          context.l10n.serverUrl,
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 8),
-                        Builder(
-                          builder: (context) {
-                            final mcpUrl = '${Env.apiBaseUrl}v1/mcp/sse';
-                            return GestureDetector(
-                              onTap: () {
-                                Clipboard.setData(ClipboardData(text: mcpUrl));
-                                AppSnackbar.showSnackbar(context.l10n.urlCopied);
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    // Claude Desktop Integration
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C1C1E),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0D0D0D),
+                                  color: const Color(0xFF2A2A2E),
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFF2A2A2E), width: 1),
                                 ),
-                                child: Row(
+                                child: Center(
+                                  child: FaIcon(
+                                    FontAwesomeIcons.desktop,
+                                    color: Colors.grey.shade400,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: Text(
-                                        mcpUrl,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontFamily: 'Ubuntu Mono',
-                                          fontSize: 13,
-                                        ),
+                                    Text(
+                                      context.l10n.claudeDesktop,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    FaIcon(FontAwesomeIcons.copy, color: Colors.grey.shade500, size: 14),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      context.l10n.addToClaudeDesktopConfig,
+                                      style: TextStyle(
+                                        color: Colors.grey.shade500,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 20),
-                        Divider(color: Colors.grey.shade800, height: 1),
-                        const SizedBox(height: 20),
-
-                        // API Key Auth Section
-                        Text(
-                          context.l10n.apiKeyAuth,
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                context.l10n.header,
-                                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Code block with JSON syntax highlighting
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0D0D0D),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFF2A2A2E),
+                                width: 1,
                               ),
                             ),
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                'Authorization: Bearer <key>',
-                                style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontFamily: 'Ubuntu Mono'),
+                            child: SelectableText(
+                              jsonEncode({
+                                'mcpServers': {
+                                  'ollomi': {
+                                    'type': 'http',
+                                    'url': AuthService.instance.mcpUrl,
+                                  },
+                                },
+                              }),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Ubuntu Mono',
+                                fontSize: 11,
+                                height: 1.6,
                               ),
                             ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-                        Divider(color: Colors.grey.shade800, height: 1),
-                        const SizedBox(height: 20),
-
-                        // OAuth Section
-                        Text(
-                          context.l10n.oAuth,
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Client ID
-                        _buildMcpConfigRow(context.l10n.clientId, 'omi'),
-                        const SizedBox(height: 8),
-
-                        // Client Secret hint
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                context.l10n.clientSecret,
-                                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () {
+                              final config = jsonEncode({
+                                'mcpServers': {
+                                  'ollomi': {
+                                    'type': 'http',
+                                    'url': AuthService.instance.mcpUrl,
+                                  },
+                                },
+                              });
+                              Clipboard.setData(ClipboardData(text: config));
+                              AppSnackbar.showSnackbar(
+                                context.l10n.configCopiedToClipboard,
+                              );
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2A2A2E),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  FaIcon(
+                                    FontAwesomeIcons.copy,
+                                    color: Colors.grey.shade300,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    context.l10n.copyConfig,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade300,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                context.l10n.useYourMcpApiKey,
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 13,
-                                  fontStyle: FontStyle.italic,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // MCP Server Section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1C1C1E),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2A2A2E),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: FaIcon(
+                                    FontAwesomeIcons.server,
+                                    color: Colors.grey.shade400,
+                                    size: 16,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      context.l10n.mcpServer,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      context.l10n.connectAiAssistantsToYourData,
+                                      style: TextStyle(
+                                        color: Colors.grey.shade500,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
 
-                  const SizedBox(height: 32),
+                          // Server URL
+                          Text(
+                            context.l10n.serverUrl,
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Builder(
+                            builder: (context) {
+                              final mcpUrl = AuthService.instance.mcpUrl;
+                              return GestureDetector(
+                                onTap: () {
+                                  Clipboard.setData(
+                                    ClipboardData(text: mcpUrl),
+                                  );
+                                  AppSnackbar.showSnackbar(
+                                    context.l10n.urlCopied,
+                                  );
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0D0D0D),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: const Color(0xFF2A2A2E),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          mcpUrl,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Ubuntu Mono',
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      FaIcon(
+                                        FontAwesomeIcons.copy,
+                                        color: Colors.grey.shade500,
+                                        size: 14,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+                          Divider(color: Colors.grey.shade800, height: 1),
+                          const SizedBox(height: 20),
+
+                          // API Key Auth Section
+                          Text(
+                            context.l10n.apiKeyAuth,
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  context.l10n.header,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  'Authorization: Bearer <key>',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                    fontFamily: 'Ubuntu Mono',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 20),
+                          Divider(color: Colors.grey.shade800, height: 1),
+                          const SizedBox(height: 20),
+
+                          // OAuth Section
+                          Text(
+                            context.l10n.oAuth,
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Client ID
+                          _buildMcpConfigRow(
+                            context.l10n.clientId,
+                            context.l10n.notSet,
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Client Secret hint
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  context.l10n.clientSecret,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  context.l10n.notSet,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+                  ],
 
                   // Webhooks Section
                   Padding(
-                    padding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
+                    padding: const EdgeInsets.only(
+                      left: 4,
+                      right: 4,
+                      bottom: 12,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           context.l10n.webhooks,
-                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        _buildDocsButton('https://docs.omi.me/doc/developer/apps/Introduction', 'Webhooks'),
                       ],
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(14)),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     child: Column(
                       children: [
                         // Conversation Events
@@ -1413,7 +1624,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         // Real-time Transcript
                         _buildWebhookItem(
@@ -1426,7 +1640,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         // Realtime Audio Bytes
                         _buildWebhookItem(
@@ -1444,7 +1661,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         // Day Summary
                         _buildWebhookItem(
@@ -1463,15 +1683,26 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
 
                   // Experimental Section
                   Padding(
-                    padding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
+                    padding: const EdgeInsets.only(
+                      left: 4,
+                      right: 4,
+                      bottom: 12,
+                    ),
                     child: Text(
                       context.l10n.experimental,
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(14)),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     child: Column(
                       children: [
                         // Transcription Diagnostics
@@ -1484,7 +1715,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         // Auto-create Speakers
                         _buildExperimentalItem(
@@ -1496,7 +1730,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         // VAD Gate
                         _buildExperimentalItem(
@@ -1516,12 +1753,19 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                     padding: EdgeInsets.only(left: 4, right: 4, bottom: 12),
                     child: Text(
                       'Home Screen',
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(14)),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     child: Column(
                       children: [
                         _buildExperimentalItem(
@@ -1533,7 +1777,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         _buildExperimentalItem(
                           title: context.l10n.dailyScore,
@@ -1544,7 +1791,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         _buildExperimentalItem(
                           title: context.l10n.tasks,
@@ -1555,7 +1805,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(color: Colors.grey.shade800, height: 1),
+                          child: Divider(
+                            color: Colors.grey.shade800,
+                            height: 1,
+                          ),
                         ),
                         _buildExperimentalItem(
                           title: context.l10n.showPhoneCallButtonTitle,
@@ -1579,7 +1832,10 @@ class _DeveloperSettingsPageState extends State<_DeveloperSettingsPageView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 24),
-                            _buildSectionHeader('Firmware', subtitle: 'Flash custom firmware builds'),
+                            _buildSectionHeader(
+                              'Firmware',
+                              subtitle: 'Flash custom firmware builds',
+                            ),
                             const SizedBox(height: 8),
                             _buildManualFirmwareFlash(deviceProvider),
                           ],
@@ -1609,7 +1865,11 @@ class _ManualFirmwareFlashPage extends StatefulWidget {
   final String fileName;
   final BtDevice device;
 
-  const _ManualFirmwareFlashPage({required this.zipFilePath, required this.fileName, required this.device});
+  const _ManualFirmwareFlashPage({
+    required this.zipFilePath,
+    required this.fileName,
+    required this.device,
+  });
 
   @override
   State<_ManualFirmwareFlashPage> createState() => _ManualFirmwareFlashPageState();
@@ -1652,7 +1912,10 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text(context.l10n.flashFirmware, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          context.l10n.flashFirmware,
+          style: const TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -1664,10 +1927,17 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
             // File info
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Row(
                 children: [
-                  const FaIcon(FontAwesomeIcons.file, color: Colors.deepPurple, size: 20),
+                  const FaIcon(
+                    FontAwesomeIcons.file,
+                    color: Colors.deepPurple,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -1675,12 +1945,19 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
                       children: [
                         Text(
                           widget.fileName,
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Target: ${widget.device.name}',
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
@@ -1697,16 +1974,25 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
                 decoration: BoxDecoration(
                   color: Colors.orange.shade900.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange.shade700.withValues(alpha: 0.5)),
+                  border: Border.all(
+                    color: Colors.orange.shade700.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.orange.shade300, size: 24),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange.shade300,
+                      size: 24,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Flashing custom firmware can brick your device. Make sure this is a valid Omi firmware build. Do not disconnect during the update.',
-                        style: TextStyle(color: Colors.orange.shade300, fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.orange.shade300,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -1720,11 +2006,17 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
                   onPressed: _startFlash,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Text(
                     context.l10n.flashFirmware,
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -1735,18 +2027,27 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
               const SizedBox(height: 16),
               Text(
                 isInstalling ? 'Installing...' : 'Preparing...',
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 16),
               LinearProgressIndicator(
                 value: installProgress / 100,
                 backgroundColor: const Color(0xFF2A2A2E),
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Colors.deepPurple,
+                ),
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),
               ),
               const SizedBox(height: 8),
-              Text('${installProgress}%', style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+              Text(
+                '${installProgress}%',
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+              ),
             ],
 
             // Success
@@ -1759,10 +2060,17 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
                     SizedBox(height: 16),
                     Text(
                       'Firmware flashed successfully!',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     SizedBox(height: 8),
-                    Text('Your device will restart.', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                    Text(
+                      'Your device will restart.',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
                   ],
                 ),
               ),
@@ -1777,7 +2085,10 @@ class _ManualFirmwareFlashPageState extends State<_ManualFirmwareFlashPage> with
                   color: Colors.red.shade900.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(_error!, style: TextStyle(color: Colors.red.shade300, fontSize: 13)),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: Colors.red.shade300, fontSize: 13),
+                ),
               ),
             ],
           ],

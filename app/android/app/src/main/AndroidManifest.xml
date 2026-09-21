@@ -141,8 +141,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <meta-data android:name="com.posthog.posthog.AUTO_INIT" android:value="false" />
-
         <!-- Receives OS-level presence events for associated Omi/Friend devices. -->
         <service
             android:name="com.friend.ios.ble.BleCompanionService"

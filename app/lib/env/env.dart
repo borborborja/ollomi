@@ -6,15 +6,7 @@ import 'environment_profile.dart';
 
 abstract class Env {
   static const productionApiBaseUrl = 'http://127.0.0.1:8080/';
-  static const _apiBaseUrlFromDefine = String.fromEnvironment('OMI_API_BASE_URL');
-  static const firebaseAuthEmulatorHost = String.fromEnvironment(
-    'OMI_FIREBASE_AUTH_EMULATOR_HOST',
-    defaultValue: '127.0.0.1',
-  );
-  static const _firebaseAuthEmulatorPort = String.fromEnvironment(
-    'OMI_FIREBASE_AUTH_EMULATOR_PORT',
-    defaultValue: '9099',
-  );
+  static const _apiBaseUrlFromDefine = String.fromEnvironment('OLLOMI_API_BASE_URL');
   static EnvFields _instance = LocalEnvFields();
   static String? _apiBaseUrlOverride;
   static bool isTestFlight = false;
@@ -36,14 +28,11 @@ abstract class Env {
 
   static String? get posthogApiKey => _instance.posthogApiKey;
 
-  // static String? get apiBaseUrl => 'https://omi-backend.ngrok.app/';
   static String? get apiBaseUrl {
     if (_apiBaseUrlOverride != null) return _apiBaseUrlOverride;
     if (_apiBaseUrlFromDefine.isNotEmpty) return _apiBaseUrlFromDefine;
     return _instance.apiBaseUrl ?? productionApiBaseUrl;
   }
-
-  static int get firebaseAuthEmulatorPort => int.tryParse(_firebaseAuthEmulatorPort) ?? 9099;
 
   static String get authCallbackScheme => profile.authCallbackScheme;
 
@@ -56,28 +45,9 @@ abstract class Env {
     return servingApiBaseUrl ?? productionApiBaseUrl;
   }
 
-  static void validateProfilePairing() {
-    final productionFlavor = F.env == Environment.prod;
-    if (!productionFlavor && profile != AppEnvironmentProfile.localDev) {
-      throw StateError('Profile ${profile.name} must be built with the prod flavor.');
-    }
-    if (productionFlavor && profile == AppEnvironmentProfile.localDev) {
-      throw StateError('The prod flavor cannot use the local_dev profile.');
-    }
-  }
-
-  static void validateFirebaseProject({required String projectId, AppEnvironmentProfile? configuredProfile}) {
-    final effectiveProfile = configuredProfile ?? profile;
-    if (projectId != effectiveProfile.firebaseProjectId) {
-      throw StateError(
-        'Mobile profile ${effectiveProfile.name} requires Firebase project ${effectiveProfile.firebaseProjectId}, '
-        'but the app was initialized with $projectId.',
-      );
-    }
-  }
-
-  /// Production-family packages have one pinned backend authority. This runs
-  /// during startup so a misconfigured signing group fails before networking.
+  /// An Ollomi APK is deliberately not pinned to an upstream cloud authority.
+  /// It accepts a valid HTTP(S) address until the setup wizard persists the
+  /// selected server; deployments should normally use HTTPS.
   static void validateStartupRouting({
     required bool productionFamily,
     String? configuredApiBaseUrl,
@@ -86,31 +56,12 @@ abstract class Env {
   }) {
     final effectiveProfile = configuredProfile ?? (productionFamily ? AppEnvironmentProfile.production : profile);
     final normalized = (configuredApiBaseUrl ?? apiBaseUrl ?? '').trim().replaceFirst(RegExp(r'/+$'), '');
-    final expected = effectiveProfile.defaultApiBaseUrl.replaceFirst(RegExp(r'/+$'), '');
-
-    if (effectiveProfile == AppEnvironmentProfile.localDev) {
-      if (!_isLocalDevelopmentApi(normalized)) {
-        throw StateError(
-          'Profile local_dev requires a loopback or private-network API endpoint; '
-          'use mobile_beta for https://api.omiapi.com/.',
-        );
-      }
-      return;
+    final uri = Uri.tryParse(normalized);
+    if (uri == null || uri.host.isEmpty || (uri.scheme != 'http' && uri.scheme != 'https')) {
+      throw StateError('Profile ${effectiveProfile.name} requires a valid HTTP(S) API endpoint.');
     }
-
-    if (effectiveProfile == AppEnvironmentProfile.localProd) {
-      if (releaseBuild) {
-        throw StateError('Profile local_prod is only available in debug builds.');
-      }
-      final uri = Uri.tryParse(normalized);
-      if (uri == null || uri.host.isEmpty || (uri.scheme != 'http' && uri.scheme != 'https')) {
-        throw StateError('Profile local_prod requires a valid http(s) API endpoint.');
-      }
-      return;
-    }
-
-    if (normalized != expected) {
-      throw StateError('Profile ${effectiveProfile.name} requires API_BASE_URL=${effectiveProfile.defaultApiBaseUrl}');
+    if (releaseBuild && productionFamily && uri.scheme != 'https' && !_isLocalDevelopmentApi(normalized)) {
+      throw StateError('A release build requires HTTPS unless the Ollomi server is on a private network.');
     }
   }
 
@@ -124,6 +75,13 @@ abstract class Env {
     final host = uri.host.toLowerCase();
     if (host == 'localhost' || host == 'host.docker.internal' || host == '::1') {
       return true;
+    }
+    // RFC 4193 unique-local IPv6. Public IPv6 endpoints still require HTTPS;
+    // a ULA can legitimately be a LAN-only Ollomi server, just like RFC 1918
+    // IPv4. Uri has already validated the host before this check.
+    if (host.contains(':')) {
+      final firstHextet = int.tryParse(host.split(':').first, radix: 16);
+      return firstHextet != null && (firstHextet & 0xfe00) == 0xfc00;
     }
     final octets = host.split('.').map(int.tryParse).toList();
     if (octets.length != 4 || octets.any((octet) => octet == null || octet < 0 || octet > 255)) {
@@ -148,14 +106,6 @@ abstract class Env {
   static String? get intercomIOSApiKey => _instance.intercomIOSApiKey;
 
   static String? get intercomAndroidApiKey => _instance.intercomAndroidApiKey;
-
-  static String? get googleClientId => _instance.googleClientId;
-
-  static String? get googleClientSecret => _instance.googleClientSecret;
-
-  static bool get useWebAuth => _instance.useWebAuth ?? false;
-
-  static bool get useAuthCustomToken => _instance.useAuthCustomToken ?? false;
 }
 
 abstract class EnvFields {
@@ -169,6 +119,8 @@ abstract class EnvFields {
 
   String? get intercomAndroidApiKey;
 
+  // Compatibility fields for retained Flutter test fixtures. They are not
+  // consumed by Ollomi authentication or startup.
   String? get googleClientId;
 
   String? get googleClientSecret;
@@ -179,13 +131,22 @@ abstract class EnvFields {
 }
 
 class LocalEnvFields implements EnvFields {
-  @override String? get apiBaseUrl => null;
-  @override String? get posthogApiKey => null;
-  @override String? get intercomAppId => null;
-  @override String? get intercomIOSApiKey => null;
-  @override String? get intercomAndroidApiKey => null;
-  @override String? get googleClientId => null;
-  @override String? get googleClientSecret => null;
-  @override bool? get useWebAuth => false;
-  @override bool? get useAuthCustomToken => false;
+  @override
+  String? get apiBaseUrl => null;
+  @override
+  String? get posthogApiKey => null;
+  @override
+  String? get intercomAppId => null;
+  @override
+  String? get intercomIOSApiKey => null;
+  @override
+  String? get intercomAndroidApiKey => null;
+  @override
+  String? get googleClientId => null;
+  @override
+  String? get googleClientSecret => null;
+  @override
+  bool? get useWebAuth => false;
+  @override
+  bool? get useAuthCustomToken => false;
 }

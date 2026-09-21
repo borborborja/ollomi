@@ -1,9 +1,7 @@
 import 'package:omi/utils/platform/platform_manager.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:omi/backend/schema/app.dart';
 import 'package:omi/pages/apps/app_detail/app_detail.dart';
@@ -52,22 +50,7 @@ class _DataPrivacyPageState extends State<DataPrivacyPage> {
               text: TextSpan(
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade300, height: 1.5),
                 children: [
-                  TextSpan(text: '${context.l10n.dataEncryptedBanner} '),
-                  TextSpan(
-                    text: context.l10n.learnMore,
-                    style: TextStyle(
-                      color: Colors.deepPurple.shade200,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Colors.deepPurple.shade200,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        final url = Uri.parse('https://www.omi.me/pages/privacy');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                  ),
+                  TextSpan(text: context.l10n.dataEncryptedBanner),
                 ],
               ),
             ),

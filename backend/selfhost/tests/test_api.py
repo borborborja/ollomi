@@ -24,6 +24,46 @@ def test_auth_rotation_revocation(client, admin):
     )
 
 
+def test_readiness_requires_redis_and_typesense(client, monkeypatch):
+    from selfhost import main
+
+    class Redis:
+        def ping(self):
+            return True
+
+    class Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"ok": True}
+
+    class Typesense:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+        def get(self, path):
+            assert path == "health"
+            return Response()
+
+    monkeypatch.setattr(main.rate_limit, "redis", lambda: Redis())
+    monkeypatch.setattr(main.search, "typesense", lambda: Typesense())
+    assert client.get("/health").json() == {"status": "ok"}
+    assert client.get("/health/ready").json() == {"status": "ok"}
+
+    class BrokenRedis:
+        def ping(self):
+            raise OSError("not reachable")
+
+    monkeypatch.setattr(main.rate_limit, "redis", lambda: BrokenRedis())
+    response = client.get("/health/ready")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Ollomi dependencies unavailable"}
+
+
 def test_role_and_secrets(client, admin, other):
     assert client.get("/v1/admin/users", headers=other).status_code == 403
     assert client.get("/v1/conversations").status_code == 401
@@ -41,35 +81,35 @@ def test_role_and_secrets(client, admin, other):
     assert "base_url" not in client.get("/v1/ai-profiles", headers=other).text
 
 
-def test_environment_profiles_are_read_only_and_report_status(client, admin, monkeypatch):
+def test_environment_profiles_are_read_only_and_user_selectable(client, admin, monkeypatch):
+    monkeypatch.setenv("OLLOMI_ALLOW_USER_MODEL_SELECTION", "true")
     monkeypatch.setenv("OLLOMI_CHAT1_PROVIDER", "custom")
     monkeypatch.setenv("OLLOMI_CHAT1_URL", "http://127.0.0.1:11434/v1")
     monkeypatch.setenv("OLLOMI_CHAT1_MODEL", "qwen-test")
     monkeypatch.setenv("OLLOMI_CHAT2_PROVIDER", "custom")
     monkeypatch.setenv("OLLOMI_CHAT2_URL", "http://127.0.0.1:9999/v1")
     monkeypatch.setenv("OLLOMI_CHAT2_MODEL", "fallback-test")
+    from selfhost.config import settings
     from selfhost.db import transaction
-    from selfhost.profiles import sync_env_profiles
+    from selfhost.profiles import selected_profile, sync_env_profiles
 
+    settings.cache_clear()
     with transaction() as db:
         sync_env_profiles(db)
 
     status = client.get("/v1/ai-status", headers=admin).json()["chat"]
     assert status["managed_by_env"] is True
+    assert status["selection_allowed"] is True
     assert [profile["model"] for profile in status["profiles"]] == [
         "qwen-test",
         "fallback-test",
     ]
     assert all(profile["status"] == "unknown" for profile in status["profiles"])
     assert status["active_profile_id"] == status["profiles"][0]["id"]
-    assert (
-        client.put(
-            "/v1/users/me/ai-profiles",
-            headers=admin,
-            json={"chat": status["profiles"][1]["id"]},
-        ).status_code
-        == 409
-    )
+    selected = status["profiles"][1]["id"]
+    assert client.put("/v1/users/me/ai-profiles", headers=admin, json={"chat": selected}).status_code == 200
+    with transaction() as db:
+        assert selected_profile(db, client.get("/v1/auth/me", headers=admin).json()["uid"], "chat")["id"] == selected
     assert (
         client.put(
             "/v1/admin/ai-profiles/" + status["profiles"][0]["id"],
@@ -83,6 +123,25 @@ def test_environment_profiles_are_read_only_and_report_status(client, admin, mon
         ).status_code
         == 409
     )
+
+
+def test_environment_profiles_cannot_be_selected_when_the_server_disables_it(client, admin, monkeypatch):
+    monkeypatch.setenv("OLLOMI_ALLOW_USER_MODEL_SELECTION", "false")
+    monkeypatch.setenv("OLLOMI_CHAT1_PROVIDER", "custom")
+    monkeypatch.setenv("OLLOMI_CHAT1_URL", "http://127.0.0.1:11434/v1")
+    monkeypatch.setenv("OLLOMI_CHAT1_MODEL", "qwen-test")
+    from selfhost.config import settings
+    from selfhost.db import transaction
+    from selfhost.profiles import sync_env_profiles
+
+    settings.cache_clear()
+    with transaction() as db:
+        sync_env_profiles(db)
+
+    status = client.get("/v1/ai-status", headers=admin).json()["chat"]
+    assert status["selection_allowed"] is False
+    selected = status["profiles"][0]["id"]
+    assert client.put("/v1/users/me/ai-profiles", headers=admin, json={"chat": selected}).status_code == 403
 
 
 def test_ordered_provider_fallback_uses_second_profile(monkeypatch):
@@ -117,7 +176,7 @@ def test_ordered_provider_fallback_uses_second_profile(monkeypatch):
     ]
 
 
-def test_environment_provider_presets_cover_required_openai_apis(monkeypatch):
+def test_environment_provider_presets_cover_supported_native_apis(monkeypatch):
     from selfhost import profiles
 
     for key in list(os.environ):
@@ -125,12 +184,25 @@ def test_environment_provider_presets_cover_required_openai_apis(monkeypatch):
             monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("OLLOMI_STT1_PROVIDER", "openai")
     monkeypatch.setenv("OLLOMI_STT1_MODEL", "whisper-1")
+    monkeypatch.setenv("OLLOMI_STT2_PROVIDER", "gemini")
+    monkeypatch.setenv("OLLOMI_STT2_MODEL", "gemini-3.5-transcribe")
+    monkeypatch.setenv("OLLOMI_STT3_PROVIDER", "assemblyai")
+    monkeypatch.setenv("OLLOMI_STT3_MODEL", "universal-3-5-pro")
+    monkeypatch.setenv("OLLOMI_STT4_PROVIDER", "deepgram")
+    monkeypatch.setenv("OLLOMI_STT4_MODEL", "nova-3")
     monkeypatch.setenv("OLLOMI_CHAT1_PROVIDER", "openrouter")
     monkeypatch.setenv("OLLOMI_CHAT1_MODEL", "openai/gpt-test")
     monkeypatch.setenv("OLLOMI_CHAT2_PROVIDER", "ollama-cloud")
     monkeypatch.setenv("OLLOMI_CHAT2_MODEL", "gemma-test")
     monkeypatch.setenv("OLLOMI_EMBEDDING1_PROVIDER", "ollama")
     monkeypatch.setenv("OLLOMI_EMBEDDING1_MODEL", "embedding-test")
+    monkeypatch.setenv("OLLOMI_EMBEDDING1_DIMENSIONS", "1024")
+    monkeypatch.setenv("OLLOMI_EMBEDDING2_PROVIDER", "voyage")
+    monkeypatch.setenv("OLLOMI_EMBEDDING2_MODEL", "voyage-4-lite")
+    monkeypatch.setenv("OLLOMI_EMBEDDING2_DIMENSIONS", "1024")
+    monkeypatch.setenv("OLLOMI_EMBEDDING3_PROVIDER", "cohere")
+    monkeypatch.setenv("OLLOMI_EMBEDDING3_MODEL", "embed-v4.0")
+    monkeypatch.setenv("OLLOMI_EMBEDDING3_DIMENSIONS", "1024")
     monkeypatch.setattr(
         profiles,
         "validate_url",
@@ -139,9 +211,14 @@ def test_environment_provider_presets_cover_required_openai_apis(monkeypatch):
 
     configured = profiles.env_profiles()
     assert configured["stt"][0]["base_url"] == "https://api.openai.com/v1"
+    assert configured["stt"][1]["base_url"] == "https://generativelanguage.googleapis.com"
+    assert configured["stt"][2]["base_url"] == "https://api.assemblyai.com/v2"
+    assert configured["stt"][3]["base_url"] == "https://api.deepgram.com/v1"
     assert configured["chat"][0]["base_url"] == "https://openrouter.ai/api/v1"
     assert configured["chat"][1]["base_url"] == "https://ollama.com/v1"
     assert configured["embedding"][0]["base_url"] == "http://ollama:11434/v1"
+    assert configured["embedding"][1]["base_url"] == "https://api.voyageai.com/v1"
+    assert configured["embedding"][2]["base_url"] == "https://api.cohere.com/v2"
 
 
 @pytest.mark.parametrize(

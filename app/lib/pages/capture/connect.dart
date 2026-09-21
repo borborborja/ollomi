@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:omi/pages/home/page.dart';
 import 'package:omi/pages/onboarding/find_device/page.dart';
@@ -16,11 +15,10 @@ import 'package:omi/widgets/connection_guide_sheet.dart';
 import 'package:omi/widgets/device_widget.dart';
 import 'package:omi/widgets/scanning_ripple.dart';
 
-final _omiStoreUrl = Uri.parse('https://www.omi.me/?_ref=omi_connect_device');
-
+/// Retained only as a compatibility seam for callers from the upstream UI.
+/// A self-hosted Ollomi build neither advertises nor opens the Omi store.
 Future<void> openOmiStore({Future<bool> Function(Uri)? launcher}) async {
-  PlatformManager.instance.analytics.getOmiDeviceClicked();
-  await (launcher ?? (url) => launchUrl(url, mode: LaunchMode.externalApplication))(_omiStoreUrl);
+  return;
 }
 
 class ConnectDevicePage extends StatefulWidget {
@@ -132,12 +130,6 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextButton(
-                  key: const Key('get_omi_device_button'),
-                  onPressed: openOmiStore,
-                  style: TextButton.styleFrom(foregroundColor: Colors.white),
-                  child: Text(context.l10n.getOmiDevice),
-                ),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: _showConnectionGuide,

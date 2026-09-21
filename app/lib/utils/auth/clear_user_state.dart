@@ -17,7 +17,6 @@ import 'package:omi/providers/phone_call_provider.dart';
 import 'package:omi/providers/task_integration_provider.dart';
 import 'package:omi/providers/usage_provider.dart';
 import 'package:omi/providers/user_provider.dart';
-import 'package:omi/pages/payments/payment_method_provider.dart';
 
 /// Wipes in-memory user-scoped state from every provider so a subsequent
 /// login (different account) doesn't briefly render the previous user's
@@ -39,5 +38,4 @@ void clearAllUserState(BuildContext context) {
   context.read<TaskIntegrationProvider>().clearUserData();
   context.read<IntegrationProvider>().clearUserData();
   context.read<McpProvider>().clearUserData();
-  context.read<PaymentMethodProvider>().clearUserData();
 }

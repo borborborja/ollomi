@@ -33,7 +33,6 @@ import 'package:omi/startup_failure_app.dart';
 import 'package:omi/l10n/app_localizations.dart';
 import 'package:omi/pages/apps/providers/add_app_provider.dart';
 import 'package:omi/pages/conversation_detail/conversation_detail_provider.dart';
-import 'package:omi/pages/payments/payment_method_provider.dart';
 import 'package:omi/providers/action_items_provider.dart';
 import 'package:omi/providers/announcement_provider.dart';
 import 'package:omi/providers/app_provider.dart';
@@ -67,7 +66,7 @@ import 'package:omi/services/services.dart';
 import 'package:omi/services/wals.dart';
 import 'package:omi/utils/analytics/app_session_telemetry.dart';
 import 'package:omi/utils/debug_log_manager.dart';
-import 'package:omi/utils/debugging/crashlytics_manager.dart';
+import 'package:omi/utils/debugging/local_diagnostics.dart';
 
 import 'package:omi/utils/analytics/rage_click_context_tracker.dart';
 import 'package:omi/utils/l10n_extensions.dart';
@@ -102,7 +101,7 @@ Future _init() async {
     Logger.debug('main: restored ${peripheralUuids.length} BLE peripherals');
   };
 
-  await CrashlyticsManager.init();
+  await LocalDiagnostics.init();
   if (isAuth) {
     PlatformManager.instance.crashReporter.identifyUser(
       AuthService.instance.currentUser?.email ?? '',
@@ -244,13 +243,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           update: (BuildContext context, value, MessageProvider? previous) =>
               (previous?..updateAppProvider(value)) ?? MessageProvider(),
         ),
-        ChangeNotifierProxyProvider4<
-          ConversationProvider,
-          MessageProvider,
-          PeopleProvider,
-          UsageProvider,
-          CaptureProvider
-        >(
+        ChangeNotifierProxyProvider4<ConversationProvider, MessageProvider, PeopleProvider, UsageProvider,
+            CaptureProvider>(
           create: (context) => CaptureProvider(localSegmentStore: LocalSegmentStore.appSupport()),
           update: (BuildContext context, conversation, message, people, usage, CaptureProvider? previous) {
             final externalActions = ProviderCaptureExternalActions(
@@ -306,7 +300,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(lazy: true, create: (context) => IntegrationProvider()),
         ChangeNotifierProvider(lazy: true, create: (context) => FolderProvider()),
         ChangeNotifierProvider(lazy: true, create: (context) => McpProvider()),
-        ChangeNotifierProvider(lazy: true, create: (context) => PaymentMethodProvider()),
         ChangeNotifierProvider(create: (context) => VoiceRecorderProvider()..checkPendingRecording()),
         ChangeNotifierProvider(create: (context) => LocaleProvider()),
         ChangeNotifierProvider(create: (context) => AnnouncementProvider()),

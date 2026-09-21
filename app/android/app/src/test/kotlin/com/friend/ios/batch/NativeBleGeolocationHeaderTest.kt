@@ -10,7 +10,7 @@ class NativeBleGeolocationHeaderTest {
     fun `authenticated native listen request carries the bounded private snapshot`() {
         val raw = """{"latitude":37.7749,"longitude":-122.4194,"capture_source":"current_position"}"""
         val request = addConversationGeolocationHeader(
-            Request.Builder().url("https://api.omiapi.com/v4/listen").header("Authorization", "Bearer token"),
+            Request.Builder().url("https://ollomi.example.test/v4/listen").header("Authorization", "Bearer token"),
             raw,
         ).build()
 
