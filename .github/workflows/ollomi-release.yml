@@ -167,10 +167,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: backend
+          # `ollomi-backend` and `ollomi-speech` were packages left behind by
+          # the deleted pre-fork repository. New names make the published
+          # packages independently owned by this public fork.
+          - name: api
             context: .
             file: deploy/Dockerfile
-          - name: speech
+          - name: stt
             context: services/speech
             file: services/speech/Dockerfile
           - name: voiceprint

@@ -3,10 +3,10 @@
 name: ollomi
 
 x-backend: &backend
-  image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-backend:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
+  image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-api:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   restart: unless-stopped
   init: true
-  env_file: [.env]
+  env_file: ["${OLLOMI_ENV_FILE:-.env}"]
   environment: &backend-environment
     OLLOMI_DATABASE_URL: postgresql+psycopg://ollomi:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres/ollomi
     OLLOMI_REDIS_URL: redis://redis:6379/0

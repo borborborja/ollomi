@@ -68,13 +68,13 @@ Antes de procesar audio hay que instalar los modelos locales o configurar provee
 
 ## Imágenes y compilación
 
-Cada cambio en `main` de un fork con Actions habilitado ejecuta `Publish Ollomi`: publica las imágenes `linux/amd64` `ollomi-backend` y `ollomi-speech` en el GHCR de ese fork, y compila una APK de depuración para validación de dispositivo como artefacto. Solo las etiquetas Git `v*` compilan la APK `prod` firmada y adjuntan esta y su SHA-256 a la Release.
+Cada cambio en `main` de un fork con Actions habilitado ejecuta `Publish Ollomi`: publica las imágenes `linux/amd64` `ollomi-api`, `ollomi-stt` y `ollomi-voiceprint` en el GHCR de ese fork, y compila una APK de depuración para validación de dispositivo como artefacto. Solo las etiquetas Git `v*` compilan la APK `prod` firmada y adjuntan esta y su SHA-256 a la Release.
 
 Tras una release que haya pasado las puertas de validación, las imágenes se pueden descargar directamente. Sustituya ambos marcadores por el owner y tag de ese fork; no use una imagen de Omi upstream ni `latest` sin revisión:
 
 ```bash
-docker pull ghcr.io/YOUR_GITHUB_OWNER/ollomi-backend:REVIEWED_TAG
-docker pull ghcr.io/YOUR_GITHUB_OWNER/ollomi-speech:REVIEWED_TAG
+docker pull ghcr.io/YOUR_GITHUB_OWNER/ollomi-api:REVIEWED_TAG
+docker pull ghcr.io/YOUR_GITHUB_OWNER/ollomi-stt:REVIEWED_TAG
 ```
 
 Para compilar las mismas imágenes desde el código:

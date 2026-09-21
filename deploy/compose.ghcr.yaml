@@ -3,19 +3,19 @@
 services:
   migrate:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-backend:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-api:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   api:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-backend:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-api:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   worker:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-backend:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-api:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   scheduler:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-backend:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-api:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   stt:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-speech:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-stt:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   model-downloader:
     build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-speech:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
+    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-stt:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
