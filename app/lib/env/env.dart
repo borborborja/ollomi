@@ -28,7 +28,9 @@ abstract class Env {
 
   static String? get posthogApiKey => _instance.posthogApiKey;
 
-  static String? get apiBaseUrl {
+  /// The selected API endpoint always resolves to a local-safe default before
+  /// the onboarding wizard has persisted the user's server.
+  static String get apiBaseUrl {
     if (_apiBaseUrlOverride != null) return _apiBaseUrlOverride;
     if (_apiBaseUrlFromDefine.isNotEmpty) return _apiBaseUrlFromDefine;
     return _instance.apiBaseUrl ?? productionApiBaseUrl;
