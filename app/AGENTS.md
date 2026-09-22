@@ -4,6 +4,8 @@
 
 The active Android target uses local `AuthService` sessions and a runtime-selected server. Recording can use the phone microphone, a phone call when Android permits it, or an already-connected compatible device; it can also import audio. Firebase, Google/Apple login, PostHog, Intercom, cloud STT SDK setup, and automatic Omi pairing below describe preserved upstream code and must not be restored for this target. Android IDs are `me.ollomi.app.dev` / `me.ollomi.app`. Run `flutter pub get`, `flutter test --concurrency=2`, `bash scripts/analyze_ratchet.sh`, and `flutter build apk --debug --flavor dev --target-platform android-arm64,android-x64`. No Firebase generated options or cloud environment files are required. See `../docs/OLLomi_SELF_HOSTING.es.md` and `../docs/OLLomi_VALIDATION.md`. The general l10n, generated-file and agent-flutter rules below still apply.
 
+The Ollomi publishing workflow runs Flutter and native BLE tests on every ref. It compiles and uploads a debug APK on pull requests and `main` pushes, but not on release tags (which build the signed APK instead). Tag APK compilation runs in parallel with tests; `release-publish` requires all tests and artifacts to pass before creating a public release. Both Android jobs use the Gradle setup action in addition to Flutter's SDK cache; do not add a second Gradle cache to the Java setup step.
+
 Inherits [`../AGENTS.md`](../AGENTS.md); adds app-specific operational guidance.
 
 ## Build Bootstrap
