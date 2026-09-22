@@ -185,18 +185,18 @@ class _BatteryInfoWidgetState extends State<BatteryInfoWidget> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Image.asset(Assets.images.logoTransparent.path, width: 16, height: 16),
-                          isMemoriesPage ? const SizedBox(width: 6) : const SizedBox.shrink(),
-                          isConnecting && isMemoriesPage
+                          const SizedBox(width: 6),
+                          isConnecting
                               ? Text(
                                   context.l10n.searching,
                                   style: Theme.of(
                                     context,
                                   ).textTheme.bodyMedium!.copyWith(color: Colors.white, fontSize: 12),
                                 )
-                              : isMemoriesPage
-                                  ? Text(context.l10n.connect,
-                                      style: const TextStyle(color: Colors.white, fontSize: 12))
-                                  : const SizedBox.shrink(),
+                              : Text(
+                                  context.l10n.connectDevice,
+                                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                                ),
                         ],
                       ),
                     ),
@@ -245,6 +245,13 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
                 Navigator.pop(sheetContext);
                 _startDeviceRecording(context, connectedDevice);
               },
+        onConnectDevice: connectedDevice == null
+            ? () {
+                Navigator.pop(sheetContext);
+                if (!context.mounted) return;
+                routeToPage(context, const ConnectDevicePage());
+              }
+            : null,
         onImportAudio: () {
           Navigator.pop(sheetContext);
           if (!context.mounted) return;
@@ -387,6 +394,7 @@ class RecordOptionsSheet extends StatelessWidget {
   final VoidCallback onPickPhoneCall;
   final String? connectedDeviceName;
   final VoidCallback? onPickConnectedDevice;
+  final VoidCallback? onConnectDevice;
   final VoidCallback onImportAudio;
 
   const RecordOptionsSheet({
@@ -395,6 +403,7 @@ class RecordOptionsSheet extends StatelessWidget {
     required this.onPickPhoneCall,
     this.connectedDeviceName,
     this.onPickConnectedDevice,
+    this.onConnectDevice,
     required this.onImportAudio,
   });
 
@@ -441,6 +450,15 @@ class RecordOptionsSheet extends StatelessWidget {
               title: '${context.l10n.record}: $connectedDeviceName',
               subtitle: context.l10n.connected,
               onTap: onPickConnectedDevice!,
+            ),
+          ] else if (onConnectDevice != null) ...[
+            const SizedBox(height: 10),
+            _RecordOption(
+              key: const Key('record-source-connect-device'),
+              icon: FontAwesomeIcons.bluetooth,
+              title: context.l10n.connectDevice,
+              subtitle: context.l10n.connectDeviceMessage.replaceAll('\n', ' '),
+              onTap: onConnectDevice!,
             ),
           ],
           const SizedBox(height: 10),

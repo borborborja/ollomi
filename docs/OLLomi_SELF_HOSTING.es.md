@@ -193,7 +193,7 @@ Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y 
 
 Cuando el workflow `Publish Ollomi` del fork haya pasado las puertas de validación, su ejecución deja `ollomi-android-debug-<commit>` en **Artifacts** para pruebas físicas; es una APK de depuración, no distribuible. Una etiqueta `v*` que haya pasado las mismas puertas publica una Release con `ollomi.apk`, `SHA256SUMS` y el paquete `ollomi-backend.tar.gz`. La firma se conserva entre APK publicadas, por lo que las actualizaciones posteriores se instalan sobre la anterior. El paso desde una APK de desarrollo firmada con otra clave puede requerir una única desinstalación.
 
-Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, dispositivo compatible conectado o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android. La opción del dispositivo permite buscar y asociar un Omi/Friend compatible por Bluetooth; después usa esa conexión.
+El botón **Conectar dispositivo** de la cabecera abre siempre la búsqueda Bluetooth de un Omi/Friend compatible, incluso si se terminó el asistente inicial sin hardware. Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, un dispositivo ya conectado, buscar y asociar un dispositivo, o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android.
 
 La APK de desarrollo se construye así:
 

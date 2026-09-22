@@ -2,11 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:omi/backend/preferences.dart';
+import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/l10n/app_localizations.dart';
 import 'package:omi/pages/home/widgets/battery_info_widget.dart';
+import 'package:omi/providers/device_provider.dart';
+import 'package:omi/providers/home_provider.dart';
+
+class _DisconnectedDeviceProvider extends ChangeNotifier implements DeviceProvider {
+  @override
+  int get batteryLevel => -1;
+
+  @override
+  BtDevice? get connectedDevice => null;
+
+  @override
+  bool get isCharging => false;
+
+  @override
+  bool get isConnecting => false;
+
+  @override
+  BtDevice? get pairedDevice => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    await SharedPreferencesUtil.init();
+  });
+
   // Regression test: FaIcon (unlike material Icon) has no internal Center, so
   // without an alignment on the fixed-size circle container the glyph painted
   // at the top-left, outside the circle.
@@ -88,7 +120,8 @@ void main() {
     expect(importSelected, isTrue);
   });
 
-  testWidgets('record options omit the device source when nothing is connected', (tester) async {
+  testWidgets('record options offer device pairing when nothing is connected', (tester) async {
+    var devicePairingSelected = false;
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [
@@ -102,6 +135,7 @@ void main() {
           body: RecordOptionsSheet(
             onPickPhoneMic: () {},
             onPickPhoneCall: () {},
+            onConnectDevice: () => devicePairingSelected = true,
             onImportAudio: () {},
           ),
         ),
@@ -110,6 +144,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('record-source-connected-device')), findsNothing);
+    expect(find.byKey(const Key('record-source-connect-device')), findsOneWidget);
     expect(find.byKey(const Key('record-source-import-audio')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('record-source-connect-device')));
+    expect(devicePairingSelected, isTrue);
+  });
+
+  testWidgets('the home header always exposes device pairing before a device is connected', (tester) async {
+    final homeProvider = HomeProvider();
+    final deviceProvider = _DisconnectedDeviceProvider();
+    addTearDown(homeProvider.dispose);
+    addTearDown(deviceProvider.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<HomeProvider>.value(value: homeProvider),
+            ChangeNotifierProvider<DeviceProvider>.value(value: deviceProvider),
+          ],
+          child: const Scaffold(body: BatteryInfoWidget()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Connect Device'), findsOneWidget);
   });
 }
