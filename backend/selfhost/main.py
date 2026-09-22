@@ -19,6 +19,8 @@ from selfhost import (
     firmware,
     mcp_server,
     rate_limit,
+    knowledge_graph,
+    static_map,
 )
 from selfhost.config import settings
 from selfhost.db import Instance, ident, transaction
@@ -56,6 +58,8 @@ for router in (
     chat.router,
     search.router,
     records.router,
+    knowledge_graph.router,
+    static_map.router,
 ):
     app.include_router(router)
 
@@ -105,6 +109,8 @@ def server_info():
             "env_ai_fallbacks",
             "ai_provider_status",
             "events",
+            "knowledge_graph",
+            "static_maps",
         ]
         response = {
             "name": "Ollomi",

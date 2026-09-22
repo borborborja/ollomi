@@ -2,7 +2,7 @@
 
 ## Ollomi fork override
 
-The deployed backend is `selfhost/`, started by the repository-root `compose.yaml` and `deploy/Dockerfile`. The cloud setup below is upstream reference, not the Ollomi runtime. Use Python 3.11, install `selfhost/requirements.txt` plus pytest, and run `PYTHONPATH=backend pytest backend/selfhost/tests -q` from the repository root. Dependencies are edited in `selfhost/requirements.in` and locked with `uv pip compile`; the speech service has its own lock in `services/speech`. Local secrets and data remain outside Git. See `selfhost/README.md` and `../docs/OLLomi_SELF_HOSTING.es.md`.
+The deployed backend is `selfhost/`, started by the repository-root `compose.yaml` and `deploy/Dockerfile`. The cloud setup below is upstream reference, not the Ollomi runtime. Use Python 3.11, install `selfhost/requirements.txt` plus pytest, and run `PYTHONPATH=backend pytest backend/selfhost/tests -q` from the repository root. Dependencies are edited in `selfhost/requirements.in` and locked with `uv pip compile`; the speech service has its own lock in `services/speech`. Local secrets and data remain outside Git. The self-hosted mind map reads owner-scoped memories at request time; its rebuild endpoint recomputes the response without an external graph database or model. Static map previews fetch only visible OSM tiles through `OLLOMI_MAP_TILE_URL`, cache them under `/data/map-tiles`, and require an authenticated user. See `selfhost/README.md` and `../docs/OLLomi_SELF_HOSTING.es.md`.
 
 Inherits all rules from the root `../AGENTS.md`. This file adds backend-specific development guidance.
 
