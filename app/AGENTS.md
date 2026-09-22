@@ -6,6 +6,8 @@ The active Android target uses local `AuthService` sessions and a runtime-select
 
 The Ollomi publishing workflow runs Flutter and native BLE tests on every ref. It compiles and uploads a debug APK on pull requests and `main` pushes, but not on release tags (which build the signed APK instead). Tag APK compilation runs in parallel with tests; `release-publish` requires all tests and artifacts to pass before creating a public release. Both Android jobs use the Gradle setup action in addition to Flutter's SDK cache; do not add a second Gradle cache to the Java setup step.
 
+The self-hosted Android startup must call `DeviceService.start()` through `ServiceManager.start()` before onboarding or the device picker tries to scan; otherwise discovery silently remains in `init`. BLE classification accepts Omi CV1 and original Friend devkit advertisement names when Android omits their service UUID, while `Friend_` remains the separate LC3 Friend Pendant type. Keep the startup and discovery regression tests in the Ollomi CI list.
+
 Inherits [`../AGENTS.md`](../AGENTS.md); adds app-specific operational guidance.
 
 ## Build Bootstrap

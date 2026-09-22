@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -15,6 +16,14 @@ import 'package:omi/services/wals.dart';
 import 'package:omi/utils/logger.dart';
 
 class ServiceManager {
+  ServiceManager();
+
+  @visibleForTesting
+  ServiceManager.forTesting({required DeviceService device, required IWalService wal}) {
+    _device = device;
+    _wal = wal;
+  }
+
   late IMicRecorderService _mic;
   late IMicRecorderService _phoneMic;
   late DeviceService _device;
@@ -73,6 +82,7 @@ class ServiceManager {
   }
 
   Future<void> start() async {
+    _device.start();
     _wal.start();
   }
 
