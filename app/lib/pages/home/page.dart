@@ -784,7 +784,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox.shrink(),
+          // Keep the hardware entry point visible even though Ollomi's local
+          // onboarding no longer requires a wearable. Without this, the
+          // pairing page is unreachable until a device has already been
+          // paired, which prevents first-time Omi/Friend connections.
+          const BatteryInfoWidget(),
           Row(
             children: [
               // Search and Calendar buttons - only on home page
