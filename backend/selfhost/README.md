@@ -12,6 +12,8 @@ Use the root `compose.yaml`. See [installation and operation](../../docs/OLLomi_
 - `audio.py`, `sync.py`, `worker.py`: bounded uploads, framed Omi WAL/Opus decoding, live WebSocket capture, durable processing and lease fencing. Audio retries retain originals. Recording parts are serialized per conversation.
 - `extraction.py`: conservative validation of model-produced summaries, commitments, dated events, decisions, goals, people and memories. Dates without a timezone remain text and never become automatic reminders.
 - `records.py`, `mobile.py`, `playback.py`: owner-scoped Omi mobile contracts, signed playback URLs bound to a live session, export and deletion.
+
+Transcript segments use cumulative audio-part offsets in `file_ids` order. Mobile conversation responses expose `audio_files` in that order even after a part is retried; the Android playlist can therefore seek to a segment and stop at its end without a conversation-level MP3. If any part is unavailable, segment taps fail closed instead of jumping to the wrong recording. The existing `conversation_audio` response remains `null` for this backend.
 - `search.py`, `chat.py`: owner-scoped vector/text retrieval and streamed chat. Embedding generations isolate incompatible models; changes queue reindexing.
 - `integrations.py`: explicit exports to local WebDAV, CalDAV VTODO, webhooks; explicit MCP Streamable HTTP tool discovery/calls. Administrator credentials are never returned.
 - `tts.py`, `firmware.py`: local Piper synthesis and operator-provisioned firmware.
