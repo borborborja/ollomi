@@ -94,6 +94,23 @@ def test_tile_cache_is_separated_by_configured_provider(client, monkeypatch):
     local_path = static_map._tile_path(12, 2081, 1520)
     assert public_path != local_path
 
+    requested = []
+
+    class Response:
+        headers = {"content-type": "image/png"}
+        content = _tile()
+
+        def raise_for_status(self):
+            return None
+
+    def fake_get(url, **kwargs):
+        requested.append(url)
+        return Response()
+
+    monkeypatch.setattr(static_map.httpx, "get", fake_get)
+    assert static_map._fetch_tile(12, 2081, 1520) == Response.content
+    assert requested == ["http://tiles.local/12/2081/1520.png"]
+
 
 def test_map_tile_url_must_be_a_safe_template(client, monkeypatch):
     from selfhost.config import settings
