@@ -14,6 +14,28 @@ El backend activo es `backend/selfhost`; el backend cloud upstream se conserva c
 
 Requiere Docker Engine y Docker Compose v2 en una máquina `linux/amd64`:
 
+### Instalación desde una release
+
+La forma recomendada para un servidor que usa IA externa o en la LAN es
+descargar el paquete preparado de la última release. Ya contiene el Compose y
+una plantilla `.env` fijada a la misma imagen revisada:
+
+```bash
+mkdir ollomi && cd ollomi
+curl -L -o ollomi-backend.tar.gz https://github.com/borborborja/ollomi/releases/latest/download/ollomi-backend.tar.gz
+tar -xzf ollomi-backend.tar.gz --strip-components=1
+cp .env.example .env
+chmod 600 .env
+nano .env
+docker compose config --quiet && docker compose pull && docker compose up -d
+```
+
+La APK de producción se descarga desde la misma release como
+[`ollomi.apk`](https://github.com/borborborja/ollomi/releases/latest/download/ollomi.apk).
+Todas las APK oficiales usan la misma firma, de modo que una versión nueva se
+instala sobre la anterior sin desinstalarla. Compruebe el archivo `SHA256SUMS`
+adjunto antes de una instalación manual.
+
 ### Servidor con modelos en LAN o proveedores externos
 
 Para una instalación nueva sin modelos locales (la configuración apropiada
@@ -68,7 +90,7 @@ Antes de procesar audio hay que instalar los modelos locales o configurar provee
 
 ## Imágenes y compilación
 
-Cada cambio en `main` de un fork con Actions habilitado ejecuta `Publish Ollomi`: publica las imágenes `linux/amd64` `ollomi-api`, `ollomi-stt` y `ollomi-voiceprint` en el GHCR de ese fork, y compila una APK de depuración para validación de dispositivo como artefacto. Solo las etiquetas Git `v*` compilan la APK `prod` firmada y adjuntan esta y su SHA-256 a la Release.
+Cada cambio en `main` de un fork con Actions habilitado ejecuta `Publish Ollomi`: publica las imágenes `linux/amd64` `ollomi-api`, `ollomi-stt` y `ollomi-voiceprint` en el GHCR de ese fork, y compila una APK de depuración para validación de dispositivo como artefacto. Solo las etiquetas Git `v*` compilan la APK `prod` firmada y publican una Release con `ollomi.apk`, sus comprobaciones SHA-256 y `ollomi-backend.tar.gz` listo para configurar.
 
 Tras una release que haya pasado las puertas de validación, las imágenes se pueden descargar directamente. Sustituya ambos marcadores por el owner y tag de ese fork; no use una imagen de Omi upstream ni `latest` sin revisión:
 

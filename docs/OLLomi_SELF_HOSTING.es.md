@@ -111,12 +111,13 @@ La respuesta de salud debe ser `{"status":"ok"}`. `migrate` termina con código 
 
 ### Compose autónomo con solo APIs externas
 
-El directorio [`deploy/examples/external-api`](../deploy/examples/external-api/README.md) contiene un `compose.yaml` copiable que descarga una imagen revisada del mismo fork de Ollomi. Su `env.example` pide el owner y la etiqueta de release, además de los ajustes de instancia y los perfiles numerados, con ejemplos de OpenAI, OpenRouter, un endpoint compatible y Ollama en otra máquina. Esta variante no contiene servicios `stt`, `model-downloader` u `ollama`, por lo que no necesita pesos de Whisper ni el directorio `selfhost-data/models`. Antes de publicar la primera imagen del fork, use la instalación compilada desde código.
+El directorio [`deploy/examples/external-api`](../deploy/examples/external-api/README.md) contiene un `compose.yaml` copiable que descarga una imagen revisada del mismo fork de Ollomi. Cada release oficial adjunta también `ollomi-backend.tar.gz`: incluye ese Compose, copias de seguridad y una `.env.example` ya fijada al owner y la etiqueta exacta de la release. Esta variante no contiene servicios `stt`, `model-downloader` u `ollama`, por lo que no necesita pesos de Whisper ni el directorio `selfhost-data/models`.
 
 ```bash
 mkdir ollomi && cd ollomi
-curl -LO https://raw.githubusercontent.com/YOUR_GITHUB_OWNER/ollomi/main/deploy/examples/external-api/compose.yaml
-curl -Lo .env https://raw.githubusercontent.com/YOUR_GITHUB_OWNER/ollomi/main/deploy/examples/external-api/env.example
+curl -L -o ollomi-backend.tar.gz https://github.com/borborborja/ollomi/releases/latest/download/ollomi-backend.tar.gz
+tar -xzf ollomi-backend.tar.gz --strip-components=1
+cp .env.example .env
 chmod 600 .env
 # Edite .env y sustituya todos los valores CHANGE_ME.
 docker compose config --quiet
@@ -190,7 +191,7 @@ El inicializador intenta 8080 y después 8090 si el primero está ocupado; el va
 
 Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y contraseña locales. Desde Ajustes → servidor puede probar una nueva conexión, ver el modelo activo y la salud de cada fallback STT/chat/embeddings, administrar usuarios, importar audio y exportar datos. Cuando los modelos están definidos en `.env`, la app no permite crear ni editar ese catálogo. Por defecto muestra el primario y los fallbacks sin permitir cambiarlos; solo con `OLLOMI_ALLOW_USER_MODEL_SELECTION=true` cada usuario puede escoger como primario una de las opciones habilitadas, conservando las restantes como fallback. La captura en tiempo real siempre abre el WebSocket del servidor seleccionado: configuraciones STT antiguas guardadas en el teléfono, claves directas de proveedores y el modo on-device no pueden eludir el catálogo ni los fallbacks del backend. Para cambiar de servidor, cierre sesión y entre con la nueva URL. La sesión, las importaciones pendientes y los metadatos WAL se vinculan al servidor y a la cuenta.
 
-Cuando el workflow `Publish Ollomi` del fork haya pasado las puertas de validación, su ejecución deja `ollomi-android-debug-<commit>` en **Artifacts** para pruebas físicas; es una APK de depuración, no distribuible. Una etiqueta `v*` que haya pasado las mismas puertas crea `ollomi-android-<commit>` con `ollomi.apk` y `SHA256SUMS`, y los adjunta a la Release. La firma se conserva entre APK publicadas, por lo que las actualizaciones posteriores se instalan sobre la anterior. El paso desde una APK de desarrollo firmada con otra clave puede requerir una única desinstalación.
+Cuando el workflow `Publish Ollomi` del fork haya pasado las puertas de validación, su ejecución deja `ollomi-android-debug-<commit>` en **Artifacts** para pruebas físicas; es una APK de depuración, no distribuible. Una etiqueta `v*` que haya pasado las mismas puertas publica una Release con `ollomi.apk`, `SHA256SUMS` y el paquete `ollomi-backend.tar.gz`. La firma se conserva entre APK publicadas, por lo que las actualizaciones posteriores se instalan sobre la anterior. El paso desde una APK de desarrollo firmada con otra clave puede requerir una única desinstalación.
 
 Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, dispositivo compatible conectado o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android. La opción del dispositivo permite buscar y asociar un Omi/Friend compatible por Bluetooth; después usa esa conexión.
 

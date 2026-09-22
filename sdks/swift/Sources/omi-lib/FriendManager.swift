@@ -32,9 +32,10 @@ class FriendManager {
     var audioFileTimer: Timer?
 
     init() {
-        let modelURL = Bundle.module.url(forResource: "ggml-tiny.en", withExtension: "bin")!
-        whisper = Whisper(fromFileURL: modelURL)
-        // whisper = nil
+        // Ollomi does not bundle a local Whisper model. Integrators that need
+        // on-device STT can create their own WhisperTranscriber with a model
+        // they download and manage explicitly.
+        whisper = nil
         bluetoothScanner = BluetoothScanner()
         bluetoothScanner.delegate = self
     }

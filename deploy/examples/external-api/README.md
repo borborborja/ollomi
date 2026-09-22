@@ -7,6 +7,10 @@ no descarga pesos y no necesita `selfhost-data/models`. Antes de usarlo, el
 fork debe haber publicado y validado una release; mientras tanto use la
 instalación compilada desde código.
 
+En las releases oficiales de `borborborja/ollomi`, descargue mejor
+`ollomi-backend.tar.gz`: incluye este Compose, los scripts de copia y una
+`.env.example` que ya fija el propietario y la etiqueta de esa release.
+
 ```bash
 mkdir ollomi && cd ollomi
 curl -LO https://raw.githubusercontent.com/YOUR_GITHUB_OWNER/ollomi/main/deploy/examples/external-api/compose.yaml

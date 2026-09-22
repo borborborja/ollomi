@@ -29,10 +29,8 @@ let package = Package(
                 .product(name: "SwiftWhisper", package: "SwiftWhisper"),
                 .product(name: "AudioKit", package: "AudioKit"),
             ],
-            path: "sdks/swift",  // Correct the path to your source files
-            resources: [
-                .process("Sources/omi-lib/Resources")  // Make sure this resource is in the correct directory
-            ]
+            path: "sdks/swift",
+            exclude: ["README.md"]
         ),
     ]
 )

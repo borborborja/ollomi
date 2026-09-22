@@ -147,6 +147,13 @@ env.g.dart
 */key.properties
 *.jks
 
+# Legacy binary artifacts deliberately removed from Ollomi history. They either
+# duplicate optional downloads or are tutorial media; keep releases lightweight.
+/plugins/hume-ai/video/
+/sdks/swift/Sources/omi-lib/Resources/ggml-tiny.en.bin
+/docs/images/docs/get_started/videos/updating_your_omi.mp4
+/omiGlass/hardware/working files/glasses_frame_back.f3z
+
 # Jekyll
 docs/_site/
 .jekyll-metadata
