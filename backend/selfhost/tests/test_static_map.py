@@ -15,6 +15,7 @@ def test_static_map_requires_auth_and_rejects_bad_coordinates(client, admin):
     assert client.get(path).status_code == 401
     assert client.get(path.replace("42.27", "nan"), headers=admin).status_code == 400
     assert client.get(path.replace("42.27", "91"), headers=admin).status_code == 400
+    assert client.get(path.replace("42.27,2.93", "1" * 2_001), headers=admin).status_code == 400
 
 
 def test_static_map_renders_osm_tiles_without_a_key(client, admin, monkeypatch):

@@ -32,6 +32,8 @@ _USER_AGENT = "Ollomi/1.0 (+https://github.com/borborborja/ollomi)"
 def parse_pins(value):
     if not value:
         raise HTTPException(400, "At least one map pin is required")
+    if len(value) > 2_000:
+        raise HTTPException(400, "Too many map pins")
     result = []
     for pair in value.split("|"):
         parts = pair.split(",")
