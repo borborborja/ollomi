@@ -3,6 +3,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:omi/utils/audio/audio_timeline_mapper.dart';
 
 void main() {
+  group('self-hosted playlist segment position', () {
+    test('seeks to the same cumulative offset, including a part boundary', () {
+      expect(playlistSegmentPosition(2.5, 9), 2.5);
+      expect(playlistSegmentPosition(5, 9), 5);
+    });
+
+    test('rejects positions with no corresponding retained audio', () {
+      expect(playlistSegmentPosition(-1, 9), isNull);
+      expect(playlistSegmentPosition(9, 9), isNull);
+      expect(playlistSegmentPosition(2, 0), isNull);
+      expect(playlistSegmentPosition(double.nan, 9), isNull);
+    });
+
+    test('seeks into the correct audio part at and after a boundary', () {
+      final starts = [Duration.zero, const Duration(seconds: 5)];
+      expect(
+        playlistTrackPosition(const Duration(milliseconds: 2500), starts),
+        (0, const Duration(milliseconds: 2500)),
+      );
+      expect(playlistTrackPosition(const Duration(seconds: 5), starts), (1, Duration.zero));
+      expect(
+        playlistTrackPosition(const Duration(milliseconds: 6500), starts),
+        (1, const Duration(milliseconds: 1500)),
+      );
+      expect(playlistTrackPosition(Duration.zero, []), isNull);
+    });
+  });
+
   // Vectors mirrored from backend tests/unit/test_conversation_playback_artifact.py:
   //   started_at = 990.0; part A: chunk ts 1000.0, 10.0s; part B: chunk ts 1200.0, 5.0s
   //   spans: A {wall 10.0, artifact 0.0, len 10.0}, B {wall 210.0, artifact 10.0, len 5.0}

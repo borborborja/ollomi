@@ -1,3 +1,25 @@
+/// Self-hosted recordings use a contiguous playlist: transcript offsets are
+/// the sum of the preceding audio-part durations. Unlike a dense artifact,
+/// there is no wall-clock gap mapping to apply.
+double? playlistSegmentPosition(double startSeconds, double totalSeconds) {
+  if (!startSeconds.isFinite || !totalSeconds.isFinite || startSeconds < 0 || startSeconds >= totalSeconds) {
+    return null;
+  }
+  return startSeconds;
+}
+
+/// Convert a cumulative playlist position to the part and offset understood
+/// by just_audio. A position exactly on a part boundary belongs to that part.
+(int, Duration)? playlistTrackPosition(Duration position, List<Duration> starts) {
+  if (starts.isEmpty) return null;
+  for (var index = starts.length - 1; index >= 0; index--) {
+    if (position >= starts[index]) {
+      return (index, position - starts[index]);
+    }
+  }
+  return (0, Duration.zero);
+}
+
 /// Maps between the conversation's wall-clock timeline and the dense playback
 /// artifact (one MP3 per conversation, inter-part gaps collapsed).
 ///

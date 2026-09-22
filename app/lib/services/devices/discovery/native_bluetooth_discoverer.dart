@@ -31,15 +31,24 @@ class NativeBluetoothDiscoverer extends DeviceDiscoverer {
     final previousCallback = BleBridge.instance.peripheralDiscoveredCallback;
 
     BleBridge.instance.peripheralDiscoveredCallback = (BlePeripheral peripheral) {
-      if (peripheral.name.isNotEmpty) {
-        // Deduplicate by UUID
-        results.removeWhere((p) => p.uuid == peripheral.uuid);
+      // Some devices advertise only their service UUID; keep them until
+      // classification so they are not discarded before a scan-response name.
+      final previousIndex = results.indexWhere((p) => p.uuid == peripheral.uuid);
+      if (previousIndex < 0) {
         results.add(peripheral);
+      } else {
+        final previous = results.removeAt(previousIndex);
+        results.add(BlePeripheral(
+          uuid: peripheral.uuid,
+          name: peripheral.name.isNotEmpty ? peripheral.name : previous.name,
+          rssi: peripheral.rssi,
+          serviceUuids: {...previous.serviceUuids, ...peripheral.serviceUuids}.toList(),
+        ));
       }
     };
 
     try {
-      _hostApi.startScan(timeout, []);
+      await _hostApi.startScan(timeout, []);
 
       // Wait for scan to complete
       Timer(Duration(seconds: timeout), () {
@@ -47,9 +56,9 @@ class NativeBluetoothDiscoverer extends DeviceDiscoverer {
       });
       await completer.future;
 
-      _hostApi.stopScan();
+      await _hostApi.stopScan();
 
-      final devices = results.where(_isSupportedPeripheral).map(_peripheralToDevice).toList()
+      final devices = results.map(deviceForPeripheral).whereType<BtDevice>().toList()
         ..sort((a, b) => b.rssi.compareTo(a.rssi));
 
       return DeviceDiscoveryResult(devices: devices);
@@ -61,17 +70,13 @@ class NativeBluetoothDiscoverer extends DeviceDiscoverer {
   @override
   Future<void> stop() async {
     try {
-      _hostApi.stopScan();
+      await _hostApi.stopScan();
     } catch (e) {
       Logger.debug('NativeBluetoothDiscoverer: stop scan error: $e');
     }
   }
 
   // MARK: - Device type detection (mirrors BtDevice.isSupportedDevice without ScanResult)
-
-  static bool _isSupportedPeripheral(BlePeripheral p) {
-    return _isBee(p) || _isPlaud(p) || _isFieldy(p) || _isFriendPendant(p) || _isLimitless(p) || _isOmi(p);
-  }
 
   static bool _isBee(BlePeripheral p) {
     return p.name.toLowerCase().contains('bee');
@@ -96,7 +101,16 @@ class NativeBluetoothDiscoverer extends DeviceDiscoverer {
   }
 
   static bool _isOmi(BlePeripheral p) {
-    return _hasService(p, omiServiceUuid);
+    final name = p.name.trim().toLowerCase();
+    // CV1 and the original Friend devkit can advertise a name without the
+    // custom service UUID in the Android scan record.
+    return _hasService(p, omiServiceUuid) ||
+        name == 'omi' ||
+        name.startsWith('omi ') ||
+        name.startsWith('omi_') ||
+        name.startsWith('omi-') ||
+        name.startsWith('omiglass') ||
+        name == 'friend';
   }
 
   static bool _hasService(BlePeripheral p, String serviceUuid) {
@@ -104,7 +118,10 @@ class NativeBluetoothDiscoverer extends DeviceDiscoverer {
     return p.serviceUuids.any((uuid) => uuid.toLowerCase() == target);
   }
 
-  static BtDevice _peripheralToDevice(BlePeripheral p) {
+  static BtDevice? deviceForPeripheral(BlePeripheral p) {
+    if (!(_isBee(p) || _isPlaud(p) || _isFieldy(p) || _isFriendPendant(p) || _isLimitless(p) || _isOmi(p))) {
+      return null;
+    }
     DeviceType type;
     if (_isBee(p)) {
       type = DeviceType.bee;
@@ -123,7 +140,7 @@ class NativeBluetoothDiscoverer extends DeviceDiscoverer {
     }
 
     return BtDevice(
-      name: p.name,
+      name: p.name.isNotEmpty ? p.name : (type == DeviceType.friendPendant ? 'Friend Pendant' : 'Omi'),
       id: p.uuid,
       type: type,
       rssi: p.rssi,

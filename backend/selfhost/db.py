@@ -187,8 +187,20 @@ def owned(db, user_id, record_id, kind=None):
 
 
 def wire(row):
+    data = row.data
+    if row.kind == "conversation" and data.get("file_ids") and data.get("audio_files"):
+        # Transcript offsets follow file_ids, not completion/retry order. Keep
+        # the mobile playlist in that same order for segment-level seeking.
+        positions = {file_id: index for index, file_id in enumerate(data["file_ids"])}
+        data = {
+            **data,
+            "audio_files": sorted(
+                data["audio_files"],
+                key=lambda audio: positions.get(audio.get("id"), len(positions)),
+            ),
+        }
     return {
-        **row.data,
+        **data,
         "id": row.id,
         "created_at": row.created_at.isoformat(),
         "updated_at": row.updated_at.isoformat(),

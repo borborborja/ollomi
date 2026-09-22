@@ -69,6 +69,7 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
   // wall-clock timeline mapped through the spans manifest. Fallback stays on
   // the per-part ConcatenatingAudioSource playlist.
   bool _singleArtifact = false;
+  bool _playlistComplete = false;
   AudioTimelineMapper? _timelineMapper;
   StreamSubscription<Duration>? _segmentStopSubscription;
 
@@ -79,6 +80,10 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
   List<AudioFile> _getSortedAudioFiles() {
     if (widget.conversation == null) return [];
     final files = List<AudioFile>.from(widget.conversation!.audioFiles);
+    // The self-hosted API returns parts in file_ids order, which is also the
+    // transcript's cumulative-offset order. Their startedAt values can be
+    // identical, so do not reorder them by timestamp.
+    if (files.every((file) => file.provider == 'local')) return files;
     files.sort((a, b) {
       final aTime = a.startedAt?.millisecondsSinceEpoch ?? 0;
       final bTime = b.startedAt?.millisecondsSinceEpoch ?? 0;
@@ -144,10 +149,8 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
 
   /// Seek to a transcript segment and play until [segmentEndSeconds].
   ///
-  /// Uses strict wall→artifact mapping (no gap-snap) so a segment whose start
-  /// falls in a collapsed inter-part gap does not jump into a later span
-  /// (#4471). Requires the dense conversation artifact + spans; the per-part
-  /// playlist fallback is not used for segment taps.
+  /// Dense artifacts use strict wall→artifact mapping (no gap-snap). Ollomi's
+  /// complete local playlist uses the cumulative transcript/audio offset.
   Future<void> seekToTranscriptSegment(double segmentStartSeconds, double segmentEndSeconds) async {
     if (!_isAudioInitialized) {
       await _initAudioIfNeeded();
@@ -157,22 +160,26 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
     await _segmentStopSubscription?.cancel();
     _segmentStopSubscription = null;
 
-    if (!_singleArtifact || _timelineMapper == null) {
+    if (!_singleArtifact && !_playlistComplete) {
       if (mounted) {
         AppSnackbar.showSnackbarError(context.l10n.audioPlaybackUnavailable);
       }
       return;
     }
 
-    final filePosition = _timelineMapper!.wallToArtifactStrict(segmentStartSeconds);
-    if (filePosition == null) {
+    final filePosition = _singleArtifact
+        ? _timelineMapper?.wallToArtifactStrict(segmentStartSeconds)
+        : playlistSegmentPosition(segmentStartSeconds, _totalDuration.inMilliseconds / 1000);
+    if (filePosition == null || !segmentEndSeconds.isFinite || segmentEndSeconds <= segmentStartSeconds) {
       if (mounted) {
         AppSnackbar.showSnackbarError(context.l10n.audioPlaybackUnavailable);
       }
       return;
     }
 
-    final stopAt = _timelineMapper!.wallToArtifactStrictInclusive(segmentEndSeconds);
+    final stopAt = _singleArtifact
+        ? _timelineMapper!.wallToArtifactStrictInclusive(segmentEndSeconds)
+        : segmentEndSeconds.clamp(filePosition, _totalDuration.inMilliseconds / 1000);
     final stopSeconds = (stopAt != null && stopAt > filePosition) ? stopAt : filePosition;
 
     final targetPosition = Duration(milliseconds: (filePosition * 1000).clamp(0, double.infinity).toInt());
@@ -192,7 +199,8 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
 
     _segmentStopSubscription = _audioPlayer!.positionStream.listen((position) async {
       if (seekGeneration != _segmentSeekGeneration) return;
-      if (position < stopPosition) return;
+      final currentPosition = _singleArtifact ? position : _getCombinedPosition(_audioPlayer!.currentIndex, position);
+      if (currentPosition < stopPosition) return;
       if (seekGeneration != _segmentSeekGeneration) return;
       await _segmentStopSubscription?.cancel();
       _segmentStopSubscription = null;
@@ -291,6 +299,11 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
         }
         return;
       }
+
+      // Upstream playlists can contain wall-clock gaps. Only Ollomi's local
+      // parts have transcript offsets equal to contiguous playlist offsets.
+      _playlistComplete = sortedAudioFiles.every((file) => file.provider == 'local') &&
+          audioSources.length == sortedAudioFiles.length;
 
       final playlist = ConcatenatingAudioSource(useLazyPreparation: true, children: audioSources);
 
@@ -805,25 +818,8 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
       return;
     }
 
-    int targetIndex = 0;
-    Duration positionInTrack = targetPosition;
-
-    for (int i = 0; i < _trackStartOffsets.length; i++) {
-      if (i == _trackStartOffsets.length - 1) {
-        targetIndex = i;
-        positionInTrack = targetPosition - _trackStartOffsets[i];
-        break;
-      } else if (targetPosition >= _trackStartOffsets[i] && targetPosition < _trackStartOffsets[i + 1]) {
-        targetIndex = i;
-        positionInTrack = targetPosition - _trackStartOffsets[i];
-        break;
-      }
-    }
-
-    // Ensure position is not negative
-    if (positionInTrack.isNegative) {
-      positionInTrack = Duration.zero;
-    }
+    final track = playlistTrackPosition(targetPosition, _trackStartOffsets);
+    if (track == null) return;
 
     // Track seek
     final conversationId = widget.conversation?.id ?? '';
@@ -832,7 +828,7 @@ class _ConversationBottomBarState extends State<ConversationBottomBar> {
       toPositionSeconds: targetPosition.inSeconds,
     );
 
-    await _audioPlayer!.seek(positionInTrack, index: targetIndex);
+    await _audioPlayer!.seek(track.$2, index: track.$1);
   }
 
   Widget _buildCircularButton({

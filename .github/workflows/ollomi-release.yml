@@ -129,6 +129,9 @@ jobs:
         run: |
           flutter pub get
           flutter test \
+            test/unit/audio_timeline_mapper_test.dart \
+            test/unit/native_bluetooth_discovery_test.dart \
+            test/unit/service_manager_device_start_test.dart \
             test/unit/local_auth_test.dart \
             test/unit/env_test.dart \
             test/unit/selfhost_payment_policy_test.dart \

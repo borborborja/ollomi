@@ -1,9 +1,33 @@
 import wave
+from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
 from starlette.websockets import WebSocketDisconnect
 
 from selfhost.worker import merge_audio_part
+
+
+def test_conversation_audio_parts_follow_transcript_offsets_after_retry():
+    from selfhost.db import wire
+
+    stamp = datetime.now(timezone.utc)
+    row = SimpleNamespace(
+        id="conversation",
+        kind="conversation",
+        created_at=stamp,
+        updated_at=stamp,
+        data={
+            "file_ids": ["first", "second"],
+            "audio_files": [
+                {"id": "second", "duration": 4},
+                {"id": "first", "duration": 5},
+            ],
+        },
+    )
+    result = wire(row)
+    assert [part["id"] for part in result["audio_files"]] == ["first", "second"]
+    assert [part["id"] for part in row.data["audio_files"]] == ["second", "first"]
 
 
 def test_reconnected_recording_retains_parts_and_retry_is_idempotent():
