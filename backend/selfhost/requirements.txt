@@ -74,6 +74,8 @@ opuslib==3.0.1
     # via -r backend/selfhost/requirements.in
 packaging==26.3
     # via kombu
+pillow==12.3.0
+    # via -r backend/selfhost/requirements.in
 pgvector==0.4.1
     # via -r backend/selfhost/requirements.in
 prompt-toolkit==3.0.53

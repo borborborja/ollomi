@@ -15,6 +15,8 @@ Use the root `compose.yaml`. See [installation and operation](../../docs/OLLomi_
 - `search.py`, `chat.py`: owner-scoped vector/text retrieval and streamed chat. Embedding generations isolate incompatible models; changes queue reindexing.
 - `integrations.py`: explicit exports to local WebDAV, CalDAV VTODO, webhooks; explicit MCP Streamable HTTP tool discovery/calls. Administrator credentials are never returned.
 - `tts.py`, `firmware.py`: local Piper synthesis and operator-provisioned firmware.
+- `knowledge_graph.py`: owner-scoped mind map generated from conversation and memory records; no graph database or extra model.
+- `static_map.py`: authenticated OpenStreetMap preview images, with a persistent seven-day tile cache and a configurable tile-server URL.
 
 ## Development
 

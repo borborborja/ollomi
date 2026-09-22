@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     voiceprint_url: str = ""
     voiceprint_api_key: SecretStr = SecretStr("")
     voiceprint_threshold: float = 0.72
+    # The public OSM endpoint needs no key. A local OSM tile server can replace
+    # it without changing the Android app.
+    map_tile_url: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 
     def validate_runtime(self):
         if len(self.secret_key.get_secret_value()) < 32:
@@ -80,6 +83,21 @@ class Settings(BaseSettings):
                 )
             if not 0.5 <= self.voiceprint_threshold <= 0.95:
                 raise ValueError("OLLOMI_VOICEPRINT_THRESHOLD must be between 0.5 and 0.95")
+        try:
+            sample = self.map_tile_url.format(z=1, x=1, y=1)
+        except (KeyError, ValueError, IndexError):
+            raise ValueError("OLLOMI_MAP_TILE_URL must contain {z}, {x} and {y}") from None
+        parsed = urlsplit(sample)
+        if (
+            any(token not in self.map_tile_url for token in ("{z}", "{x}", "{y}"))
+            or parsed.scheme not in {"http", "https"}
+            or not parsed.hostname
+            or parsed.username
+            or parsed.password
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("OLLOMI_MAP_TILE_URL must be an HTTP(S) tile URL without credentials or query")
 
 
 @lru_cache
