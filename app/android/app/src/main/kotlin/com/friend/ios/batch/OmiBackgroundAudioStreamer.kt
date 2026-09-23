@@ -118,8 +118,6 @@ class OmiBackgroundAudioStreamer internal constructor(
                         stop("disabled")
                     }
                 }
-            } else {
-                synchronized(lock) { omiFrameAssembler.reset(); assemblerConfig = null }
             }
             return
         }
@@ -149,7 +147,8 @@ class OmiBackgroundAudioStreamer internal constructor(
             }
             val frames = transformFrames(config, value)
             if (frames.isEmpty()) {
-                hasNativeState = activeSettings != null
+                // A partial Opus frame is native state too: the next disabled
+                // callback must discard it before another session starts.
                 return
             }
             ensureSocket(settings)
