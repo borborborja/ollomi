@@ -307,7 +307,7 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
       onBatteryLevelChange: (int value) {
         batteryLevel = value;
         BatteryWidgetService().updateBatteryInfo(
-          deviceName: connectedDevice?.name ?? '',
+          deviceName: DeviceUtils.displayName(connectedDevice),
           batteryLevel: value,
           deviceType: connectedDevice?.type.name ?? 'omi',
           isConnected: true,
@@ -551,7 +551,7 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
 
     PlatformManager.instance.analytics.deviceDisconnected();
     BatteryWidgetService().updateBatteryInfo(
-      deviceName: SharedPreferencesUtil().deviceName,
+      deviceName: DeviceUtils.displayName(pairedDevice, fallback: SharedPreferencesUtil().deviceName),
       batteryLevel: -1,
       deviceType: 'omi',
       isConnected: false,
@@ -613,7 +613,7 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
     if (currentLevel != -1) {
       batteryLevel = currentLevel;
       BatteryWidgetService().updateBatteryInfo(
-        deviceName: device.name,
+        deviceName: DeviceUtils.displayName(device),
         batteryLevel: currentLevel,
         deviceType: device.type.name,
         isConnected: true,

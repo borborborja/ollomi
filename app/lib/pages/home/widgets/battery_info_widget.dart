@@ -246,7 +246,7 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
       return;
     }
 
-    final target = device?.name ?? context.l10n.memoryThisDevice;
+    final target = DeviceUtils.displayName(device, fallback: context.l10n.memoryThisDevice);
     final confirmed = await OmiConfirmDialog.show(
       context,
       title: context.l10n.activeCaptureButtonSwitchSource,
@@ -298,7 +298,7 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
           if (!context.mounted) return;
           Navigator.push(context, MaterialPageRoute(builder: (_) => const PhoneCallsPage()));
         },
-        connectedDeviceName: connectedDevice?.name,
+        connectedDeviceName: DeviceUtils.displayName(connectedDevice),
         onPickConnectedDevice: connectedDevice == null
             ? null
             : () {

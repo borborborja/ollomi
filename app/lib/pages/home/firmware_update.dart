@@ -8,6 +8,7 @@ import 'package:omi/pages/home/firmware_mixin.dart';
 import 'package:omi/pages/home/page.dart';
 import 'package:omi/providers/device_provider.dart';
 import 'package:omi/utils/analytics/intercom.dart';
+import 'package:omi/utils/device.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/utils/other/temp.dart';
 import 'package:omi/widgets/confirmation_dialog.dart';
@@ -250,7 +251,7 @@ class _FirmwareUpdateState extends State<FirmwareUpdate> with FirmwareMixin {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  context.l10n.restartDeviceToComplete(widget.device?.name ?? "Omi device"),
+                  context.l10n.restartDeviceToComplete(DeviceUtils.displayName(widget.device, fallback: "Omi device")),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade400, height: 1.4),
                 ),
