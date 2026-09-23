@@ -1,11 +1,15 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy import text
 from starlette.concurrency import run_in_threadpool
+from starlette.staticfiles import StaticFiles
 
 from selfhost import (
     admin,
+    admin_config,
     audio,
     chat,
     records,
@@ -54,6 +58,7 @@ for router in (
     mobile.router,
     voiceprint.router,
     admin.router,
+    admin_config.router,
     audio.router,
     chat.router,
     search.router,
@@ -62,6 +67,24 @@ for router in (
     static_map.router,
 ):
     app.include_router(router)
+
+
+_admin_dir = Path(__file__).resolve().parent / "admin_ui"
+app.mount("/admin/assets", StaticFiles(directory=_admin_dir), name="admin-assets")
+
+
+@app.get("/admin", include_in_schema=False)
+@app.get("/admin/", include_in_schema=False)
+def admin_page():
+    return FileResponse(
+        _admin_dir / "index.html",
+        headers={
+            "Cache-Control": "no-store",
+            "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; frame-ancestors 'none'",
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "no-referrer",
+        },
+    )
 
 
 @app.get("/health")

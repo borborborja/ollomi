@@ -1,9 +1,27 @@
+import base64
+import hashlib
+import json
+import logging
+import os
+import time
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from pydantic import SecretStr
+from cryptography.fernet import Fernet
+from pydantic import SecretStr, TypeAdapter
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError, ProgrammingError
+
+
+# Infrastructure credentials and paths are controlled by Compose, never by a
+# running web process. Every other Settings field can be overridden in the DB.
+INFRASTRUCTURE_FIELDS = {
+    "database_url", "redis_url", "data_dir", "secret_key", "typesense_url", "typesense_key"
+}
+RESTART_FIELDS = {"seed_local_whisper", "seed_local_ollama", "stt_url", "ollama_url"}
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -106,5 +124,64 @@ class Settings(BaseSettings):
 
 
 @lru_cache
-def settings() -> Settings:
+def environment_settings() -> Settings:
     return Settings()
+
+
+@lru_cache
+def _override_engine(url: str):
+    return create_engine(url, pool_pre_ping=True)
+
+
+def _cipher(base: Settings):
+    key = hashlib.sha256(base.secret_key.get_secret_value().encode()).digest()
+    return Fernet(base64.urlsafe_b64encode(key))
+
+
+def encode_override(base: Settings, value):
+    return _cipher(base).encrypt(json.dumps(value).encode()).decode()
+
+
+def decode_override(base: Settings, value):
+    return json.loads(_cipher(base).decrypt(value.encode()))
+
+
+def environment_locked(field: str) -> bool:
+    return "OLLOMI_" + field.upper() in os.environ
+
+
+@lru_cache(maxsize=2)
+def _effective_settings(epoch: int) -> Settings:
+    base = environment_settings()
+    try:
+        with _override_engine(base.database_url).connect() as connection:
+            rows = connection.execute(
+                text("SELECT key, value FROM instance WHERE key LIKE 'setting:%'")
+            ).all()
+    except (OperationalError, ProgrammingError) as error:
+        # Configuration can be inspected before migrations or while the DB is
+        # unavailable. Requests needing durable state fail at their own DB call.
+        logger.warning("Runtime settings store unavailable: %s", type(error).__name__)
+        rows = []
+    values = {}
+    for key, encrypted in rows:
+        field = key.removeprefix("setting:")
+        if field in Settings.model_fields and field not in INFRASTRUCTURE_FIELDS and not environment_locked(field):
+            values[field] = TypeAdapter(Settings.model_fields[field].annotation).validate_python(
+                decode_override(base, encrypted)
+            )
+    return base.model_copy(update=values)
+
+
+def settings() -> Settings:
+    # A short cache makes web edits visible to workers and other API processes.
+    return _effective_settings(int(time.monotonic() // 3))
+
+
+def clear_settings_cache():
+    environment_settings.cache_clear()
+    _effective_settings.cache_clear()
+    _override_engine.cache_clear()
+
+
+settings.cache_clear = clear_settings_cache

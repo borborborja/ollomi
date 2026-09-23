@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -7,6 +8,8 @@ from sqlalchemy import select, update
 from selfhost.config import settings
 from selfhost.db import AIProfile, Job, McpApiKey, McpOauthToken, Session, User, emit, transaction
 from selfhost.profiles import (
+    PROVIDER_DEFAULTS,
+    PROVIDER_PURPOSES,
     completion,
     embed,
     env_managed,
@@ -71,6 +74,13 @@ class ProfileInput(Input):
     external: bool = False
     enabled: bool = True
     options: ChatOptions | None = None
+    provider: str = "custom"
+    dimensions: int | None = Field(default=None, ge=1, le=4096)
+
+
+class ProfileOrder(Input):
+    purpose: Literal["chat", "embedding", "stt"]
+    ids: list[str] = Field(min_length=1)
 
 
 @router.post("/v1/auth/login")
@@ -153,6 +163,12 @@ def update_user(user_id: str, body: UserUpdate, admin=Depends(administrator)):
             raise HTTPException(404, "User not found")
         if user_id == admin.id and body.enabled is False:
             raise HTTPException(409, "Cannot disable your own administrator account")
+        if (
+            body.password
+            and os.getenv("OLLOMI_ADMIN_PASSWORD")
+            and row.email == os.getenv("OLLOMI_ADMIN_EMAIL", "").strip().lower()
+        ):
+            raise HTTPException(409, "Administrator password is controlled by the environment")
         if body.enabled is not None:
             row.enabled = body.enabled
         if body.password:
@@ -220,6 +236,8 @@ def profiles(user=Depends(current_user)):
 
 
 def save_profile(body, profile_id=None):
+    if body.provider not in PROVIDER_DEFAULTS or body.purpose not in PROVIDER_PURPOSES[body.provider]:
+        raise HTTPException(422, "Provider is not available for this purpose")
     url = validate_url(body.base_url, body.external)
     with transaction() as db:
         if env_managed(db, body.purpose):
@@ -232,9 +250,31 @@ def save_profile(body, profile_id=None):
         old = snapshot(row) if profile_id else None
         if old and old["purpose"] != body.purpose:
             raise HTTPException(422, "Create a new profile to change its purpose")
-        for key, value in body.model_dump(exclude={"api_key", "base_url", "options"}).items():
+        for key, value in body.model_dump(exclude={"api_key", "base_url", "options", "provider", "dimensions"}).items():
             setattr(row, key, value)
         row.base_url = url
+        row.capabilities = {
+            **(row.capabilities or {}),
+            "provider": body.provider,
+            "priority": (row.capabilities or {}).get("priority", 999999),
+        }
+        if body.dimensions is not None:
+            row.capabilities = {**row.capabilities, "dimensions": body.dimensions}
+        if body.purpose == "embedding" and row.enabled:
+            other_dimensions = {
+                (other.capabilities or {}).get("dimensions")
+                for other in db.scalars(
+                    select(AIProfile).where(
+                        AIProfile.purpose == "embedding", AIProfile.enabled.is_(True)
+                    )
+                )
+                if other.id != row.id and (other.capabilities or {}).get("managed_by") != "env"
+            }
+            if other_dimensions and (
+                not row.capabilities.get("dimensions")
+                or other_dimensions != {row.capabilities["dimensions"]}
+            ):
+                raise HTTPException(422, "Embedding fallbacks require the same explicit dimensions")
         if body.options is not None:
             row.capabilities = {
                 **(row.capabilities or {}),
@@ -271,6 +311,23 @@ def add_profile(body: ProfileInput, admin=Depends(administrator)):
 @router.put("/v1/admin/ai-profiles/{profile_id}")
 def update_profile(profile_id: str, body: ProfileInput, admin=Depends(administrator)):
     return save_profile(body, profile_id)
+
+
+@router.put("/v1/admin/ai-profile-order")
+def order_profiles(body: ProfileOrder, admin=Depends(administrator)):
+    with transaction() as db:
+        if env_managed(db, body.purpose):
+            raise HTTPException(409, "Environment-managed profile order is read-only")
+        rows = list(db.scalars(select(AIProfile).where(AIProfile.purpose == body.purpose, AIProfile.enabled.is_(True))))
+        rows = [row for row in rows if (row.capabilities or {}).get("managed_by") != "env"]
+        if len(set(body.ids)) != len(body.ids) or set(body.ids) != {row.id for row in rows}:
+            raise HTTPException(422, "Order must include each enabled profile exactly once")
+        by_id = {row.id: row for row in rows}
+        for priority, profile_id in enumerate(body.ids, start=1):
+            row = by_id[profile_id]
+            row.capabilities = {**(row.capabilities or {}), "priority": priority}
+            row.revision += 1
+        return [public_profile(by_id[profile_id], True) for profile_id in body.ids]
 
 
 @router.post("/v1/admin/ai-profiles/{profile_id}/validate")
