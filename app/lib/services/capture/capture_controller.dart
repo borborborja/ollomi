@@ -339,7 +339,7 @@ class CaptureController extends ChangeNotifier
   BtDevice? _sessionRecordingDevice;
 
   String? _getConversationSourceFromDevice() {
-    return conversationSourceForDeviceType(_recordingDevice?.type);
+    return conversationSourceForDeviceType(_recordingDevice?.type, deviceName: _recordingDevice?.name);
   }
 
   ServerConversation? _conversation;
@@ -1068,15 +1068,6 @@ class CaptureController extends ChangeNotifier
         // Track bytes received from BLE
         _metrics.addBleBytes(snapshot.length);
 
-        // Command button triggered
-        bool voiceCommandSupported = _recordingDevice != null
-            ? (_recordingDevice?.type == DeviceType.omi || _recordingDevice?.type == DeviceType.openglass)
-            : false;
-        if (_voiceCommandSession != null && voiceCommandSupported) {
-          final payload = _activeSource?.getSocketPayload(snapshot) ?? snapshot.sublist(3);
-          _commandBytes.add(payload);
-        }
-
         // Local storage syncs. In batch mode the native layer owns writing the
         // .bin files, so the Dart WAL writer must stay off to avoid double-writes.
         var checkWalSupported = !SharedPreferencesUtil().batchModeEnabled &&
@@ -1089,6 +1080,14 @@ class CaptureController extends ChangeNotifier
 
         // Process bytes through audio source and feed to WAL
         final frames = _activeSource?.processBytes(snapshot) ?? [];
+        final socketPayloads = _activeSource == null
+            ? <List<int>>[snapshot]
+            : frames.map((frame) => frame.payload).toList();
+        final voiceCommandSupported =
+            _recordingDevice?.type == DeviceType.omi || _recordingDevice?.type == DeviceType.openglass;
+        if (_voiceCommandSession != null && voiceCommandSupported) {
+          _commandBytes.addAll(socketPayloads);
+        }
         if (_isWalSupported) {
           for (final frame in frames) {
             _wal.getSyncs().phone.onFrameCaptured(frame);
@@ -1097,11 +1096,10 @@ class CaptureController extends ChangeNotifier
 
         // Send WS
         if (_socket?.state == SocketServiceState.connected) {
-          final socketPayload = _activeSource?.getSocketPayload(snapshot) ?? snapshot;
-          _socket?.send(socketPayload);
-
-          // Track bytes sent to websocket
-          _metrics.addSocketBytes(socketPayload.length);
+          for (final socketPayload in socketPayloads) {
+            _socket?.send(socketPayload);
+            _metrics.addSocketBytes(socketPayload.length);
+          }
 
           // Mark frames as synced
           if (_isWalSupported) {

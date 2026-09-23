@@ -488,8 +488,8 @@ async def listen(socket: WebSocket):
     codec = socket.query_params.get("codec", "pcm16")
     if codec == "opus_fs320":
         codec = "opus"
-    if codec not in {"pcm16", "pcm8", "opus"}:
-        await socket.close(code=4400, reason="Supported codecs: pcm16, opus")
+    if codec not in {"pcm16", "pcm8", "opus", "lc3_fs1030"}:
+        await socket.close(code=4400, reason="Supported codecs: pcm16, pcm8, opus, lc3_fs1030")
         return
     try:
         rate = int(socket.query_params.get("sample_rate", "16000"))
@@ -499,7 +499,17 @@ async def listen(socket: WebSocket):
     if rate not in {8000, 16000, 24000, 48000}:
         await socket.close(code=4400, reason="Unsupported sample rate")
         return
+    if codec == "lc3_fs1030" and rate != 16000:
+        await socket.close(code=4400, reason="Friend Pendant LC3 requires 16000 Hz")
+        return
     await socket.accept()
+    # Keep device provenance on the conversation created by this socket.
+    source = socket.query_params.get("source", "phone")
+    if source not in {
+        "omi", "friend_com", "openglass", "phone", "fieldy", "bee",
+        "plaud", "apple_watch", "limitless", "rayban_meta",
+    }:
+        source = "phone"
     file_id, conversation_id = (
         ident(),
         socket.query_params.get("conversation_id") or socket.query_params.get("client_conversation_id") or ident(),
@@ -516,7 +526,7 @@ async def listen(socket: WebSocket):
                         id=conversation_id,
                         user_id=user.id,
                         kind="conversation",
-                        data=conversation_data({"status": "in_progress"}),
+                        data=conversation_data({"status": "in_progress", "source": source}),
                     )
                 )
             return selected_profile(db, user.id, "stt")
@@ -533,6 +543,10 @@ async def listen(socket: WebSocket):
         import opuslib
 
         decoder = opuslib.Decoder(rate, 1)
+    elif codec == "lc3_fs1030":
+        from selfhost.lc3_audio import Lc3Decoder
+
+        decoder = Lc3Decoder()
     await socket.send_json({"type": "last_memory", "memory_id": conversation_id})
     buffer = bytearray()
     total_samples = 0
@@ -550,7 +564,9 @@ async def listen(socket: WebSocket):
                         break
                     continue
                 chunk = message.get("bytes", b"")
-                if decoder:
+                if codec == "lc3_fs1030":
+                    chunk = decoder.decode(chunk)
+                elif decoder:
                     chunk = decoder.decode(chunk, rate * 120 // 1000)
                 if codec == "pcm8":
                     import audioop
@@ -575,8 +591,14 @@ async def listen(socket: WebSocket):
                             clip.writeframes(bytes(buffer))
                         return transcribe_file(profile, preview, diarize=False)
 
-                    segments = await run_in_threadpool(preview_transcript)
-                    preview.unlink(missing_ok=True)
+                    try:
+                        segments = await run_in_threadpool(preview_transcript)
+                    except Exception:
+                        # A provider preview is best-effort. Keep receiving the
+                        # device stream so the durable final job can retry STT.
+                        segments = []
+                    finally:
+                        preview.unlink(missing_ok=True)
                     buffer.clear()
                     for s in segments:
                         s["start"] += offset

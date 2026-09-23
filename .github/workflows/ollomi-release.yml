@@ -129,8 +129,11 @@ jobs:
         run: |
           flutter pub get
           flutter test \
+            test/unit/audio_source_test.dart \
             test/unit/audio_timeline_mapper_test.dart \
             test/unit/native_bluetooth_discovery_test.dart \
+            test/unit/batch_recording_test.dart \
+            test/unit/rayban_meta_source_mapping_test.dart \
             test/unit/service_manager_device_start_test.dart \
             test/unit/local_auth_test.dart \
             test/unit/env_test.dart \
@@ -152,6 +155,7 @@ jobs:
           ./gradlew :app:testDevDebugUnitTest \
             --tests 'com.friend.ios.batch.NativeBleServerEndpointPolicyTest' \
             --tests 'com.friend.ios.batch.OmiBackgroundAudioStreamerTest' \
+            --tests 'com.friend.ios.batch.OmiBleFrameAssemblerTest' \
             --tests 'com.friend.ios.batch.NativeBleGeolocationHeaderTest' \
             --no-daemon
       - name: Compile the complete debug APK

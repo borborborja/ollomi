@@ -8,6 +8,10 @@ The Ollomi publishing workflow runs Flutter and native BLE tests on every ref. I
 
 The self-hosted Android startup must call `DeviceService.start()` through `ServiceManager.start()` before onboarding or the device picker tries to scan; otherwise discovery silently remains in `init`. BLE classification accepts Omi CV1 and original Friend devkit advertisement names when Android omits their service UUID, while `Friend_` remains the separate LC3 Friend Pendant type. Keep the startup and discovery regression tests in the Ollomi CI list.
 
+The original `Friend` keeps the Omi BLE/audio transport but sends `friend_com` as conversation provenance. The `Friend_…` Pendant sends 30-byte LC3 frames to the server and uses `lc3_fs1030` in native batch filenames; `BatchRecordingInfo` must parse the trailing `_fs160_` field rather than the `_fs1030_` embedded in the codec name. Keep both source-mapping and batch-filename tests in the Ollomi CI list.
+
+Omi CV1 Opus frames can span several BLE notifications: the firmware header has a 16-bit per-notification packet id and an 8-bit fragment index reset to zero at each frame. Foreground Dart and native Android background/batch paths must reassemble contiguous fragments and send/write only complete frames; the next index-zero notification confirms the previous frame. The final unconfirmed frame is dropped at teardown. Keep Dart audio-source and native assembler/streamer regression tests in Ollomi CI.
+
 `AuthenticatedProductScope` owns `SyncProvider` above `MaterialApp`, not inside its home route: the connected-device page is pushed through the Navigator and needs the same provider. Keep the route-level regression test in the Ollomi CI list. The scope exists only while local authentication is active, so account-specific WAL state is disposed on sign-out.
 
 Inherits [`../AGENTS.md`](../AGENTS.md); adds app-specific operational guidance.

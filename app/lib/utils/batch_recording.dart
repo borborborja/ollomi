@@ -88,7 +88,7 @@ PhoneMicSessionMode selectPhoneMicSessionMode({
 ///   audio_{device}_{codec}_{sampleRate}_{channel}_fs{frameSize}_{timestamp}.bin
 ///
 /// Mirrors how the backend `/v2/sync-local-files` pipeline interprets the name:
-/// codec is detected from the `_pcm16_`/`_pcm8_` markers (otherwise opus), the
+/// codec is detected from the explicit codec marker, the
 /// frame size from `_fs<n>`, and the timestamp from the trailing segment
 /// (milliseconds are normalized to seconds). Kept pure so it can be unit tested.
 class BatchRecordingInfo {
@@ -115,14 +115,18 @@ class BatchRecordingInfo {
     if (ts == null) return null;
     final timerStart = ts > 100000000000 ? ts ~/ 1000 : ts; // ms -> s
 
-    final fsMatch = RegExp(r'_fs(\d+)').firstMatch(name);
+    // Codec names may themselves contain `_fs...` (opus_fs320, lc3_fs1030).
+    // Only the trailing filename field is the decoded PCM frame size.
+    final fsMatch = RegExp(r'_fs(\d+)_\d+\.bin$').firstMatch(name);
     final frameSize = fsMatch != null ? int.parse(fsMatch.group(1)!) : 160;
 
     final srMatch = RegExp(r'_(\d+)_\d+_fs\d+_\d+\.bin$').firstMatch(name);
     final sampleRate = srMatch != null ? int.parse(srMatch.group(1)!) : 16000;
 
     final BleAudioCodec codec;
-    if (name.contains('_pcm16_')) {
+    if (name.contains('_lc3_fs1030_')) {
+      codec = BleAudioCodec.lc3FS1030;
+    } else if (name.contains('_pcm16_')) {
       codec = BleAudioCodec.pcm16;
     } else if (name.contains('_pcm8_')) {
       codec = BleAudioCodec.pcm8;
@@ -146,11 +150,12 @@ class BatchRecordingInfo {
   /// backend recomputes the exact duration from the decoded audio. Accounts for
   /// ~16 kbps opus plus the 4-byte per-frame length prefix, or raw PCM rates.
   int estimateSeconds(int sizeBytes) {
-    final bytesPerSec = codec == BleAudioCodec.pcm16
-        ? 32200
-        : codec == BleAudioCodec.pcm8
-            ? 16100
-            : 2400;
+    final bytesPerSec = switch (codec) {
+      BleAudioCodec.lc3FS1030 => 3400, // 30 LC3 bytes + 4-byte length prefix, 100 frames per second
+      BleAudioCodec.pcm16 => 32200,
+      BleAudioCodec.pcm8 => 16100,
+      _ => 2400,
+    };
     return (sizeBytes / bytesPerSec).round().clamp(1, 24 * 3600);
   }
 }

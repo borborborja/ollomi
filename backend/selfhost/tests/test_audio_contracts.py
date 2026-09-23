@@ -1,4 +1,8 @@
 import wave
+import struct
+import ctypes
+import ctypes.util
+import math
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
@@ -6,6 +10,38 @@ import pytest
 from starlette.websockets import WebSocketDisconnect
 
 from selfhost.worker import merge_audio_part
+
+
+def test_real_lc3_frame_roundtrip_when_library_available():
+    from selfhost import lc3_audio
+
+    # CI runs in the backend image, where liblc3-0 must be installed. Developers
+    # without the system library can still run the other contract tests.
+    library_path = ctypes.util.find_library("lc3")
+    if not library_path:
+        pytest.skip("liblc3 is not installed on this host")
+    library = ctypes.CDLL(library_path)
+    library.lc3_encoder_size.argtypes = (ctypes.c_int, ctypes.c_int)
+    library.lc3_encoder_size.restype = ctypes.c_uint
+    library.lc3_setup_encoder.argtypes = (
+        ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_void_p
+    )
+    library.lc3_setup_encoder.restype = ctypes.c_void_p
+    library.lc3_encode.argtypes = (
+        ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, ctypes.c_int,
+        ctypes.c_int, ctypes.c_void_p
+    )
+    library.lc3_encode.restype = ctypes.c_int
+    memory = ctypes.create_string_buffer(library.lc3_encoder_size(10000, 16000))
+    encoder = library.lc3_setup_encoder(10000, 16000, 0, memory)
+    samples = (ctypes.c_int16 * 160)(
+        *[int(10000 * math.sin(i * 0.1)) for i in range(160)]
+    )
+    frame = ctypes.create_string_buffer(30)
+    assert library.lc3_encode(encoder, 0, samples, 1, 30, frame) == 0
+    decoded = lc3_audio.Lc3Decoder().decode(frame.raw)
+    assert len(decoded) == 320
+    assert any(decoded)
 
 
 def test_conversation_audio_parts_follow_transcript_offsets_after_retry():
@@ -48,7 +84,7 @@ def test_reconnected_recording_retains_parts_and_retry_is_idempotent():
 def test_live_capture_socket_requires_auth_and_preserves_conversation_owner(client, admin):
     conversation_id = "00000000-0000-0000-0000-000000000111"
     path = (
-        "/v4/listen?codec=pcm16&sample_rate=16000&client_conversation_id="
+        "/v4/listen?codec=pcm16&sample_rate=16000&source=omi&client_conversation_id="
         + conversation_id
     )
 
@@ -71,6 +107,7 @@ def test_live_capture_socket_requires_auth_and_preserves_conversation_owner(clie
         assert conversation is not None
         assert conversation.user_id == client.get("/v1/auth/me", headers=admin).json()["uid"]
         assert conversation.data["status"] == "in_progress"
+        assert conversation.data["source"] == "omi"
 
 
 def test_live_capture_socket_rejects_unsupported_codec(client, admin):
@@ -78,6 +115,189 @@ def test_live_capture_socket_rejects_unsupported_codec(client, admin):
         with client.websocket_connect("/v4/listen?codec=mp3", headers=admin):
             pass
     assert rejected.value.code == 4400
+
+
+def test_friend_pendant_socket_decodes_frames_and_queues_transcription(client, admin, monkeypatch):
+    from selfhost import lc3_audio
+
+    class FakeDecoder:
+        def decode(self, frame):
+            assert frame == b"\x01" * 30
+            return struct.pack("<160h", *([123] * 160))
+
+    monkeypatch.setattr(lc3_audio, "Lc3Decoder", FakeDecoder)
+    with client.websocket_connect(
+        "/v4/listen?codec=lc3_fs1030&sample_rate=16000&source=friend_com", headers=admin
+    ) as socket:
+        conversation_id = socket.receive_json()["memory_id"]
+        for _ in range(3):
+            socket.send_bytes(b"\x01" * 30)
+        socket.send_json({"type": "stop"})
+        job = socket.receive_json()
+    assert job["type"] == "processing_started"
+
+    from selfhost.audio import storage_path
+    from selfhost.db import Job, Record, transaction
+
+    with transaction() as db:
+        row = db.get(Record, conversation_id)
+        assert row.data["status"] == "processing"
+        assert row.data["source"] == "friend_com"
+        queued = db.get(Job, job["job_id"])
+        assert queued.status == "queued"
+        path = storage_path(row.user_id, queued.payload["file_id"])
+    with wave.open(str(path)) as recording:
+        assert recording.getframerate() == 16000
+        assert recording.getnframes() == 480
+        assert recording.readframes(480) == struct.pack("<480h", *([123] * 480))
+
+    from selfhost import worker
+
+    monkeypatch.setattr(
+        worker,
+        "transcribe_file",
+        lambda profile, clip, language="auto": [
+            {"id": "friend-segment", "start": 0.0, "end": 0.03,
+             "text": "Prova Friend", "speaker": None}
+        ],
+    )
+    monkeypatch.setattr(worker, "enrich_speaker_labels", lambda uid, clip, batch, job_id: batch)
+    monkeypatch.setattr(
+        worker,
+        "enrichment",
+        lambda *args, **kwargs: {
+            "title": "Prova Friend", "overview": "Prova", "emoji": "", "category": "other",
+            "events": [], "action_items": [], "decisions": [], "memories": [],
+            "goals": [], "people": [],
+        },
+    )
+    worker.run_job(job["job_id"])
+    with transaction() as db:
+        conversation = db.get(Record, conversation_id)
+        assert conversation.data["status"] == "completed"
+        assert conversation.data["transcript_segments"][0]["text"] == "Prova Friend"
+
+
+def test_friend_pendant_socket_requires_16khz(client, admin):
+    with pytest.raises(WebSocketDisconnect) as rejected:
+        with client.websocket_connect(
+            "/v4/listen?codec=lc3_fs1030&sample_rate=48000", headers=admin
+        ):
+            pass
+    assert rejected.value.code == 4400
+
+
+def test_omi_pcm8_capture_decodes_unsigned_samples(client, admin):
+    with client.websocket_connect(
+        "/v4/listen?codec=pcm8&sample_rate=16000&source=omi", headers=admin
+    ) as socket:
+        conversation_id = socket.receive_json()["memory_id"]
+        socket.send_bytes(bytes([128]) * 160)
+        socket.send_json({"type": "stop"})
+        job_id = socket.receive_json()["job_id"]
+
+    from selfhost.audio import storage_path
+    from selfhost.db import Job, Record, transaction
+
+    with transaction() as db:
+        row = db.get(Record, conversation_id)
+        path = storage_path(row.user_id, db.get(Job, job_id).payload["file_id"])
+    with wave.open(str(path)) as recording:
+        assert recording.getnframes() == 160
+        assert recording.readframes(160) == bytes(320)
+
+
+def test_omi_opus_capture_decodes_real_packet_when_library_available(client, admin):
+    try:
+        import opuslib
+    except Exception:
+        pytest.skip("libopus is not installed on this host")
+
+    encoder = opuslib.Encoder(16000, 1, opuslib.APPLICATION_AUDIO)
+    packet = encoder.encode(struct.pack("<320h", *([100] * 320)), 320)
+    with client.websocket_connect(
+        "/v4/listen?codec=opus_fs320&sample_rate=16000&source=omi", headers=admin
+    ) as socket:
+        conversation_id = socket.receive_json()["memory_id"]
+        socket.send_bytes(packet)
+        socket.send_json({"type": "stop"})
+        job_id = socket.receive_json()["job_id"]
+
+    from selfhost.audio import storage_path
+    from selfhost.db import Job, Record, transaction
+
+    with transaction() as db:
+        row = db.get(Record, conversation_id)
+        path = storage_path(row.user_id, db.get(Job, job_id).payload["file_id"])
+    with wave.open(str(path)) as recording:
+        assert recording.getnframes() == 320
+        assert len(recording.readframes(320)) == 640
+
+
+def test_omi_pcm_capture_reaches_completed_transcript(client, admin, monkeypatch):
+    from selfhost import worker
+
+    with client.websocket_connect(
+        "/v4/listen?codec=pcm16&sample_rate=16000&source=omi", headers=admin
+    ) as socket:
+        conversation_id = socket.receive_json()["memory_id"]
+        socket.send_bytes(struct.pack("<16000h", *([100] * 16000)))
+        socket.send_json({"type": "stop"})
+        job_id = socket.receive_json()["job_id"]
+
+    monkeypatch.setattr(
+        worker,
+        "transcribe_file",
+        lambda profile, clip, language="auto": [
+            {"id": "segment-1", "start": 0.0, "end": 1.0, "text": "Prova Omi", "speaker": None}
+        ],
+    )
+    monkeypatch.setattr(worker, "enrich_speaker_labels", lambda uid, clip, batch, job_id: batch)
+    monkeypatch.setattr(
+        worker,
+        "enrichment",
+        lambda *args, **kwargs: {
+            "title": "Prova Omi", "overview": "Prova", "emoji": "", "category": "other",
+            "events": [], "action_items": [], "decisions": [], "memories": [],
+            "goals": [], "people": [],
+        },
+    )
+    worker.run_job(job_id)
+
+    from selfhost.db import Job, Record, transaction
+
+    with transaction() as db:
+        conversation = db.get(Record, conversation_id)
+        assert conversation.data["status"] == "completed"
+        assert conversation.data["source"] == "omi"
+        assert conversation.data["transcript_segments"][0]["text"] == "Prova Omi"
+        assert db.get(Job, job_id).status == "completed"
+
+
+def test_live_preview_failure_does_not_truncate_device_audio(client, admin, monkeypatch):
+    from selfhost import audio
+
+    def preview_fails(*args, **kwargs):
+        raise RuntimeError("temporary STT outage")
+
+    monkeypatch.setattr(audio, "transcribe_file", preview_fails)
+    with client.websocket_connect(
+        "/v4/listen?codec=pcm16&sample_rate=16000&source=omi", headers=admin
+    ) as socket:
+        conversation_id = socket.receive_json()["memory_id"]
+        socket.send_bytes(bytes(8 * 16000 * 2))
+        socket.send_bytes(bytes(16000 * 2))
+        socket.send_json({"type": "stop"})
+        job_id = socket.receive_json()["job_id"]
+
+    from selfhost.audio import storage_path
+    from selfhost.db import Job, Record, transaction
+
+    with transaction() as db:
+        row = db.get(Record, conversation_id)
+        path = storage_path(row.user_id, db.get(Job, job_id).payload["file_id"])
+    with wave.open(str(path)) as recording:
+        assert recording.getnframes() == 9 * 16000
 
 
 def test_playback_ticket_is_owner_bound_and_revoked_at_logout(client, admin, other):
@@ -132,3 +352,41 @@ def test_truncated_wal_is_rejected_without_acceptance(client, admin, tmp_path):
     decode_bin(source, tmp_path / "out.wav", "audio_phone_pcm16_16000_1_fs320_1.bin")
     with wave.open(str(tmp_path / "out.wav")) as audio:
         assert audio.getnframes() == 160
+
+
+def test_friend_pendant_batch_wal_decodes_to_pcm16(tmp_path, monkeypatch):
+    from selfhost import lc3_audio
+    from selfhost.sync import decode_bin
+
+    class FakeDecoder:
+        def decode(self, frame):
+            assert frame == b"\x02" * 30
+            return struct.pack("<160h", *([456] * 160))
+
+    monkeypatch.setattr(lc3_audio, "Lc3Decoder", FakeDecoder)
+    source = tmp_path / "audio_omibatch_lc3_fs1030_16000_1_fs160_1.bin"
+    source.write_bytes((struct.pack("<I", 30) + b"\x02" * 30) * 3)
+    destination = tmp_path / "decoded.wav"
+    decode_bin(source, destination, source.name)
+    with wave.open(str(destination)) as recording:
+        assert recording.getsampwidth() == 2
+        assert recording.getnframes() == 480
+        assert recording.readframes(480) == struct.pack("<480h", *([456] * 480))
+
+
+def test_friend_pendant_batch_wal_rejects_bad_frame(tmp_path, monkeypatch):
+    from fastapi import HTTPException
+    from selfhost import lc3_audio
+    from selfhost.sync import decode_bin
+
+    class FakeDecoder:
+        def decode(self, frame):
+            if len(frame) != 30:
+                raise ValueError("Friend Pendant LC3 frame must be 30 bytes")
+
+    monkeypatch.setattr(lc3_audio, "Lc3Decoder", FakeDecoder)
+    source = tmp_path / "audio_omibatch_lc3_fs1030_16000_1_fs160_1.bin"
+    source.write_bytes(struct.pack("<I", 29) + b"\x02" * 29)
+    with pytest.raises(HTTPException) as error:
+        decode_bin(source, tmp_path / "bad.wav", source.name)
+    assert error.value.status_code == 422

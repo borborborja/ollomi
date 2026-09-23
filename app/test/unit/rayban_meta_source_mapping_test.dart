@@ -13,6 +13,11 @@ import 'package:omi/services/capture/conversation_source_for_device.dart';
 /// preservation (it only keeps `rayban_meta`/`openglass`).
 void main() {
   group('conversationSourceForDeviceType', () {
+    test('labels original Friend while retaining the Omi audio transport', () {
+      expect(conversationSourceForDeviceType(DeviceType.omi, deviceName: 'Friend'), 'friend_com');
+      expect(conversationSourceForDeviceType(DeviceType.omi, deviceName: 'Omi'), 'omi');
+    });
+
     test('maps Ray-Ban Meta glasses to rayban_meta', () {
       expect(conversationSourceForDeviceType(DeviceType.raybanMeta), 'rayban_meta');
     });

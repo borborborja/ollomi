@@ -35,7 +35,7 @@ void main() {
 
     setUp(() {
       source = BleDeviceSource(
-        codec: BleAudioCodec.opus,
+        codec: BleAudioCodec.pcm8,
         deviceId: 'test-device',
         deviceModel: 'Omi',
       );
@@ -78,13 +78,13 @@ void main() {
     });
 
     test('exposes correct codec and device info', () {
-      expect(source.codec, BleAudioCodec.opus);
+      expect(source.codec, BleAudioCodec.pcm8);
       expect(source.deviceId, 'test-device');
       expect(source.deviceModel, 'Omi');
     });
 
     test('WAL compatibility: processBytes payload matches old sublist(3) behavior', () {
-      // Simulate a typical BLE Opus packet (3-byte header + audio)
+      // Non-Opus BLE audio is still delivered per notification.
       final blePacket = [0x05, 0x00, 0x02, ...List.filled(80, 0xAA)];
       final frames = source.processBytes(blePacket);
 
@@ -95,6 +95,36 @@ void main() {
 
       expect(newBehavior, equals(oldBehavior));
       expect(newBehavior.length, 80);
+    });
+  });
+
+  group('CV1 Opus BLE frame assembly', () {
+    late BleDeviceSource source;
+    setUp(() => source = BleDeviceSource(
+          codec: BleAudioCodec.opusFS320,
+          deviceId: 'cv1',
+          deviceModel: 'Omi',
+        ));
+
+    test('assembles fragments and sends only complete frames with the first sync key', () {
+      expect(source.processBytes([10, 0, 0, 1, 2]), isEmpty);
+      expect(source.processBytes([11, 0, 1, 3, 4]), isEmpty);
+      final frames = source.processBytes([12, 0, 0, 5]);
+      expect(frames.single.payload, [1, 2, 3, 4]);
+      expect(frames.single.syncKey, FrameSyncKey([10, 0, 0]));
+      expect(source.flush(), isEmpty);
+    });
+
+    test('drops incomplete frame after a missing fragment and recovers on next start', () {
+      source.processBytes([10, 0, 0, 1]);
+      expect(source.processBytes([12, 0, 1, 2]), isEmpty);
+      expect(source.processBytes([13, 0, 0, 3]), isEmpty);
+      expect(source.processBytes([14, 0, 0, 4]).single.payload, [3]);
+    });
+
+    test('accepts packet id rollover', () {
+      source.processBytes([255, 255, 0, 7]);
+      expect(source.processBytes([0, 0, 0, 8]).single.payload, [7]);
     });
   });
 

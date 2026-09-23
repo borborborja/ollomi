@@ -60,6 +60,8 @@ class OmiBackgroundAudioStreamer internal constructor(
     @Volatile
     private var hasNativeState = false
     private val pendingFrames = ArrayDeque<ByteArray>()
+    private val omiFrameAssembler = OmiBleFrameAssembler()
+    private var assemblerConfig: NativeBleStreamConfig? = null
     private var socket: WebSocket? = null
     private var connecting = false
     private var connected = false
@@ -91,6 +93,8 @@ class OmiBackgroundAudioStreamer internal constructor(
             connected = false
             activeSettings = null
             pendingFrames.clear()
+            omiFrameAssembler.reset()
+            assemblerConfig = null
             clearTranscriptsIfAccountChanged()
             hasNativeState = false
         }
@@ -114,6 +118,8 @@ class OmiBackgroundAudioStreamer internal constructor(
                         stop("disabled")
                     }
                 }
+            } else {
+                synchronized(lock) { omiFrameAssembler.reset(); assemblerConfig = null }
             }
             return
         }
@@ -137,6 +143,10 @@ class OmiBackgroundAudioStreamer internal constructor(
                 return
             }
 
+            if (assemblerConfig != config.copy(geolocation = null)) {
+                omiFrameAssembler.reset()
+                assemblerConfig = config.copy(geolocation = null)
+            }
             val frames = transformFrames(config, value)
             if (frames.isEmpty()) {
                 hasNativeState = activeSettings != null
@@ -165,7 +175,9 @@ class OmiBackgroundAudioStreamer internal constructor(
     private fun transformFrames(config: NativeBleStreamConfig, value: ByteArray): List<ByteArray> =
         when (config.deviceType) {
             "omi", "openglass" -> {
-                if (value.size <= 3) emptyList() else listOf(value.copyOfRange(3, value.size))
+                if (config.codec == "opus" || config.codec == "opus_fs320") {
+                    omiFrameAssembler.accept(value)
+                } else if (value.size <= 3) emptyList() else listOf(value.copyOfRange(3, value.size))
             }
             "friendPendant" -> {
                 if (value.size <= 5) {
