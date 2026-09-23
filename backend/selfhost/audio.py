@@ -108,6 +108,13 @@ def enqueue_audio(
                 # settings change must not rewrite the retention contract of a
                 # queued or running recording.
                 "retain_audio": retain_audio,
+                "vocabulary": [
+                    word
+                    for word in ((user.preferences or {}).get("vocabulary") or [])
+                    if isinstance(word, str) and word.strip()
+                ]
+                if user
+                else [],
                 **{p: selected_profile(db, uid, p) for p in ("stt", "chat", "embedding")},
             },
         )
@@ -254,7 +261,12 @@ def probe_audio(path):
     return duration
 
 
-def transcribe_file(profile, path, language="auto", diarize=True):
+def transcribe_file(profile, path, language="auto", diarize=True, vocabulary=None):
+    # The user's custom vocabulary biases recognition of names and jargon. Each
+    # provider exposes it differently, so it is passed to the adapters instead
+    # of being written into provider options.
+    vocabulary = [word for word in (vocabulary or []) if isinstance(word, str) and word.strip()]
+
     def openai_compatible(candidate):
         options = dict((candidate.get("capabilities") or {}).get("options", {}))
         response_format = options.pop("response_format", "verbose_json")
@@ -263,6 +275,9 @@ def transcribe_file(profile, path, language="auto", diarize=True):
             "response_format": response_format,
             **options,
         }
+        # Whisper-style endpoints accept a prompt as recognition context.
+        if vocabulary and not any(key in data for key in ("prompt", "initial_prompt")):
+            data["prompt"] = ", ".join(vocabulary)
         if language != "auto":
             data["language"] = language
         if not candidate.get("external"):
@@ -290,6 +305,9 @@ def transcribe_file(profile, path, language="auto", diarize=True):
         }
         if language != "auto":
             params["language"] = language
+        if vocabulary:
+            # Deepgram repeats the keyword query parameter for each term.
+            params["keywords"] = vocabulary
         with provider_client(candidate, timeout=600) as client, Path(path).open("rb") as file:
             response = client.post("listen", params=params, content=file, headers={"Content-Type": "audio/wav"})
             response.raise_for_status()
@@ -323,6 +341,9 @@ def transcribe_file(profile, path, language="auto", diarize=True):
             }
             if language != "auto":
                 body["language_code"] = language
+            if vocabulary:
+                body.setdefault("word_boost", vocabulary)
+                body.setdefault("boost_param", "high")
             submitted = client.post("transcript", json=body)
             submitted.raise_for_status()
             transcript_id = submitted.json().get("id")
@@ -364,6 +385,10 @@ def transcribe_file(profile, path, language="auto", diarize=True):
             transcription["custom_vocabulary"] = transcription.pop("customVocabulary")
         if language != "auto":
             transcription["language_codes"] = [language]
+        # Gemini rejects custom_vocabulary together with diarization, so the
+        # user's vocabulary only applies to non-diarized transcription.
+        if vocabulary and not diarize and not transcription.get("custom_vocabulary"):
+            transcription["custom_vocabulary"] = list(vocabulary)
         if diarize:
             if transcription.get("custom_vocabulary"):
                 raise ValueError("Gemini cannot combine custom_vocabulary with diarization")
@@ -554,6 +579,11 @@ async def listen(socket: WebSocket):
 
     try:
         profile = await run_in_threadpool(prepare_conversation, initial_conversation_id)
+        vocabulary = [
+            word
+            for word in ((user.preferences or {}).get("vocabulary") or [])
+            if isinstance(word, str) and word.strip()
+        ]
     except HTTPException:
         await socket.close(code=4404)
         return
@@ -628,7 +658,7 @@ async def listen(socket: WebSocket):
                     clip.setsampwidth(2)
                     clip.setframerate(rate)
                     clip.writeframes(pcm)
-                return transcribe_file(profile, preview, diarize=False)
+                return transcribe_file(profile, preview, diarize=False, vocabulary=vocabulary)
 
             try:
                 await send_status("transcribing")

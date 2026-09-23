@@ -366,7 +366,12 @@ def process_audio(job):
         segments, offset = [], 0.0
         for index, clip in enumerate(clips):
             checkpoint(job, 5 + int(50 * index / max(1, len(clips))))
-            batch = transcribe_file(job.payload["stt"], clip, job.payload.get("language", "auto"))
+            batch = transcribe_file(
+                job.payload["stt"],
+                clip,
+                job.payload.get("language", "auto"),
+                vocabulary=job.payload.get("vocabulary") or [],
+            )
             batch = enrich_speaker_labels(job.user_id, clip, batch, job.id)
             for segment in batch:
                 segment["start"] += offset

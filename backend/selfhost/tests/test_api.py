@@ -351,3 +351,25 @@ def test_mobile_onboarding_persists_language_without_cloud(client, admin, other)
     assert client.patch("/v1/users/onboarding", headers=other, json={"completed": True}).status_code == 200
     assert client.get("/v1/users/onboarding", headers=other).json()["completed"] is True
     assert client.get("/v1/users/onboarding", headers=admin).json()["completed"] is False
+
+
+def test_transcription_vocabulary_round_trip(client, admin, other):
+    assert client.get("/v1/users/transcription-preferences", headers=other).json() == {
+        "single_language_mode": False,
+        "vocabulary": [],
+    }
+    saved = client.patch(
+        "/v1/users/transcription-preferences",
+        headers=other,
+        json={"single_language_mode": True, "vocabulary": ["Ollomi", "Ollomi", "  Micapum  ", ""]},
+    )
+    assert saved.status_code == 200
+    stored = client.get("/v1/users/transcription-preferences", headers=other).json()
+    assert stored["single_language_mode"] is True
+    assert stored["vocabulary"] == ["Ollomi", "Micapum"]
+    # Preferences are per account.
+    assert client.get("/v1/users/transcription-preferences", headers=admin).json()["vocabulary"] == []
+    assert (
+        client.patch("/v1/users/transcription-preferences", headers=other, json={"vocabulary": "Ollomi"}).status_code
+        == 422
+    )

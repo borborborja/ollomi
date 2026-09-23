@@ -367,6 +367,52 @@ def training_data(user=Depends(current_user)):
     return {"opted_in": False, "status": None}
 
 
+VOCABULARY_LIMIT = 100
+VOCABULARY_MAX_LENGTH = 80
+
+
+def _clean_vocabulary(value):
+    if not isinstance(value, list):
+        raise HTTPException(422, "Vocabulary must be a list of strings")
+    cleaned = []
+    for item in value:
+        if not isinstance(item, str):
+            raise HTTPException(422, "Vocabulary must be a list of strings")
+        word = item.strip()
+        if not word:
+            continue
+        if len(word) > VOCABULARY_MAX_LENGTH:
+            raise HTTPException(422, "Vocabulary entry is too long")
+        if word not in cleaned:
+            cleaned.append(word)
+    if len(cleaned) > VOCABULARY_LIMIT:
+        raise HTTPException(422, "Too many vocabulary entries")
+    return cleaned
+
+
 @router.get("/v1/users/transcription-preferences")
 def transcription_preferences(user=Depends(current_user)):
-    return {"single_language_mode": False, "vocabulary": []}
+    return {
+        "single_language_mode": bool(user.preferences.get("single_language_mode", False)),
+        "vocabulary": list(user.preferences.get("vocabulary", [])),
+    }
+
+
+@router.patch("/v1/users/transcription-preferences")
+def set_transcription_preferences(body: dict, user=Depends(current_user)):
+    single_language_mode = body.get("single_language_mode")
+    if single_language_mode is not None and not isinstance(single_language_mode, bool):
+        raise HTTPException(422, "single_language_mode must be a boolean")
+    with transaction() as db:
+        row = db.get(User, user.id)
+        updates = {}
+        if single_language_mode is not None:
+            updates["single_language_mode"] = single_language_mode
+        if "vocabulary" in body:
+            updates["vocabulary"] = _clean_vocabulary(body["vocabulary"])
+        row.preferences = {**row.preferences, **updates}
+        return {
+            "status": "ok",
+            "single_language_mode": row.preferences.get("single_language_mode", False),
+            "vocabulary": list(row.preferences.get("vocabulary", [])),
+        }
