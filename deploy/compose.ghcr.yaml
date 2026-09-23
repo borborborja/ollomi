@@ -1,9 +1,6 @@
 # Use published images instead of building them locally.
 # Example: docker compose -f compose.yaml -f deploy/compose.ghcr.yaml up -d
 services:
-  migrate:
-    build: !reset null
-    image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-api:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}
   api:
     build: !reset null
     image: ghcr.io/${OLLOMI_IMAGE_OWNER:?Set OLLOMI_IMAGE_OWNER to the owner of your Ollomi fork}/ollomi-api:${OLLOMI_IMAGE_TAG:?Set OLLOMI_IMAGE_TAG to a reviewed Ollomi release}

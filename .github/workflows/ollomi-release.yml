@@ -40,6 +40,30 @@ jobs:
             -w /work \
             ollomi-backend:local \
             sh -ec 'pip install --user pytest==8.3.5 pytest-asyncio==0.26.0 respx==0.22.0 && PYTHONPATH=backend python -m pytest backend/selfhost/tests -q -p no:cacheprovider'
+      - name: Verify one-click Compose update contract
+        env:
+          OLLOMI_ENV_FILE: .env.example
+          OLLOMI_SECRET_KEY: ci-compose-contract-secret-key-with-at-least-32-characters
+        run: |
+          docker compose --env-file .env.example config --format json | jq -e '
+            (.services | has("migrate") | not) and
+            .services.api.image == .services.worker.image and
+            .services.api.image == .services.scheduler.image and
+            (.services | has("stt") | not) and
+            (.services | has("ollama") | not) and
+            .services.worker.depends_on.api.condition == "service_healthy" and
+            .services.scheduler.depends_on.api.condition == "service_healthy"
+          '
+          OLLOMI_ENV_FILE=env.example \
+          OLLOMI_IMAGE_OWNER=borborborja OLLOMI_IMAGE_TAG=stable \
+          docker compose -f deploy/examples/external-api/compose.yaml \
+            --env-file deploy/examples/external-api/env.example config --format json | jq -e '
+              (.services | has("migrate") | not) and
+              .services["ollomi-api"].image == .services.worker.image and
+              .services["ollomi-api"].image == .services.scheduler.image and
+              .services.worker.depends_on["ollomi-api"].condition == "service_healthy" and
+              .services.scheduler.depends_on["ollomi-api"].condition == "service_healthy"
+            '
       - name: Start the copyable external or LAN Compose stack
         env:
           OLLOMI_ENV_FILE: .env.example
@@ -85,6 +109,23 @@ jobs:
               exit 0
             fi
             echo "Waiting for external Compose backend (${attempt}/30)"
+            sleep 2
+          done
+          docker compose --project-name ollomi-ci-external --env-file .env.example ps
+          docker compose --project-name ollomi-ci-external --env-file .env.example logs
+          exit 1
+      - name: Verify a repeat deployment keeps the stack healthy
+        env:
+          OLLOMI_ENV_FILE: .env.example
+          OLLOMI_PORT: '18080'
+          OLLOMI_SECRET_KEY: ci-compose-contract-secret-key-with-at-least-32-characters
+        run: |
+          docker compose --project-name ollomi-ci-external --env-file .env.example \
+            up -d --no-build --force-recreate --remove-orphans
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:18080/health/ready; then
+              exit 0
+            fi
             sleep 2
           done
           docker compose --project-name ollomi-ci-external --env-file .env.example ps
@@ -341,3 +382,42 @@ jobs:
             release-artifacts/android/SHA256SUMS
             release-artifacts/backend/ollomi-backend.tar.gz
             release-artifacts/backend/ollomi-backend.tar.gz.sha256
+
+  promote-stable:
+    name: Promote validated release to the stable update channel
+    runs-on: ubuntu-latest
+    needs: [release-publish]
+    if: startsWith(github.ref, 'refs/tags/v')
+    concurrency:
+      group: ollomi-stable-promotion
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Point stable at the latest successful release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 \
+            --json tagName,isDraft,isPrerelease \
+            --jq '.[] | select(.isDraft == false and .isPrerelease == false) | .tagName' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          if [ "$latest" != "$GITHUB_REF_NAME" ]; then
+            echo "A newer published release exists ($latest); leaving stable unchanged."
+            exit 0
+          fi
+          for name in api stt voiceprint; do
+            image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/ollomi-$name"
+            docker buildx imagetools create --tag "$image:stable" "$image:$GITHUB_REF_NAME"
+            expected=$(docker buildx imagetools inspect "$image:$GITHUB_REF_NAME" --format '{{json .Manifest}}' | jq -r '.digest')
+            actual=$(docker buildx imagetools inspect "$image:stable" --format '{{json .Manifest}}' | jq -r '.digest')
+            test -n "$expected" && test "$expected" = "$actual"
+            echo "$image:stable -> $GITHUB_REF_NAME ($actual)"
+          done
