@@ -421,8 +421,6 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
 
   /// Kicks off a single connection attempt. Native handles auto-reconnect after this.
   Future<void> initiateConnection(String caller, {bool boundDeviceOnly = false}) async {
-    if (_isDisposed) return;
-    if (ServiceManager.instance().device.staleBondRecoveryRequired) return;
     if (isConnected || connectedDevice != null) return;
     if (_autoConnectSuppressed) return;
 
@@ -463,7 +461,6 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
   }
 
   Future<void> _runDiscoveryScan() async {
-    if (_isDisposed) return;
     if (isConnected || connectedDevice != null) {
       _discoveryTimer?.cancel();
       return;
@@ -1100,7 +1097,7 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
   }
 
   Future<void> _maybeAutoConnect(List<BtDevice> devices) async {
-    if (_isDisposed || _autoConnectInFlight || _autoConnectSuppressed) return;
+    if (_autoConnectInFlight || _autoConnectSuppressed) return;
     // Never steal an active connection: a device only changes on a user tap.
     if (isConnected || connectedDevice != null) return;
     final candidate = bestAutoConnectCandidate(devices);
