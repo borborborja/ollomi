@@ -3279,5 +3279,15 @@
     "newConversation": "Nieuw gesprek",
     "newConversationDescription": "Neemt door op en slaat dit deel op als een eigen gesprek",
     "stopContinuousRecording": "Doorlopende opname stoppen",
-    "serverUnreachable": "Ollomi-server onbereikbaar"
+    "serverUnreachable": "Ollomi-server onbereikbaar",
+    "devices": "Apparaten",
+    "autoConnect": "Automatisch verbinden",
+    "recordingOnConnect": "Bij verbinden",
+    "recordingOnConnectNone": "Niets",
+    "recordingOnConnectOneOff": "Eenmalige opname",
+    "connectNow": "Nu verbinden",
+    "forgetDevice": "Apparaat vergeten",
+    "forgetDeviceConfirm": "Dit apparaat uit de lijst verwijderen? Naam en instellingen gaan verloren.",
+    "backgroundModeRequired": "De achtergrondmodus staat uit. Automatisch opnieuw verbinden met gesloten app hangt daarvan af.",
+    "priorityOrderHint": "Sleep om de prioriteitsorde te wijzigen."
 }

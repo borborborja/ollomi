@@ -820,6 +820,7 @@ class _DeviceSettingsState extends State<DeviceSettings> {
             GestureDetector(
               onTap: () async {
                 final deviceId = provider.connectedDevice?.id ?? SharedPreferencesUtil().btDevice.id;
+                provider.suppressAutoConnect();
 
                 await SharedPreferencesUtil().btDeviceSet(BtDevice(id: '', name: '', type: DeviceType.omi, rssi: 0));
                 SharedPreferencesUtil().deviceName = '';
@@ -873,9 +874,14 @@ class _DeviceSettingsState extends State<DeviceSettings> {
                     () => Navigator.of(context).pop(),
                     () async {
                       Navigator.of(context).pop();
+                      provider.suppressAutoConnect();
+                      final unpairId = provider.connectedDevice?.id ?? SharedPreferencesUtil().btDevice.id;
                       await SharedPreferencesUtil().btDeviceSet(
                         BtDevice(id: '', name: '', type: DeviceType.omi, rssi: 0),
                       );
+                      if (unpairId.isNotEmpty) {
+                        await SharedPreferencesUtil().forgetKnownDevice(unpairId);
+                      }
                       SharedPreferencesUtil().deviceName = '';
                       if (provider.connectedDevice != null) {
                         await _bleUnpairDevice(provider.connectedDevice!);

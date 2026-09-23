@@ -3279,5 +3279,15 @@
     "newConversation": "Νέα συνομιλία",
     "newConversationDescription": "Συνεχίζει την εγγραφή και αποθηκεύει αυτό το μέρος ως ξεχωριστή συνομιλία",
     "stopContinuousRecording": "Διακοπή συνεχούς εγγραφής",
-    "serverUnreachable": "Ο διακομιστής Ollomi δεν είναι προσβάσιμος"
+    "serverUnreachable": "Ο διακομιστής Ollomi δεν είναι προσβάσιμος",
+    "devices": "Συσκευές",
+    "autoConnect": "Αυτόματη σύνδεση",
+    "recordingOnConnect": "Κατά τη σύνδεση",
+    "recordingOnConnectNone": "Τίποτα",
+    "recordingOnConnectOneOff": "Μεμονωμένη εγγραφή",
+    "connectNow": "Σύνδεση τώρα",
+    "forgetDevice": "Διαγραφή συσκευής",
+    "forgetDeviceConfirm": "Αφαίρεση της συσκευής από τη λίστα; Το όνομα και οι ρυθμίσεις θα χαθούν.",
+    "backgroundModeRequired": "Η λειτουργία υποβάθρου είναι ανενεργή. Η αυτόματη επανασύνδεση με κλειστή εφαρμογή εξαρτάται από αυτήν.",
+    "priorityOrderHint": "Σύρετε για σειρά προτεραιότητας."
 }

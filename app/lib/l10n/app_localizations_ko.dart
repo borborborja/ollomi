@@ -9880,4 +9880,34 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi 서버에 연결할 수 없음';
+
+  @override
+  String get devices => 'Devices';
+
+  @override
+  String get autoConnect => 'Connect automatically';
+
+  @override
+  String get recordingOnConnect => 'When connected';
+
+  @override
+  String get recordingOnConnectNone => 'Do nothing';
+
+  @override
+  String get recordingOnConnectOneOff => 'One-time recording';
+
+  @override
+  String get connectNow => 'Connect now';
+
+  @override
+  String get forgetDevice => 'Forget device';
+
+  @override
+  String get forgetDeviceConfirm => 'Remove this device from the known list? Its custom name and settings will be forgotten.';
+
+  @override
+  String get backgroundModeRequired => 'Background mode is off. Automatic reconnection while the app is closed needs it.';
+
+  @override
+  String get priorityOrderHint => 'Drag to set the connection priority order.';
 }

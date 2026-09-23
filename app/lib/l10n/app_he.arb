@@ -10845,5 +10845,15 @@
     "newConversation": "שיחה חדשה",
     "newConversationDescription": "ממשיך להקליט ושומר את החלק הזה כשיחה נפרדת",
     "stopContinuousRecording": "עצור הקלטה רציפה",
-    "serverUnreachable": "לא ניתן להגיע לשרת Ollomi"
+    "serverUnreachable": "לא ניתן להגיע לשרת Ollomi",
+    "devices": "מכשירים",
+    "autoConnect": "התחבר אוטומטית",
+    "recordingOnConnect": "בעת התחברות",
+    "recordingOnConnectNone": "כלום",
+    "recordingOnConnectOneOff": "הקלטה חד-פעמית",
+    "connectNow": "התחבר עכשיו",
+    "forgetDevice": "שכח מכשיר",
+    "forgetDeviceConfirm": "להסיר מכשיר זה מהרשימה? השם וההגדרות יישכחו.",
+    "backgroundModeRequired": "מצב רקע כבוי. התחברות מחדש אוטומטית כשהאפליקציה סגורה תלויה בכך.",
+    "priorityOrderHint": "גרור כדי לקבוע סדר עדיפות."
 }

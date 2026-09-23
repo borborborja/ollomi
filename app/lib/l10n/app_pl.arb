@@ -3314,5 +3314,15 @@
     "newConversation": "Nowa rozmowa",
     "newConversationDescription": "Kontynuuje nagrywanie i zapisuje tę część jako osobną rozmowę",
     "stopContinuousRecording": "Zatrzymaj nagrywanie ciągłe",
-    "serverUnreachable": "Serwer Ollomi niedostępny"
+    "serverUnreachable": "Serwer Ollomi niedostępny",
+    "devices": "Devices",
+    "autoConnect": "Connect automatically",
+    "recordingOnConnect": "When connected",
+    "recordingOnConnectNone": "Do nothing",
+    "recordingOnConnectOneOff": "One-time recording",
+    "connectNow": "Connect now",
+    "forgetDevice": "Forget device",
+    "forgetDeviceConfirm": "Remove this device from the known list? Its custom name and settings will be forgotten.",
+    "backgroundModeRequired": "Background mode is off. Automatic reconnection while the app is closed needs it.",
+    "priorityOrderHint": "Drag to set the connection priority order."
 }

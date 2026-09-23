@@ -10033,4 +10033,34 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi-serveren kan ikke nås';
+
+  @override
+  String get devices => 'Enheder';
+
+  @override
+  String get autoConnect => 'Forbind automatisk';
+
+  @override
+  String get recordingOnConnect => 'Ved forbindelse';
+
+  @override
+  String get recordingOnConnectNone => 'Intet';
+
+  @override
+  String get recordingOnConnectOneOff => 'Engangsoptagelse';
+
+  @override
+  String get connectNow => 'Forbind nu';
+
+  @override
+  String get forgetDevice => 'Glem enhed';
+
+  @override
+  String get forgetDeviceConfirm => 'Fjern denne enhed fra listen? Navn og indstillinger glemmes.';
+
+  @override
+  String get backgroundModeRequired => 'Baggrundstilstand er slukket. Automatisk genforbindelse med lukket app afhænger af det.';
+
+  @override
+  String get priorityOrderHint => 'Træk for at angive prioritetsrækkefølge.';
 }

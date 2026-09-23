@@ -10122,4 +10122,34 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ο διακομιστής Ollomi δεν είναι προσβάσιμος';
+
+  @override
+  String get devices => 'Συσκευές';
+
+  @override
+  String get autoConnect => 'Αυτόματη σύνδεση';
+
+  @override
+  String get recordingOnConnect => 'Κατά τη σύνδεση';
+
+  @override
+  String get recordingOnConnectNone => 'Τίποτα';
+
+  @override
+  String get recordingOnConnectOneOff => 'Μεμονωμένη εγγραφή';
+
+  @override
+  String get connectNow => 'Σύνδεση τώρα';
+
+  @override
+  String get forgetDevice => 'Διαγραφή συσκευής';
+
+  @override
+  String get forgetDeviceConfirm => 'Αφαίρεση της συσκευής από τη λίστα; Το όνομα και οι ρυθμίσεις θα χαθούν.';
+
+  @override
+  String get backgroundModeRequired => 'Η λειτουργία υποβάθρου είναι ανενεργή. Η αυτόματη επανασύνδεση με κλειστή εφαρμογή εξαρτάται από αυτήν.';
+
+  @override
+  String get priorityOrderHint => 'Σύρετε για σειρά προτεραιότητας.';
 }

@@ -10070,4 +10070,34 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Сервер Ollomi недоступний';
+
+  @override
+  String get devices => 'Пристрої';
+
+  @override
+  String get autoConnect => 'Підключатися автоматично';
+
+  @override
+  String get recordingOnConnect => 'При підключенні';
+
+  @override
+  String get recordingOnConnectNone => 'Нічого';
+
+  @override
+  String get recordingOnConnectOneOff => 'Разовий запис';
+
+  @override
+  String get connectNow => 'Підключити зараз';
+
+  @override
+  String get forgetDevice => 'Забути пристрій';
+
+  @override
+  String get forgetDeviceConfirm => 'Прибрати цей пристрій зі списку? Ім\'я та налаштування буде втрачено.';
+
+  @override
+  String get backgroundModeRequired => 'Фоновий режим вимкнено. Автопідключення із закритим застосунком залежить від нього.';
+
+  @override
+  String get priorityOrderHint => 'Перетягніть, щоб задати пріоритет.';
 }

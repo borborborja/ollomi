@@ -10053,4 +10053,34 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi-servern kan inte nås';
+
+  @override
+  String get devices => 'Enheter';
+
+  @override
+  String get autoConnect => 'Anslut automatiskt';
+
+  @override
+  String get recordingOnConnect => 'Vid anslutning';
+
+  @override
+  String get recordingOnConnectNone => 'Inget';
+
+  @override
+  String get recordingOnConnectOneOff => 'Engångsinspelning';
+
+  @override
+  String get connectNow => 'Anslut nu';
+
+  @override
+  String get forgetDevice => 'Glöm enheten';
+
+  @override
+  String get forgetDeviceConfirm => 'Ta bort enheten från listan? Namn och inställningar glöms bort.';
+
+  @override
+  String get backgroundModeRequired => 'Bakgrundsläget är av. Automatisk återanslutning med stängd app beror på det.';
+
+  @override
+  String get priorityOrderHint => 'Dra för att ange prioritetsordning.';
 }

@@ -409,6 +409,7 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
             onTap: () async {
               // Save device ID before clearing prefs
               final deviceId = provider.connectedDevice?.id ?? SharedPreferencesUtil().btDevice.id;
+              provider.suppressAutoConnect();
 
               // Clear stored device
               await SharedPreferencesUtil().btDeviceSet(BtDevice(id: '', name: '', type: DeviceType.omi, rssi: 0));
@@ -468,6 +469,10 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
                     () => Navigator.of(context).pop(),
                     () async {
                       Navigator.of(context).pop();
+                      provider.suppressAutoConnect();
+                      if (provider.connectedDevice != null) {
+                        await SharedPreferencesUtil().forgetKnownDevice(provider.connectedDevice!.id);
+                      }
                       await SharedPreferencesUtil().btDeviceSet(
                         BtDevice(id: '', name: '', type: DeviceType.omi, rssi: 0),
                       );

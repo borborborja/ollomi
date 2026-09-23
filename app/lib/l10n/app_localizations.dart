@@ -18672,6 +18672,26 @@ abstract class AppLocalizations {
   String get stopContinuousRecording;
 
   String get serverUnreachable;
+
+  String get devices;
+
+  String get autoConnect;
+
+  String get recordingOnConnect;
+
+  String get recordingOnConnectNone;
+
+  String get recordingOnConnectOneOff;
+
+  String get connectNow;
+
+  String get forgetDevice;
+
+  String get forgetDeviceConfirm;
+
+  String get backgroundModeRequired;
+
+  String get priorityOrderHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

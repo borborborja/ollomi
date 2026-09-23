@@ -3321,5 +3321,15 @@
     "newConversation": "Percakapan baru",
     "newConversationDescription": "Terus merekam dan menyimpan bagian ini sebagai percakapan tersendiri",
     "stopContinuousRecording": "Hentikan perekaman berkelanjutan",
-    "serverUnreachable": "Server Ollomi tidak dapat dijangkau"
+    "serverUnreachable": "Server Ollomi tidak dapat dijangkau",
+    "devices": "Perangkat",
+    "autoConnect": "Sambungkan otomatis",
+    "recordingOnConnect": "Saat tersambung",
+    "recordingOnConnectNone": "Tidak ada",
+    "recordingOnConnectOneOff": "Rekaman sekali",
+    "connectNow": "Sambungkan sekarang",
+    "forgetDevice": "Lupakan perangkat",
+    "forgetDeviceConfirm": "Hapus perangkat ini dari daftar? Nama dan pengaturannya akan dilupakan.",
+    "backgroundModeRequired": "Mode latar belakang mati. Penyambungan ulang otomatis saat app tertutup bergantung padanya.",
+    "priorityOrderHint": "Seret untuk mengatur prioritas."
 }

@@ -9989,4 +9989,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'تعذّر الوصول إلى خادم Ollomi';
+
+  @override
+  String get devices => 'الأجهزة';
+
+  @override
+  String get autoConnect => 'الاتصال تلقائيًا';
+
+  @override
+  String get recordingOnConnect => 'عند الاتصال';
+
+  @override
+  String get recordingOnConnectNone => 'لا شيء';
+
+  @override
+  String get recordingOnConnectOneOff => 'تسجيل لمرة واحدة';
+
+  @override
+  String get connectNow => 'اتصل الآن';
+
+  @override
+  String get forgetDevice => 'انسَ الجهاز';
+
+  @override
+  String get forgetDeviceConfirm => 'إزالة هذا الجهاز من القائمة؟ سيُفقد الاسم المخصص والإعدادات.';
+
+  @override
+  String get backgroundModeRequired => 'وضع الخلفية معطّل. إعادة الاتصال التلقائي أثناء إغلاق التطبيق تعتمد عليه.';
+
+  @override
+  String get priorityOrderHint => 'اسحب لترتيب أولوية الاتصال.';
 }

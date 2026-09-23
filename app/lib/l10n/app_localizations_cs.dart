@@ -10049,4 +10049,34 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Server Ollomi je nedostupný';
+
+  @override
+  String get devices => 'Zařízení';
+
+  @override
+  String get autoConnect => 'Připojovat automaticky';
+
+  @override
+  String get recordingOnConnect => 'Při připojení';
+
+  @override
+  String get recordingOnConnectNone => 'Nic';
+
+  @override
+  String get recordingOnConnectOneOff => 'Jednorázový záznam';
+
+  @override
+  String get connectNow => 'Připojit nyní';
+
+  @override
+  String get forgetDevice => 'Zapomenout zařízení';
+
+  @override
+  String get forgetDeviceConfirm => 'Odebrat toto zařízení ze seznamu? Název a nastavení budou zapomenuty.';
+
+  @override
+  String get backgroundModeRequired => 'Režim na pozadí je vypnutý. Automatické opětovné připojení se zavřenou aplikací na něm závisí.';
+
+  @override
+  String get priorityOrderHint => 'Přetažením nastavíte prioritu připojení.';
 }

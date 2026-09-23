@@ -10061,4 +10061,34 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi sunucusuna ulaşılamıyor';
+
+  @override
+  String get devices => 'Cihazlar';
+
+  @override
+  String get autoConnect => 'Otomatik bağlan';
+
+  @override
+  String get recordingOnConnect => 'Bağlanınca';
+
+  @override
+  String get recordingOnConnectNone => 'Hiçbir şey';
+
+  @override
+  String get recordingOnConnectOneOff => 'Tek seferlik kayıt';
+
+  @override
+  String get connectNow => 'Şimdi bağlan';
+
+  @override
+  String get forgetDevice => 'Cihazı unut';
+
+  @override
+  String get forgetDeviceConfirm => 'Bu cihaz listeden çıkarılsın mı? Özel ad ve ayarlar unutulur.';
+
+  @override
+  String get backgroundModeRequired => 'Arka plan modu kapalı. Uygulama kapalıyken otomatik yeniden bağlanma buna bağlıdır.';
+
+  @override
+  String get priorityOrderHint => 'Bağlantı önceliğini sıralamak için sürükleyin.';
 }

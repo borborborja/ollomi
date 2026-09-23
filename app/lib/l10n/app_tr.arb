@@ -3314,5 +3314,15 @@
     "newConversation": "Yeni konuşma",
     "newConversationDescription": "Kaydı sürdürür ve bu bölümü ayrı bir konuşma olarak kaydeder",
     "stopContinuousRecording": "Sürekli kaydı durdur",
-    "serverUnreachable": "Ollomi sunucusuna ulaşılamıyor"
+    "serverUnreachable": "Ollomi sunucusuna ulaşılamıyor",
+    "devices": "Cihazlar",
+    "autoConnect": "Otomatik bağlan",
+    "recordingOnConnect": "Bağlanınca",
+    "recordingOnConnectNone": "Hiçbir şey",
+    "recordingOnConnectOneOff": "Tek seferlik kayıt",
+    "connectNow": "Şimdi bağlan",
+    "forgetDevice": "Cihazı unut",
+    "forgetDeviceConfirm": "Bu cihaz listeden çıkarılsın mı? Özel ad ve ayarlar unutulur.",
+    "backgroundModeRequired": "Arka plan modu kapalı. Uygulama kapalıyken otomatik yeniden bağlanma buna bağlıdır.",
+    "priorityOrderHint": "Bağlantı önceliğini sıralamak için sürükleyin."
 }

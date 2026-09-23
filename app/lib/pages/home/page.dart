@@ -41,6 +41,7 @@ import 'package:omi/providers/app_provider.dart';
 import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/providers/connectivity_provider.dart';
 import 'package:omi/providers/conversation_provider.dart';
+import 'package:omi/providers/device_provider.dart';
 import 'package:omi/providers/local_recordings_provider.dart';
 import 'package:omi/providers/announcement_provider.dart';
 import 'package:omi/providers/home_provider.dart';
@@ -291,6 +292,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
       // Reload convos
       if (mounted) {
         Provider.of<ConversationProvider>(context, listen: false).refreshConversations();
+        // Re-run auto-connect: a known device may have just been powered on.
+        Provider.of<DeviceProvider>(context, listen: false).initiateConnection('AppResume');
         final captureProvider = Provider.of<CaptureProvider>(context, listen: false);
         captureProvider.setMetricsAppActive(true);
         unawaited(_backgroundResourceTelemetry.onResumed(_loadBackgroundResourceSnapshot));
@@ -385,6 +388,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
     _ensurePageInitialized(homePageIdx);
     WidgetsBinding.instance.addObserver(this);
     _prewarmRemainingTabs(homePageIdx);
+
+    // Auto-connect to the highest-priority known device when the app opens.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<DeviceProvider>().initiateConnection('HomeInit');
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Android needs a foreground service to keep capture/location work alive.

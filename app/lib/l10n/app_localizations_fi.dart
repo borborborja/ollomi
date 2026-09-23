@@ -10051,4 +10051,34 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi-palvelimeen ei saada yhteyttä';
+
+  @override
+  String get devices => 'Laitteet';
+
+  @override
+  String get autoConnect => 'Yhdistä automaattisesti';
+
+  @override
+  String get recordingOnConnect => 'Yhdistettäessä';
+
+  @override
+  String get recordingOnConnectNone => 'Ei mitään';
+
+  @override
+  String get recordingOnConnectOneOff => 'Kertatallennus';
+
+  @override
+  String get connectNow => 'Yhdistä nyt';
+
+  @override
+  String get forgetDevice => 'Unohda laite';
+
+  @override
+  String get forgetDeviceConfirm => 'Poistetaanko laite luettelosta? Nimi ja asetukset unohdetaan.';
+
+  @override
+  String get backgroundModeRequired => 'Taustatila on pois päältä. Automaattinen uudelleenyhdistäminen suljetulla sovelluksella riippuu siitä.';
+
+  @override
+  String get priorityOrderHint => 'Järjestä prioriteetti vetämällä.';
 }

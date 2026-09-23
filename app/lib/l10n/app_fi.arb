@@ -3279,5 +3279,15 @@
     "newConversation": "Uusi keskustelu",
     "newConversationDescription": "Jatkaa tallennusta ja tallentaa tämän osan omana keskusteluna",
     "stopContinuousRecording": "Lopeta jatkuva tallennus",
-    "serverUnreachable": "Ollomi-palvelimeen ei saada yhteyttä"
+    "serverUnreachable": "Ollomi-palvelimeen ei saada yhteyttä",
+    "devices": "Laitteet",
+    "autoConnect": "Yhdistä automaattisesti",
+    "recordingOnConnect": "Yhdistettäessä",
+    "recordingOnConnectNone": "Ei mitään",
+    "recordingOnConnectOneOff": "Kertatallennus",
+    "connectNow": "Yhdistä nyt",
+    "forgetDevice": "Unohda laite",
+    "forgetDeviceConfirm": "Poistetaanko laite luettelosta? Nimi ja asetukset unohdetaan.",
+    "backgroundModeRequired": "Taustatila on pois päältä. Automaattinen uudelleenyhdistäminen suljetulla sovelluksella riippuu siitä.",
+    "priorityOrderHint": "Järjestä prioriteetti vetämällä."
 }

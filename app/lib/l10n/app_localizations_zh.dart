@@ -9858,4 +9858,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get serverUnreachable => '无法连接到 Ollomi 服务器';
+
+  @override
+  String get devices => '设备';
+
+  @override
+  String get autoConnect => '自动连接';
+
+  @override
+  String get recordingOnConnect => '连接时';
+
+  @override
+  String get recordingOnConnectNone => '不操作';
+
+  @override
+  String get recordingOnConnectOneOff => '单次录音';
+
+  @override
+  String get connectNow => '立即连接';
+
+  @override
+  String get forgetDevice => '忘记设备';
+
+  @override
+  String get forgetDeviceConfirm => '从列表中移除此设备？自定义名称和设置将被遗忘。';
+
+  @override
+  String get backgroundModeRequired => '后台模式已关闭。应用关闭时的自动重连依赖它。';
+
+  @override
+  String get priorityOrderHint => '拖动以设置连接优先级。';
 }

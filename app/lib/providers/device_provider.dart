@@ -10,6 +10,7 @@ import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/backend/preferences.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/app_globals.dart';
+import 'package:omi/models/device_connect_policy.dart';
 import 'package:omi/pages/home/firmware_update.dart';
 import 'package:omi/pages/home/omiglass_ota_update.dart';
 import 'package:omi/providers/capture_provider.dart';
@@ -420,10 +421,18 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
 
   /// Kicks off a single connection attempt. Native handles auto-reconnect after this.
   Future<void> initiateConnection(String caller, {bool boundDeviceOnly = false}) async {
-    final pairedDeviceId = SharedPreferencesUtil().btDevice.id;
-
-    // Already connected — nothing to do
     if (isConnected || connectedDevice != null) return;
+    if (_autoConnectSuppressed) return;
+
+    final preferences = SharedPreferencesUtil();
+    final pairedDeviceId = preferences.btDevice.id;
+
+    // Auto-connect scans and lets onDevices pick the highest-priority available
+    // known device. It never replaces an active connection.
+    if (preferences.autoConnectEnabled && !boundDeviceOnly) {
+      _startDiscoveryScanning();
+      return;
+    }
 
     // No paired device (onboarding) — start periodic scanning so devices
     // turned on after the page loads are still discovered.
@@ -452,7 +461,14 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
   }
 
   Future<void> _runDiscoveryScan() async {
-    if (SharedPreferencesUtil().btDevice.id.isNotEmpty || isConnected) {
+    if (isConnected || connectedDevice != null) {
+      _discoveryTimer?.cancel();
+      return;
+    }
+    final preferences = SharedPreferencesUtil();
+    final autoConnectWanted = preferences.autoConnectEnabled &&
+        preferences.btDevices.any((device) => preferences.deviceAutoConnectFor(device.id));
+    if (!autoConnectWanted && preferences.btDevice.id.isNotEmpty) {
       _discoveryTimer?.cancel();
       return;
     }
@@ -627,7 +643,7 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
       _hasLowBatteryAlerted = false;
     }
     updateConnectingStatus(false);
-    await captureProvider?.streamDeviceRecording(device: device);
+    await _applyRecordingOnConnectPolicy(device);
 
     await getDeviceInfo();
     SharedPreferencesUtil().deviceName = device.name;
@@ -1037,10 +1053,129 @@ class DeviceProvider extends ChangeNotifier implements IDeviceServiceSubsciption
   }
 
   @override
-  void onDevices(List<BtDevice> devices) async {}
+  void onDevices(List<BtDevice> devices) async {
+    _lastDiscoveredDevices = List.of(devices);
+    notifyListeners();
+    await _maybeAutoConnect(devices);
+  }
 
   @override
   void onStatusChanged(DeviceServiceStatus status) {}
+
+  // ── Known devices: priority, auto-connect and recording-on-connect ────────
+
+  List<BtDevice> _lastDiscoveredDevices = const [];
+
+  /// Devices seen during the last discovery pass. The known-devices screen uses
+  /// this to show which entries are currently reachable.
+  List<BtDevice> get discoveredKnownDevices => List.unmodifiable(_lastDiscoveredDevices);
+
+  bool isDeviceAvailable(String deviceId) => _lastDiscoveredDevices.any((device) => device.id == deviceId);
+
+  bool _autoConnectSuppressed = false;
+  bool _autoConnectInFlight = false;
+  bool _pendingContinuousAfterSwitch = false;
+
+  /// A manual disconnect/unpair must not be undone by auto-connect until the
+  /// user connects again or the app restarts.
+  void suppressAutoConnect() => _autoConnectSuppressed = true;
+
+  void clearAutoConnectSuppression() => _autoConnectSuppressed = false;
+
+  /// The highest-priority known device with auto-connect enabled that is
+  /// currently advertising, skipping [exceptId].
+  BtDevice? bestAutoConnectCandidate(List<BtDevice> available, {String? exceptId}) {
+    final preferences = SharedPreferencesUtil();
+    if (!preferences.autoConnectEnabled) return null;
+    final availableIds = {for (final device in available) device.id};
+    for (final known in preferences.btDevices) {
+      if (known.id.isEmpty || known.id == exceptId) continue;
+      if (!preferences.deviceAutoConnectFor(known.id)) continue;
+      if (availableIds.contains(known.id)) return known;
+    }
+    return null;
+  }
+
+  Future<void> _maybeAutoConnect(List<BtDevice> devices) async {
+    if (_autoConnectInFlight || _autoConnectSuppressed) return;
+    // Never steal an active connection: a device only changes on a user tap.
+    if (isConnected || connectedDevice != null) return;
+    final candidate = bestAutoConnectCandidate(devices);
+    if (candidate == null) return;
+    _autoConnectInFlight = true;
+    try {
+      await ServiceManager.instance().device.ensureConnection(candidate.id, force: true);
+    } catch (e) {
+      Logger.debug('autoConnect: connection attempt failed for ${candidate.id}: $e');
+    } finally {
+      _autoConnectInFlight = false;
+    }
+  }
+
+  Future<void> _applyRecordingOnConnectPolicy(BtDevice device) async {
+    final capture = captureProvider;
+    if (capture == null) return;
+    // A continuous session moves with the user to the newly connected device.
+    if (_pendingContinuousAfterSwitch) {
+      _pendingContinuousAfterSwitch = false;
+      await capture.startContinuousCapture(device: device);
+      return;
+    }
+    switch (SharedPreferencesUtil().deviceRecordingOnConnectFor(device.id)) {
+      case DeviceRecordingOnConnect.continuous:
+        await capture.startContinuousCapture(device: device);
+        break;
+      case DeviceRecordingOnConnect.oneOff:
+        await capture.streamDeviceRecording(device: device);
+        break;
+      case DeviceRecordingOnConnect.none:
+        break;
+    }
+  }
+
+  /// Connects to a known device the user tapped, replacing the active one.
+  /// [confirmedStop] is true only after the UI confirmed ending an in-progress
+  /// one-off recording (option A); a continuous session transfers instead.
+  Future<void> connectToKnownDevice(BtDevice device, {bool confirmedStop = false}) async {
+    clearAutoConnectSuppression();
+    final currentId = connectedDevice?.id ?? pairedDevice?.id;
+    final capture = captureProvider;
+    final transferringContinuous = capture?.continuousCaptureEnabled ?? false;
+    if (currentId != null && currentId != device.id) {
+      if (capture != null && capture.isCaptureActive) {
+        if (!confirmedStop && !transferringContinuous) return;
+        if (transferringContinuous) {
+          if (capture.recordingDevice != null) {
+            await capture.stopStreamDeviceRecording();
+          } else {
+            await capture.stopStreamRecording();
+          }
+        } else {
+          await capture.stopCurrentCapture();
+        }
+      }
+      await ServiceManager.instance().device.disconnectDevice(currentId);
+    }
+    _pendingContinuousAfterSwitch = transferringContinuous;
+    try {
+      await ServiceManager.instance().device.ensureConnection(device.id, force: true);
+    } catch (e) {
+      _pendingContinuousAfterSwitch = false;
+      Logger.debug('connectToKnownDevice: connection to ${device.id} failed: $e');
+    }
+  }
+
+  /// One bounded discovery pass so the known-devices screen can show which
+  /// entries are reachable. No-op while the service is busy.
+  Future<void> refreshKnownDeviceAvailability() async {
+    final service = ServiceManager.instance().device;
+    if (service.status != DeviceServiceStatus.ready) return;
+    try {
+      await service.discover(timeout: 4);
+    } catch (e) {
+      Logger.debug('refreshKnownDeviceAvailability: discover failed: $e');
+    }
+  }
 
   prepareDFU() {
     if (!FirmwareUpdateBuildPolicy.current.allowsOmiFirmwareUpdate || connectedDevice == null) {
