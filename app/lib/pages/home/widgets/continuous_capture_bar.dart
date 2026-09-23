@@ -237,7 +237,7 @@ class _SourceOption extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final FaIconData icon;
   final String title;
   final String? subtitle;
   final bool recommended;
