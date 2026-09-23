@@ -9874,4 +9874,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => '連続録音を停止';
+
+  @override
+  String get serverUnreachable => 'Ollomiサーバーに接続できません';
 }

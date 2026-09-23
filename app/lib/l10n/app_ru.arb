@@ -3313,5 +3313,6 @@
     "recommended": "Рекомендуется",
     "newConversation": "Новый разговор",
     "newConversationDescription": "Продолжает запись и сохраняет эту часть как отдельный разговор",
-    "stopContinuousRecording": "Остановить непрерывную запись"
+    "stopContinuousRecording": "Остановить непрерывную запись",
+    "serverUnreachable": "Сервер Ollomi недоступен"
 }

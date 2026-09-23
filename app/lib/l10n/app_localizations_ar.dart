@@ -9986,4 +9986,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'إيقاف التسجيل المستمر';
+
+  @override
+  String get serverUnreachable => 'تعذّر الوصول إلى خادم Ollomi';
 }

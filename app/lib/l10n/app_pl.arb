@@ -3313,5 +3313,6 @@
     "recommended": "Zalecane",
     "newConversation": "Nowa rozmowa",
     "newConversationDescription": "Kontynuuje nagrywanie i zapisuje tę część jako osobną rozmowę",
-    "stopContinuousRecording": "Zatrzymaj nagrywanie ciągłe"
+    "stopContinuousRecording": "Zatrzymaj nagrywanie ciągłe",
+    "serverUnreachable": "Serwer Ollomi niedostępny"
 }

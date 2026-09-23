@@ -3254,5 +3254,6 @@
     "recommended": "موصى به",
     "newConversation": "محادثة جديدة",
     "newConversationDescription": "يواصل التسجيل ويحفظ هذا الجزء كمحادثة مستقلة",
-    "stopContinuousRecording": "إيقاف التسجيل المستمر"
+    "stopContinuousRecording": "إيقاف التسجيل المستمر",
+    "serverUnreachable": "تعذّر الوصول إلى خادم Ollomi"
 }

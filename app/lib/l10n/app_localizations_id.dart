@@ -10056,4 +10056,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Hentikan perekaman berkelanjutan';
+
+  @override
+  String get serverUnreachable => 'Server Ollomi tidak dapat dijangkau';
 }

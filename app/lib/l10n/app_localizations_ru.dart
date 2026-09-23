@@ -10083,4 +10083,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Остановить непрерывную запись';
+
+  @override
+  String get serverUnreachable => 'Сервер Ollomi недоступен';
 }

@@ -3278,5 +3278,6 @@
     "recommended": "권장",
     "newConversation": "새 대화",
     "newConversationDescription": "계속 녹음하면서 이 부분을 별도의 대화로 저장합니다",
-    "stopContinuousRecording": "연속 녹음 중지"
+    "stopContinuousRecording": "연속 녹음 중지",
+    "serverUnreachable": "Ollomi 서버에 연결할 수 없음"
 }

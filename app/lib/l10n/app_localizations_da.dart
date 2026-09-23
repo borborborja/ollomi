@@ -10030,4 +10030,7 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Stop kontinuerlig optagelse';
+
+  @override
+  String get serverUnreachable => 'Ollomi-serveren kan ikke nås';
 }

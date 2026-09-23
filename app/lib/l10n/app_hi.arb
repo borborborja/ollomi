@@ -3279,5 +3279,6 @@
     "recommended": "अनुशंसित",
     "newConversation": "नई बातचीत",
     "newConversationDescription": "रिकॉर्डिंग जारी रखता है और इस हिस्से को अलग बातचीत के रूप में सहेजता है",
-    "stopContinuousRecording": "निरंतर रिकॉर्डिंग रोकें"
+    "stopContinuousRecording": "निरंतर रिकॉर्डिंग रोकें",
+    "serverUnreachable": "Ollomi सर्वर उपलब्ध नहीं है"
 }

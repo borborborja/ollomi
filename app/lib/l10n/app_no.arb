@@ -3278,5 +3278,6 @@
     "recommended": "Anbefalt",
     "newConversation": "Ny samtale",
     "newConversationDescription": "Fortsetter opptaket og lagrer denne delen som en egen samtale",
-    "stopContinuousRecording": "Stopp kontinuerlig opptak"
+    "stopContinuousRecording": "Stopp kontinuerlig opptak",
+    "serverUnreachable": "Ollomi-serveren er ikke tilgjengelig"
 }

@@ -3278,5 +3278,6 @@
     "recommended": "Recomandat",
     "newConversation": "Conversație nouă",
     "newConversationDescription": "Continuă înregistrarea și salvează această parte ca o conversație separată",
-    "stopContinuousRecording": "Oprește înregistrarea continuă"
+    "stopContinuousRecording": "Oprește înregistrarea continuă",
+    "serverUnreachable": "Serverul Ollomi este inaccesibil"
 }

@@ -3313,5 +3313,6 @@
     "recommended": "Önerilen",
     "newConversation": "Yeni konuşma",
     "newConversationDescription": "Kaydı sürdürür ve bu bölümü ayrı bir konuşma olarak kaydeder",
-    "stopContinuousRecording": "Sürekli kaydı durdur"
+    "stopContinuousRecording": "Sürekli kaydı durdur",
+    "serverUnreachable": "Ollomi sunucusuna ulaşılamıyor"
 }

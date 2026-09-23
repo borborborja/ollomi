@@ -10074,4 +10074,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Doorlopende opname stoppen';
+
+  @override
+  String get serverUnreachable => 'Ollomi-server onbereikbaar';
 }

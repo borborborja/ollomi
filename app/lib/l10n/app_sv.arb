@@ -3278,5 +3278,6 @@
     "recommended": "Rekommenderas",
     "newConversation": "Ny konversation",
     "newConversationDescription": "Fortsätter spela in och sparar denna del som en egen konversation",
-    "stopContinuousRecording": "Stoppa kontinuerlig inspelning"
+    "stopContinuousRecording": "Stoppa kontinuerlig inspelning",
+    "serverUnreachable": "Ollomi-servern kan inte nås"
 }

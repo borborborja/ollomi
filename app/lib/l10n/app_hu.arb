@@ -3374,5 +3374,6 @@
     "recommended": "Ajánlott",
     "newConversation": "Új beszélgetés",
     "newConversationDescription": "Folytatja a felvételt, és ezt a részt külön beszélgetésként menti",
-    "stopContinuousRecording": "Folyamatos felvétel leállítása"
+    "stopContinuousRecording": "Folyamatos felvétel leállítása",
+    "serverUnreachable": "Az Ollomi szerver nem érhető el"
 }

@@ -10058,4 +10058,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Sürekli kaydı durdur';
+
+  @override
+  String get serverUnreachable => 'Ollomi sunucusuna ulaşılamıyor';
 }

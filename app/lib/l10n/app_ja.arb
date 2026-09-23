@@ -3254,5 +3254,6 @@
     "recommended": "おすすめ",
     "newConversation": "新しい会話",
     "newConversationDescription": "録音を続けながら、この部分を別の会話として保存します",
-    "stopContinuousRecording": "連続録音を停止"
+    "stopContinuousRecording": "連続録音を停止",
+    "serverUnreachable": "Ollomiサーバーに接続できません"
 }

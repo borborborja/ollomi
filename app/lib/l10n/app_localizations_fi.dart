@@ -10048,4 +10048,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Lopeta jatkuva tallennus';
+
+  @override
+  String get serverUnreachable => 'Ollomi-palvelimeen ei saada yhteyttä';
 }

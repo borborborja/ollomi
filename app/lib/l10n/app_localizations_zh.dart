@@ -9855,4 +9855,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => '停止连续录音';
+
+  @override
+  String get serverUnreachable => '无法连接到 Ollomi 服务器';
 }

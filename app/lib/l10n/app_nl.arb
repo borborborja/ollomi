@@ -3278,5 +3278,6 @@
     "recommended": "Aanbevolen",
     "newConversation": "Nieuw gesprek",
     "newConversationDescription": "Neemt door op en slaat dit deel op als een eigen gesprek",
-    "stopContinuousRecording": "Doorlopende opname stoppen"
+    "stopContinuousRecording": "Doorlopende opname stoppen",
+    "serverUnreachable": "Ollomi-server onbereikbaar"
 }
