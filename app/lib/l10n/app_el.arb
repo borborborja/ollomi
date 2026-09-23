@@ -3278,5 +3278,6 @@
     "recommended": "Προτείνεται",
     "newConversation": "Νέα συνομιλία",
     "newConversationDescription": "Συνεχίζει την εγγραφή και αποθηκεύει αυτό το μέρος ως ξεχωριστή συνομιλία",
-    "stopContinuousRecording": "Διακοπή συνεχούς εγγραφής"
+    "stopContinuousRecording": "Διακοπή συνεχούς εγγραφής",
+    "serverUnreachable": "Ο διακομιστής Ollomi δεν είναι προσβάσιμος"
 }

@@ -17,6 +17,12 @@ class ConnectivityProvider extends ChangeNotifier {
   bool get previousConnection => _previousConnection;
   bool get isInitialized => _isInitialized;
 
+  /// Re-checks the configured Ollomi server now and notifies listeners.
+  Future<void> refresh() async {
+    await _connectivityService.refresh();
+    _updateConnectionState(_connectivityService.isConnected);
+  }
+
   ConnectivityProvider() {
     init();
   }

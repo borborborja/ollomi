@@ -3278,5 +3278,6 @@
     "recommended": "Suositeltu",
     "newConversation": "Uusi keskustelu",
     "newConversationDescription": "Jatkaa tallennusta ja tallentaa tämän osan omana keskusteluna",
-    "stopContinuousRecording": "Lopeta jatkuva tallennus"
+    "stopContinuousRecording": "Lopeta jatkuva tallennus",
+    "serverUnreachable": "Ollomi-palvelimeen ei saada yhteyttä"
 }

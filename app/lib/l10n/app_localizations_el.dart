@@ -10119,4 +10119,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Διακοπή συνεχούς εγγραφής';
+
+  @override
+  String get serverUnreachable => 'Ο διακομιστής Ollomi δεν είναι προσβάσιμος';
 }

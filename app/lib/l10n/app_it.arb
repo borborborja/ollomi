@@ -3278,5 +3278,6 @@
     "recommended": "Consigliato",
     "newConversation": "Nuova conversazione",
     "newConversationDescription": "Continua a registrare e salva questa parte come conversazione a sé",
-    "stopContinuousRecording": "Interrompi la registrazione continua"
+    "stopContinuousRecording": "Interrompi la registrazione continua",
+    "serverUnreachable": "Server Ollomi non raggiungibile"
 }

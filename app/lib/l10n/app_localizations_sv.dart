@@ -10050,4 +10050,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Stoppa kontinuerlig inspelning';
+
+  @override
+  String get serverUnreachable => 'Ollomi-servern kan inte nås';
 }

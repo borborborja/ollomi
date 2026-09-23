@@ -10076,4 +10076,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Zatrzymaj nagrywanie ciągłe';
+
+  @override
+  String get serverUnreachable => 'Serwer Ollomi niedostępny';
 }

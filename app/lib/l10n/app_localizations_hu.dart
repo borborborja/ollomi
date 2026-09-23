@@ -10088,4 +10088,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Folyamatos felvétel leállítása';
+
+  @override
+  String get serverUnreachable => 'Az Ollomi szerver nem érhető el';
 }

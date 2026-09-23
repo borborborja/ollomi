@@ -3256,5 +3256,6 @@
     "recommended": "Doporučeno",
     "newConversation": "Nová konverzace",
     "newConversationDescription": "Pokračuje v nahrávání a uloží tuto část jako samostatnou konverzaci",
-    "stopContinuousRecording": "Zastavit nepřetržité nahrávání"
+    "stopContinuousRecording": "Zastavit nepřetržité nahrávání",
+    "serverUnreachable": "Server Ollomi je nedostupný"
 }

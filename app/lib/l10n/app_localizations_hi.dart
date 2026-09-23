@@ -10025,4 +10025,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'निरंतर रिकॉर्डिंग रोकें';
+
+  @override
+  String get serverUnreachable => 'Ollomi सर्वर उपलब्ध नहीं है';
 }

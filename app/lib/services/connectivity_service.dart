@@ -16,6 +16,10 @@ class ConnectivityService {
   bool _connected = true;
   Stream<bool> get onConnectionChange => _changes.stream;
   bool get isConnected => _connected;
+
+  /// Runs the reachability probe now instead of waiting for the next timer tick.
+  Future<void> refresh() => _check();
+
   Future<void> init() async {
     if (_timer != null) return;
     _subscription = _connectivity.onConnectivityChanged.listen((_) => _check());

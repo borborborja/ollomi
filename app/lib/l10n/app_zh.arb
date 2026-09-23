@@ -3300,5 +3300,6 @@
     "recommended": "推荐",
     "newConversation": "新对话",
     "newConversationDescription": "继续录音并将此部分保存为独立对话",
-    "stopContinuousRecording": "停止连续录音"
+    "stopContinuousRecording": "停止连续录音",
+    "serverUnreachable": "无法连接到 Ollomi 服务器"
 }

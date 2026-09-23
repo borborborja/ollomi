@@ -3278,5 +3278,6 @@
     "recommended": "Рекомендовано",
     "newConversation": "Нова розмова",
     "newConversationDescription": "Продовжує запис і зберігає цю частину як окрему розмову",
-    "stopContinuousRecording": "Зупинити безперервний запис"
+    "stopContinuousRecording": "Зупинити безперервний запис",
+    "serverUnreachable": "Сервер Ollomi недоступний"
 }

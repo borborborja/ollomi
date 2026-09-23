@@ -3255,5 +3255,6 @@
     "recommended": "Empfohlen",
     "newConversation": "Neues Gespräch",
     "newConversationDescription": "Nimmt weiter auf und speichert diesen Teil als eigenes Gespräch",
-    "stopContinuousRecording": "Kontinuierliche Aufnahme beenden"
+    "stopContinuousRecording": "Kontinuierliche Aufnahme beenden",
+    "serverUnreachable": "Ollomi-Server nicht erreichbar"
 }

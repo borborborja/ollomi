@@ -11868,5 +11868,7 @@
     "@recommended": {"description": "Badge marking the recommended continuous recording source."},
     "@newConversation": {"description": "Label of the button that starts a new conversation while continuing to record."},
     "@newConversationDescription": {"description": "Explains that splitting keeps recording and saves the previous part."},
-    "@stopContinuousRecording": {"description": "Action to turn continuous recording off."}
+    "@stopContinuousRecording": {"description": "Action to turn continuous recording off."},
+    "serverUnreachable": "Ollomi server unreachable",
+    "@serverUnreachable": {"description": "Status shown when the configured Ollomi server cannot be reached."}
 }

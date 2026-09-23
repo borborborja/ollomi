@@ -10844,5 +10844,6 @@
     "recommended": "מומלץ",
     "newConversation": "שיחה חדשה",
     "newConversationDescription": "ממשיך להקליט ושומר את החלק הזה כשיחה נפרדת",
-    "stopContinuousRecording": "עצור הקלטה רציפה"
+    "stopContinuousRecording": "עצור הקלטה רציפה",
+    "serverUnreachable": "לא ניתן להגיע לשרת Ollomi"
 }

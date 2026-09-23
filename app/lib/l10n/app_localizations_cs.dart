@@ -10046,4 +10046,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Zastavit nepřetržité nahrávání';
+
+  @override
+  String get serverUnreachable => 'Server Ollomi je nedostupný';
 }

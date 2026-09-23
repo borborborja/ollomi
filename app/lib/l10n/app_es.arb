@@ -3279,5 +3279,6 @@
     "recommended": "Recomendado",
     "newConversation": "Nueva conversación",
     "newConversationDescription": "Sigue grabando y guarda esta parte como una conversación propia",
-    "stopContinuousRecording": "Detener la grabación continua"
+    "stopContinuousRecording": "Detener la grabación continua",
+    "serverUnreachable": "Servidor Ollomi no accesible"
 }

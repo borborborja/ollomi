@@ -3256,5 +3256,6 @@
     "recommended": "Recomanat",
     "newConversation": "Conversa nova",
     "newConversationDescription": "Continua gravant i desa aquesta part com una conversa pròpia",
-    "stopContinuousRecording": "Atura la gravació contínua"
+    "stopContinuousRecording": "Atura la gravació contínua",
+    "serverUnreachable": "Servidor Ollomi no accessible"
 }

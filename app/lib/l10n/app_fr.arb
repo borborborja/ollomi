@@ -3313,5 +3313,6 @@
     "recommended": "Recommandé",
     "newConversation": "Nouvelle conversation",
     "newConversationDescription": "Continue l'enregistrement et enregistre cette partie comme sa propre conversation",
-    "stopContinuousRecording": "Arrêter l'enregistrement continu"
+    "stopContinuousRecording": "Arrêter l'enregistrement continu",
+    "serverUnreachable": "Serveur Ollomi inaccessible"
 }

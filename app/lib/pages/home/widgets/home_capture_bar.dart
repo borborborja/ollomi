@@ -9,7 +9,9 @@ import 'package:omi/pages/capture/connect.dart';
 import 'package:omi/pages/capture/capture_status_view.dart';
 import 'package:omi/pages/conversation_capturing/page.dart';
 import 'package:omi/providers/capture_provider.dart';
+import 'package:omi/providers/connectivity_provider.dart';
 import 'package:omi/providers/device_provider.dart';
+import 'package:omi/services/capture/capture_controller.dart';
 import 'package:omi/utils/device.dart';
 import 'package:omi/utils/enums.dart';
 import 'package:omi/utils/l10n_extensions.dart';
@@ -122,16 +124,45 @@ class _HomeCaptureBarState extends State<HomeCaptureBar> {
     if (mounted) setState(() => _phoneMuted = !_phoneMuted);
   }
 
+  /// A short, explicit pipeline state so "no transcription" is never ambiguous:
+  /// it names whether the Ollomi server is unreachable, whether audio is being
+  /// buffered for later, or whether live transcription is delayed.
+  ({String text, Color color, bool retry})? _pipelineStatus(
+    BuildContext context,
+    CaptureProvider provider,
+    bool serverReachable,
+  ) {
+    if (!serverReachable) {
+      return (text: context.l10n.serverUnreachable, color: const Color(0xFFFFB800), retry: true);
+    }
+    switch (provider.captureUiState.stage) {
+      case CaptureUiStage.offline:
+        return (text: context.l10n.transcribeLaterTitle, color: const Color(0xFFFFB800), retry: false);
+      case CaptureUiStage.transcriptionDelayed:
+        return (text: context.l10n.captureTranscriptionDelayed, color: const Color(0xFFFFB800), retry: false);
+      case CaptureUiStage.transcriptionUnavailable:
+      case CaptureUiStage.reconnecting:
+        return (
+          text: context.l10n.captureTranscriptionUnavailableRecordingContinues,
+          color: const Color(0xFFFFB800),
+          retry: false,
+        );
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer2<CaptureProvider, DeviceProvider>(
-      builder: (context, captureProvider, deviceProvider, _) {
+    return Consumer3<CaptureProvider, DeviceProvider, ConnectivityProvider>(
+      builder: (context, captureProvider, deviceProvider, connectivity, child) {
         final continuous = SharedPreferencesUtil().continuousCaptureEnabled;
         final isRecording = captureProvider.isCaptureActive;
         final isInitialising = captureProvider.recordingState == RecordingState.initialising;
         final state = captureProvider.captureUiState;
         final source = isRecording ? captureSourceLabel(context, state) : null;
         final muted = isRecording && _isMuted(captureProvider);
+        final status = _pipelineStatus(context, captureProvider, connectivity.isConnected);
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -140,38 +171,86 @@ class _HomeCaptureBarState extends State<HomeCaptureBar> {
             color: const Color(0xFF1C1C1E),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isRecording || continuous ? const Color(0xFFFE5D50).withValues(alpha: 0.5) : const Color(0xFF2A2A2E),
+              color: isRecording || continuous
+                  ? const Color(0xFFFE5D50).withValues(alpha: 0.5)
+                  : const Color(0xFF2A2A2E),
             ),
           ),
           child: Row(
             children: [
-              GestureDetector(
-                onTap: isRecording ? () => _openActiveCapture(context) : null,
-                behavior: HitTestBehavior.opaque,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 9,
-                      height: 9,
-                      decoration: BoxDecoration(
-                        color: isRecording ? const Color(0xFFFE5D50) : const Color(0xFF3C3C43),
-                        shape: BoxShape.circle,
+              Expanded(
+                child: GestureDetector(
+                  onTap: isRecording ? () => _openActiveCapture(context) : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 9,
+                            height: 9,
+                            decoration: BoxDecoration(
+                              color: isRecording ? const Color(0xFFFE5D50) : const Color(0xFF3C3C43),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            isRecording ? context.l10n.recording : context.l10n.continuousRecording,
+                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                          if (source != null) ...[
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                '· $source',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isRecording ? context.l10n.recording : context.l10n.continuousRecording,
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    if (source != null) ...[
-                      const SizedBox(width: 6),
-                      Text('· $source', style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13)),
+                      if (status != null) ...[
+                        const SizedBox(height: 3),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                status.text,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: status.color, fontSize: 11.5),
+                              ),
+                            ),
+                            if (status.retry) ...[
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                key: const Key('capture_bar_retry'),
+                                onTap: () => connectivity.refresh(),
+                                behavior: HitTestBehavior.opaque,
+                                child: Text(
+                                  context.l10n.retry,
+                                  style: const TextStyle(
+                                    color: Color(0xFFFE5D50),
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-              const Spacer(),
               if (isRecording) ...[
                 _BarAction(
                   buttonKey: const Key('capture_bar_mute'),

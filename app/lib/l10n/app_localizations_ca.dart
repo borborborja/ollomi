@@ -10106,4 +10106,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Atura la gravació contínua';
+
+  @override
+  String get serverUnreachable => 'Servidor Ollomi no accessible';
 }

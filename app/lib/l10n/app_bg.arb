@@ -3256,5 +3256,6 @@
     "recommended": "Recommended",
     "newConversation": "New conversation",
     "newConversationDescription": "Keeps recording and saves this part as its own conversation",
-    "stopContinuousRecording": "Stop continuous recording"
+    "stopContinuousRecording": "Stop continuous recording",
+    "serverUnreachable": "Ollomi server unreachable"
 }

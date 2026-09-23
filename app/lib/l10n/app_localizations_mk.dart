@@ -10099,4 +10099,7 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get stopContinuousRecording => 'Stop continuous recording';
+
+  @override
+  String get serverUnreachable => 'Ollomi server unreachable';
 }

@@ -18670,6 +18670,8 @@ abstract class AppLocalizations {
   String get newConversationDescription;
 
   String get stopContinuousRecording;
+
+  String get serverUnreachable;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
