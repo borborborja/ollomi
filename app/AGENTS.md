@@ -8,6 +8,8 @@ The Ollomi publishing workflow runs Flutter and native BLE tests on every ref. I
 
 The self-hosted Android startup must call `DeviceService.start()` through `ServiceManager.start()` before onboarding or the device picker tries to scan; otherwise discovery silently remains in `init`. BLE classification accepts Omi CV1 and original Friend devkit advertisement names when Android omits their service UUID, while `Friend_` remains the separate LC3 Friend Pendant type. Keep the startup and discovery regression tests in the Ollomi CI list.
 
+`AuthenticatedProductScope` owns `SyncProvider` above `MaterialApp`, not inside its home route: the connected-device page is pushed through the Navigator and needs the same provider. Keep the route-level regression test in the Ollomi CI list. The scope exists only while local authentication is active, so account-specific WAL state is disposed on sign-out.
+
 Inherits [`../AGENTS.md`](../AGENTS.md); adds app-specific operational guidance.
 
 ## Build Bootstrap

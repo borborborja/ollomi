@@ -142,6 +142,7 @@ jobs:
             test/unit/multipart_401_retry_test.dart \
             test/unit/transient_network_error_test.dart \
             test/widgets/connect_device_get_omi_test.dart \
+            test/widgets/authenticated_product_scope_test.dart \
             test/widgets/record_options_sheet_icon_test.dart \
             test/services/capture/stt_mode_capture_entry_test.dart \
             test/providers/speech_profile_provider_test.dart
