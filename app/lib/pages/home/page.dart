@@ -63,7 +63,7 @@ import 'package:omi/widgets/freemium_switch_dialog.dart';
 import 'package:omi/widgets/shimmer_with_timeout.dart';
 import 'package:omi/widgets/bottom_nav_bar.dart';
 import 'widgets/battery_info_widget.dart';
-import 'widgets/continuous_capture_bar.dart';
+import 'widgets/home_capture_bar.dart';
 
 class HomePageWrapper extends StatefulWidget {
   final String? navigateToRoute;
@@ -651,7 +651,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
                       children: [
                         // Show slim green call bar on non-home/conversations tabs when a call is active
                         if (selectedIndex > 1) const ActiveCallTopBar(),
-                        if (selectedIndex == 0) const ContinuousCaptureBar(),
+                        if (selectedIndex == 0) const HomeCaptureBar(),
                         Expanded(
                           child: IndexedStack(index: selectedIndex, children: _buildPages(selectedIndex)),
                         ),

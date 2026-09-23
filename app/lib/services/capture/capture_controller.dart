@@ -2046,18 +2046,22 @@ class CaptureController extends ChangeNotifier
   bool get continuousCaptureEnabled => SharedPreferencesUtil().continuousCaptureEnabled;
 
   /// Starts (or resumes) the long-running capture behind continuous mode.
-  /// `device == null` records from the phone microphone.
+  /// `device == null` records from the phone microphone. When a capture is
+  /// already running and the requested source differs, it is switched first.
   Future<void> startContinuousCapture({BtDevice? device}) async {
-    if (device == null) {
-      SharedPreferencesUtil().continuousCaptureSource = 'phone';
-      if (!isPhoneCaptureActive) {
-        await streamRecording();
+    SharedPreferencesUtil().continuousCaptureSource = device == null ? 'phone' : 'device';
+    if (isCaptureActive) {
+      final alreadyOnSource = device == null
+          ? isPhoneCaptureActive
+          : _recordingDevice?.id == device.id &&
+              (recordingState == RecordingState.deviceRecord || recordingState == RecordingState.pause);
+      if (!alreadyOnSource) {
+        await switchCaptureSource(device: device);
       }
+    } else if (device == null) {
+      await streamRecording();
     } else {
-      SharedPreferencesUtil().continuousCaptureSource = 'device';
-      if (_recordingDevice?.id != device.id || recordingState != RecordingState.deviceRecord) {
-        await streamDeviceRecording(device: device);
-      }
+      await streamDeviceRecording(device: device);
     }
     SharedPreferencesUtil().continuousCaptureEnabled = true;
     notifyListeners();
@@ -2069,6 +2073,21 @@ class CaptureController extends ChangeNotifier
       await stopStreamDeviceRecording();
     } else if (isCaptureActive) {
       await stopStreamRecording(reason: 'continuous_disabled');
+    }
+    notifyListeners();
+  }
+
+  /// Stops a one-off recording from the home capture bar, mirroring the
+  /// capturing page: end capture, then ask the app to process the conversation.
+  Future<void> stopCurrentCapture() async {
+    final hadContent = segments.isNotEmpty || photos.isNotEmpty;
+    if (_recordingDevice != null && isCaptureActive) {
+      await stopStreamDeviceRecording();
+    } else if (isCaptureActive) {
+      await stopStreamRecording();
+    }
+    if (hadContent) {
+      await forceProcessingCurrentConversation();
     }
     notifyListeners();
   }

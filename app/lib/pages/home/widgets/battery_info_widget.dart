@@ -388,12 +388,12 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
         final isRecording = captureProvider.isCaptureActive;
         final isInitialising = captureProvider.recordingState == RecordingState.initialising;
         final behavior = SharedPreferencesUtil().activeCaptureButtonBehavior;
-        if (isRecording && behavior == ActiveCaptureButtonBehavior.hide) {
+        // The home capture bar owns the active recording state (mute, change
+        // source, finish), so this button only exposes the idle one-off "+".
+        if (isRecording) {
           return const SizedBox.shrink();
         }
-        // In continuous mode the top switch owns the capture lifecycle, so the
-        // "+" record options button is not shown; the active card replaces it.
-        if (SharedPreferencesUtil().continuousCaptureEnabled && !isRecording) {
+        if (SharedPreferencesUtil().continuousCaptureEnabled) {
           return const SizedBox.shrink();
         }
         final captureState = captureProvider.captureUiState;

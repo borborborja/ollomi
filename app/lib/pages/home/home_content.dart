@@ -8,7 +8,6 @@ import 'package:omi/backend/http/api/users.dart';
 import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/daily_summary.dart';
 import 'package:omi/pages/conversations/widgets/conversation_list_item.dart';
-import 'package:omi/pages/conversations/widgets/processing_capture.dart';
 import 'package:omi/pages/conversations/widgets/today_tasks_widget.dart';
 import 'package:omi/pages/home/widgets/daily_summary_card.dart';
 import 'package:omi/pages/memories/widgets/memory_graph_page.dart';
@@ -80,9 +79,6 @@ class HomeContentPageState extends State<HomeContentPage> with AutomaticKeepAliv
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              // Live capture widget — shows when device or phone mic is recording
-              const SliverToBoxAdapter(child: ConversationCaptureWidget()),
-
               // Today section — TodayTasksWidget has its own header
               const SliverToBoxAdapter(child: TodayTasksWidget()),
 

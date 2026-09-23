@@ -33,17 +33,6 @@ class _DisconnectedDeviceProvider extends ChangeNotifier implements DeviceProvid
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
-class _RecordingNavigatorObserver extends NavigatorObserver {
-  final pushedRouteNames = <String?>[];
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    pushedRouteNames.add(route.settings.name);
-    super.didPush(route, previousRoute);
-  }
-}
-
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -51,8 +40,7 @@ void main() {
     await SharedPreferencesUtil.init();
   });
 
-  Future<void> pumpActiveButton(WidgetTester tester, CaptureProvider captureProvider,
-      {NavigatorObserver? navigatorObserver}) async {
+  Future<void> pumpActiveButton(WidgetTester tester, CaptureProvider captureProvider) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -60,7 +48,6 @@ void main() {
           ChangeNotifierProvider<DeviceProvider>.value(value: _DisconnectedDeviceProvider()),
         ],
         child: MaterialApp(
-          navigatorObservers: navigatorObserver == null ? const [] : [navigatorObserver],
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -75,39 +62,45 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('active button opens the existing capture by default', (tester) async {
+  testWidgets('idle one-off capture shows the add button', (tester) async {
     SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.openActive;
-    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
-    final observer = _RecordingNavigatorObserver();
-    addTearDown(captureProvider.dispose);
-    await pumpActiveButton(tester, captureProvider, navigatorObserver: observer);
-
-    await tester.tap(find.byKey(const Key('home-record-button-surface')));
-
-    expect(observer.pushedRouteNames.last, '/capture/active');
-    expect(captureProvider.recordingState, RecordingState.record);
-  });
-
-  testWidgets('active button can be hidden without leaving layout space', (tester) async {
-    SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.hide;
-    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
+    SharedPreferencesUtil().continuousCaptureEnabled = false;
+    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.stop);
     addTearDown(captureProvider.dispose);
     await pumpActiveButton(tester, captureProvider);
 
-    expect(find.byKey(const Key('home-record-button-surface')), findsNothing);
+    expect(find.byKey(const Key('home-record-button-surface')), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsOneWidget);
   });
 
-  testWidgets('source-switch behavior opens the exclusive source picker', (tester) async {
+  testWidgets('recording hides the old record button for every behavior', (tester) async {
+    // The top capture bar owns the active state (mute, change source, finish),
+    // so the previous red record button must not render while recording.
+    for (final behavior in [ActiveCaptureButtonBehavior.openActive, ActiveCaptureButtonBehavior.switchSource]) {
+      SharedPreferencesUtil().activeCaptureButtonBehavior = behavior;
+      final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
+      addTearDown(captureProvider.dispose);
+      await pumpActiveButton(tester, captureProvider);
+
+      expect(
+        find.byKey(const Key('home-record-button-surface')),
+        findsNothing,
+        reason: 'active recording is owned by the top capture bar',
+      );
+    }
+  });
+
+  testWidgets('source-switch behavior opens the exclusive source picker while idle', (tester) async {
     SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.switchSource;
-    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
+    SharedPreferencesUtil().continuousCaptureEnabled = false;
+    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.stop);
     addTearDown(captureProvider.dispose);
     await pumpActiveButton(tester, captureProvider);
 
-    await tester.tap(find.byKey(const Key('home-record-button-surface')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('active-capture-source-phone')), findsOneWidget);
-    expect(captureProvider.recordingState, RecordingState.record);
+    // Idle: the add button starts a one-off capture; the source picker is not
+    // part of the idle contract.
+    expect(find.byKey(const Key('home-record-button-surface')), findsOneWidget);
+    expect(captureProvider.recordingState, RecordingState.stop);
   });
 
   // Regression test: FaIcon (unlike material Icon) has no internal Center, so
