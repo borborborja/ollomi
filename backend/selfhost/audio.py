@@ -669,6 +669,9 @@ async def listen(socket: WebSocket):
             segment.path.unlink(missing_ok=True)
 
     async def open_segment(conversation_id):
+        # A rolled-over segment is a new conversation: it must own a record
+        # before enqueue_audio can attach the finished WAV to it.
+        await run_in_threadpool(prepare_conversation, conversation_id)
         segment = Segment(conversation_id)
         await run_in_threadpool(segment.open)
         return segment
