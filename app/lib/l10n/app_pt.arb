@@ -3315,5 +3315,15 @@
     "newConversation": "Nova conversa",
     "newConversationDescription": "Continua a gravar e guarda esta parte como uma conversa própria",
     "stopContinuousRecording": "Parar a gravação contínua",
-    "serverUnreachable": "Servidor Ollomi inacessível"
+    "serverUnreachable": "Servidor Ollomi inacessível",
+    "devices": "Dispositivos",
+    "autoConnect": "Ligar automaticamente",
+    "recordingOnConnect": "Ao ligar",
+    "recordingOnConnectNone": "Nada",
+    "recordingOnConnectOneOff": "Gravação pontual",
+    "connectNow": "Ligar agora",
+    "forgetDevice": "Esquecer dispositivo",
+    "forgetDeviceConfirm": "Remover este dispositivo da lista? O nome personalizado e as configurações serão esquecidos.",
+    "backgroundModeRequired": "O modo em segundo plano está desligado. A religação automática com a app fechada depende dele.",
+    "priorityOrderHint": "Arrasta para definir a ordem de prioridade."
 }

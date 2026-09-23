@@ -10109,4 +10109,34 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Servidor Ollomi no accessible';
+
+  @override
+  String get devices => 'Dispositius';
+
+  @override
+  String get autoConnect => 'Connecta automàticament';
+
+  @override
+  String get recordingOnConnect => 'En connectar';
+
+  @override
+  String get recordingOnConnectNone => 'Res';
+
+  @override
+  String get recordingOnConnectOneOff => 'Gravació puntual';
+
+  @override
+  String get connectNow => 'Connecta ara';
+
+  @override
+  String get forgetDevice => 'Oblida el dispositiu';
+
+  @override
+  String get forgetDeviceConfirm => 'Vols treure aquest dispositiu de la llista? Es perdrà el nom personalitzat i la seva configuració.';
+
+  @override
+  String get backgroundModeRequired => 'El mode en segon pla està desactivat. La reconnexió automàtica amb l\'app tancada en depèn.';
+
+  @override
+  String get priorityOrderHint => 'Arrossega per ordenar la prioritat de connexió.';
 }

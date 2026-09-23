@@ -10107,4 +10107,34 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Server Ollomi non raggiungibile';
+
+  @override
+  String get devices => 'Dispositivi';
+
+  @override
+  String get autoConnect => 'Connetti automaticamente';
+
+  @override
+  String get recordingOnConnect => 'Alla connessione';
+
+  @override
+  String get recordingOnConnectNone => 'Niente';
+
+  @override
+  String get recordingOnConnectOneOff => 'Registrazione singola';
+
+  @override
+  String get connectNow => 'Connetti ora';
+
+  @override
+  String get forgetDevice => 'Dimentica dispositivo';
+
+  @override
+  String get forgetDeviceConfirm => 'Rimuovere questo dispositivo dall\'elenco? Nome personalizzato e impostazioni andranno persi.';
+
+  @override
+  String get backgroundModeRequired => 'La modalità in background è disattivata. La riconnessione automatica a app chiusa dipende da essa.';
+
+  @override
+  String get priorityOrderHint => 'Trascina per impostare l\'ordine di priorità.';
 }

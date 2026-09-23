@@ -14,6 +14,7 @@ import 'package:omi/backend/schema/memory.dart';
 import 'package:omi/backend/schema/message.dart';
 import 'package:omi/backend/schema/person.dart';
 import 'package:omi/models/custom_stt_config.dart';
+import 'package:omi/models/device_connect_policy.dart';
 import 'package:omi/models/stt_provider.dart';
 import 'package:omi/utils/logger.dart';
 
@@ -319,6 +320,63 @@ class SharedPreferencesUtil {
     } else {
       await saveString('$_deviceAliasPrefix$deviceId', trimmed);
     }
+  }
+
+  //---------------------------- Known device policy --------------------------//
+  // The order of [btDevices] is the connection priority: the first available
+  // known device with auto-connect enabled is the one the app connects to.
+
+  static const String _autoConnectPrefix = 'deviceAutoConnect:';
+  static const String _recordingOnConnectPrefix = 'deviceRecordingOnConnect:';
+
+  /// Master switch for connecting to known devices automatically.
+  bool get autoConnectEnabled => getBool('autoConnectEnabled', defaultValue: true);
+
+  set autoConnectEnabled(bool value) => saveBool('autoConnectEnabled', value);
+
+  bool deviceAutoConnectFor(String deviceId) {
+    if (deviceId.isEmpty) return false;
+    return getBool('$_autoConnectPrefix$deviceId', defaultValue: true);
+  }
+
+  Future<void> setDeviceAutoConnectFor(String deviceId, bool value) async {
+    if (deviceId.isEmpty) return;
+    await saveBool('$_autoConnectPrefix$deviceId', value);
+  }
+
+  DeviceRecordingOnConnect deviceRecordingOnConnectFor(String deviceId) {
+    if (deviceId.isEmpty) return DeviceRecordingOnConnect.none;
+    return DeviceRecordingOnConnect.fromStorage(getString('$_recordingOnConnectPrefix$deviceId'));
+  }
+
+  Future<void> setDeviceRecordingOnConnectFor(String deviceId, DeviceRecordingOnConnect value) async {
+    if (deviceId.isEmpty) return;
+    await saveString('$_recordingOnConnectPrefix$deviceId', value.storageValue);
+  }
+
+  /// Replaces the known-device order, which is also the auto-connect priority.
+  Future<void> reorderKnownDevices(List<String> orderedIds) async {
+    final byId = {for (final device in btDevices) device.id: device};
+    final ordered = <BtDevice>[];
+    for (final id in orderedIds) {
+      final device = byId.remove(id);
+      if (device != null) ordered.add(device);
+    }
+    ordered.addAll(byId.values);
+    await saveStringList('btDevices', ordered.map((device) => jsonEncode(device.toJson())).toList());
+  }
+
+  /// Removes a device from the known list and forgets its per-device settings.
+  Future<void> forgetKnownDevice(String deviceId) async {
+    if (deviceId.isEmpty) return;
+    final remaining = btDevices.where((device) => device.id != deviceId).toList();
+    await saveStringList('btDevices', remaining.map((device) => jsonEncode(device.toJson())).toList());
+    if (btDevice.id == deviceId) {
+      await saveString('btDevice', jsonEncode(BtDevice(id: '', name: '', type: DeviceType.omi, rssi: 0).toJson()));
+    }
+    await remove('$_deviceAliasPrefix$deviceId');
+    await remove('$_autoConnectPrefix$deviceId');
+    await remove('$_recordingOnConnectPrefix$deviceId');
   }
 
   bool get deviceIsV2 => getBool('deviceIsV2');

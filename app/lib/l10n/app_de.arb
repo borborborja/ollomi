@@ -3256,5 +3256,15 @@
     "newConversation": "Neues Gespräch",
     "newConversationDescription": "Nimmt weiter auf und speichert diesen Teil als eigenes Gespräch",
     "stopContinuousRecording": "Kontinuierliche Aufnahme beenden",
-    "serverUnreachable": "Ollomi-Server nicht erreichbar"
+    "serverUnreachable": "Ollomi-Server nicht erreichbar",
+    "devices": "Geräte",
+    "autoConnect": "Automatisch verbinden",
+    "recordingOnConnect": "Beim Verbinden",
+    "recordingOnConnectNone": "Nichts",
+    "recordingOnConnectOneOff": "Einmalige Aufnahme",
+    "connectNow": "Jetzt verbinden",
+    "forgetDevice": "Gerät entfernen",
+    "forgetDeviceConfirm": "Dieses Gerät aus der Liste entfernen? Name und Einstellungen gehen verloren.",
+    "backgroundModeRequired": "Der Hintergrundmodus ist aus. Die automatische Wiederverbindung bei geschlossener App hängt davon ab.",
+    "priorityOrderHint": "Ziehen, um die Verbindungspriorität zu ordnen."
 }

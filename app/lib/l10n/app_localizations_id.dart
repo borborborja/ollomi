@@ -10059,4 +10059,34 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Server Ollomi tidak dapat dijangkau';
+
+  @override
+  String get devices => 'Perangkat';
+
+  @override
+  String get autoConnect => 'Sambungkan otomatis';
+
+  @override
+  String get recordingOnConnect => 'Saat tersambung';
+
+  @override
+  String get recordingOnConnectNone => 'Tidak ada';
+
+  @override
+  String get recordingOnConnectOneOff => 'Rekaman sekali';
+
+  @override
+  String get connectNow => 'Sambungkan sekarang';
+
+  @override
+  String get forgetDevice => 'Lupakan perangkat';
+
+  @override
+  String get forgetDeviceConfirm => 'Hapus perangkat ini dari daftar? Nama dan pengaturannya akan dilupakan.';
+
+  @override
+  String get backgroundModeRequired => 'Mode latar belakang mati. Penyambungan ulang otomatis saat app tertutup bergantung padanya.';
+
+  @override
+  String get priorityOrderHint => 'Seret untuk mengatur prioritas.';
 }

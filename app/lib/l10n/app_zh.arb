@@ -3301,5 +3301,15 @@
     "newConversation": "新对话",
     "newConversationDescription": "继续录音并将此部分保存为独立对话",
     "stopContinuousRecording": "停止连续录音",
-    "serverUnreachable": "无法连接到 Ollomi 服务器"
+    "serverUnreachable": "无法连接到 Ollomi 服务器",
+    "devices": "设备",
+    "autoConnect": "自动连接",
+    "recordingOnConnect": "连接时",
+    "recordingOnConnectNone": "不操作",
+    "recordingOnConnectOneOff": "单次录音",
+    "connectNow": "立即连接",
+    "forgetDevice": "忘记设备",
+    "forgetDeviceConfirm": "从列表中移除此设备？自定义名称和设置将被遗忘。",
+    "backgroundModeRequired": "后台模式已关闭。应用关闭时的自动重连依赖它。",
+    "priorityOrderHint": "拖动以设置连接优先级。"
 }

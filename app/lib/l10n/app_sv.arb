@@ -3279,5 +3279,15 @@
     "newConversation": "Ny konversation",
     "newConversationDescription": "Fortsätter spela in och sparar denna del som en egen konversation",
     "stopContinuousRecording": "Stoppa kontinuerlig inspelning",
-    "serverUnreachable": "Ollomi-servern kan inte nås"
+    "serverUnreachable": "Ollomi-servern kan inte nås",
+    "devices": "Enheter",
+    "autoConnect": "Anslut automatiskt",
+    "recordingOnConnect": "Vid anslutning",
+    "recordingOnConnectNone": "Inget",
+    "recordingOnConnectOneOff": "Engångsinspelning",
+    "connectNow": "Anslut nu",
+    "forgetDevice": "Glöm enheten",
+    "forgetDeviceConfirm": "Ta bort enheten från listan? Namn och inställningar glöms bort.",
+    "backgroundModeRequired": "Bakgrundsläget är av. Automatisk återanslutning med stängd app beror på det.",
+    "priorityOrderHint": "Dra för att ange prioritetsordning."
 }

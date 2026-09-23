@@ -3279,5 +3279,15 @@
     "newConversation": "새 대화",
     "newConversationDescription": "계속 녹음하면서 이 부분을 별도의 대화로 저장합니다",
     "stopContinuousRecording": "연속 녹음 중지",
-    "serverUnreachable": "Ollomi 서버에 연결할 수 없음"
+    "serverUnreachable": "Ollomi 서버에 연결할 수 없음",
+    "devices": "Devices",
+    "autoConnect": "Connect automatically",
+    "recordingOnConnect": "When connected",
+    "recordingOnConnectNone": "Do nothing",
+    "recordingOnConnectOneOff": "One-time recording",
+    "connectNow": "Connect now",
+    "forgetDevice": "Forget device",
+    "forgetDeviceConfirm": "Remove this device from the known list? Its custom name and settings will be forgotten.",
+    "backgroundModeRequired": "Background mode is off. Automatic reconnection while the app is closed needs it.",
+    "priorityOrderHint": "Drag to set the connection priority order."
 }

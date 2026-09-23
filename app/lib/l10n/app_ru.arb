@@ -3314,5 +3314,15 @@
     "newConversation": "Новый разговор",
     "newConversationDescription": "Продолжает запись и сохраняет эту часть как отдельный разговор",
     "stopContinuousRecording": "Остановить непрерывную запись",
-    "serverUnreachable": "Сервер Ollomi недоступен"
+    "serverUnreachable": "Сервер Ollomi недоступен",
+    "devices": "Устройства",
+    "autoConnect": "Подключаться автоматически",
+    "recordingOnConnect": "При подключении",
+    "recordingOnConnectNone": "Ничего",
+    "recordingOnConnectOneOff": "Разовая запись",
+    "connectNow": "Подключить сейчас",
+    "forgetDevice": "Забыть устройство",
+    "forgetDeviceConfirm": "Убрать это устройство из списка? Имя и настройки будут удалены.",
+    "backgroundModeRequired": "Фоновый режим выключен. Автоподключение при закрытом приложении зависит от него.",
+    "priorityOrderHint": "Перетащите, чтобы задать приоритет."
 }

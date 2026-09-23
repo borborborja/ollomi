@@ -14,7 +14,6 @@ import 'package:omi/pages/settings/notifications_settings_page.dart';
 import 'package:omi/pages/settings/permissions_page.dart';
 import 'package:omi/pages/settings/profile.dart';
 import 'package:omi/pages/memories/page.dart';
-import 'package:omi/providers/device_provider.dart';
 
 import 'package:omi/utils/auth/clear_user_state.dart';
 import 'package:omi/utils/other/temp.dart';
@@ -27,7 +26,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:omi/backend/http/api/announcements.dart';
 import 'package:omi/pages/announcements/changelog_sheet.dart';
-import 'device_settings.dart';
+import 'devices_page.dart';
 
 class _SearchableItem {
   final String title;
@@ -317,8 +316,6 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
   }
 
   List<_SearchableItem> _buildSearchableItems(BuildContext context) {
-    final deviceProvider = Provider.of<DeviceProvider>(context, listen: false);
-
     void goToProfile() => routeToPage(context, const ProfilePage());
     void goToNotifications() =>
         routeToPage(context, const NotificationsSettingsPage());
@@ -326,7 +323,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
       MaterialPageRoute(builder: (context) => const LocalIntegrationsPage()),
     );
     void goToDevice() => Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const DeviceSettings()),
+      MaterialPageRoute(builder: (context) => const DevicesPage()),
     );
     void goToPermissions() {
       PlatformManager.instance.analytics.permissionsSettingsOpened();
@@ -457,39 +454,42 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
         icon: notifIcon,
         onTap: goToNotifications,
       ),
-      // --- Device Settings (only when connected) ---
-      if (deviceProvider.isConnected) ...[
-        _SearchableItem(
-          title: context.l10n.deviceSettings,
-          icon: deviceIcon,
-          onTap: goToDevice,
-        ),
-        _SearchableItem(
-          title: context.l10n.deviceName,
-          icon: deviceIcon,
-          onTap: goToDevice,
-        ),
-        _SearchableItem(
-          title: context.l10n.firmware,
-          icon: deviceIcon,
-          onTap: goToDevice,
-        ),
-        _SearchableItem(
-          title: context.l10n.doubleTap,
-          icon: deviceIcon,
-          onTap: goToDevice,
-        ),
-        _SearchableItem(
-          title: context.l10n.ledBrightness,
-          icon: deviceIcon,
-          onTap: goToDevice,
-        ),
-        _SearchableItem(
-          title: context.l10n.micGain,
-          icon: deviceIcon,
-          onTap: goToDevice,
-        ),
-      ],
+      // --- Known devices ---
+      _SearchableItem(
+        title: context.l10n.devices,
+        icon: deviceIcon,
+        onTap: goToDevice,
+      ),
+      _SearchableItem(
+        title: context.l10n.deviceSettings,
+        icon: deviceIcon,
+        onTap: goToDevice,
+      ),
+      _SearchableItem(
+        title: context.l10n.deviceName,
+        icon: deviceIcon,
+        onTap: goToDevice,
+      ),
+      _SearchableItem(
+        title: context.l10n.firmware,
+        icon: deviceIcon,
+        onTap: goToDevice,
+      ),
+      _SearchableItem(
+        title: context.l10n.doubleTap,
+        icon: deviceIcon,
+        onTap: goToDevice,
+      ),
+      _SearchableItem(
+        title: context.l10n.ledBrightness,
+        icon: deviceIcon,
+        onTap: goToDevice,
+      ),
+      _SearchableItem(
+        title: context.l10n.micGain,
+        icon: deviceIcon,
+        onTap: goToDevice,
+      ),
       // --- Integrations ---
       _SearchableItem(
         title: context.l10n.integrations,
@@ -788,30 +788,19 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                 routeToPage(context, const PermissionsPage());
               },
             ),
-            Consumer<DeviceProvider>(
-              builder: (context, deviceProvider, child) {
-                if (!deviceProvider.isConnected) {
-                  return const SizedBox.shrink();
-                }
-                return Column(
-                  children: [
-                    const Divider(height: 1, color: Color(0xFF3C3C43)),
-                    _buildSettingsItem(
-                      title: context.l10n.deviceSettings,
-                      icon: const FaIcon(
-                        FontAwesomeIcons.bluetooth,
-                        color: Color(0xFF8E8E93),
-                        size: 20,
-                      ),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const DeviceSettings(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+            const Divider(height: 1, color: Color(0xFF3C3C43)),
+            _buildSettingsItem(
+              title: context.l10n.devices,
+              icon: const FaIcon(
+                FontAwesomeIcons.bluetooth,
+                color: Color(0xFF8E8E93),
+                size: 20,
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const DevicesPage(),
+                  ),
                 );
               },
             ),

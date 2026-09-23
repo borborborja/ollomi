@@ -3314,5 +3314,15 @@
     "newConversation": "Nouvelle conversation",
     "newConversationDescription": "Continue l'enregistrement et enregistre cette partie comme sa propre conversation",
     "stopContinuousRecording": "Arrêter l'enregistrement continu",
-    "serverUnreachable": "Serveur Ollomi inaccessible"
+    "serverUnreachable": "Serveur Ollomi inaccessible",
+    "devices": "Appareils",
+    "autoConnect": "Connexion automatique",
+    "recordingOnConnect": "À la connexion",
+    "recordingOnConnectNone": "Rien",
+    "recordingOnConnectOneOff": "Enregistrement ponctuel",
+    "connectNow": "Connecter maintenant",
+    "forgetDevice": "Oublier l'appareil",
+    "forgetDeviceConfirm": "Retirer cet appareil de la liste ? Son nom personnalisé et ses réglages seront oubliés.",
+    "backgroundModeRequired": "Le mode arrière-plan est désactivé. La reconnexion automatique app fermée en dépend.",
+    "priorityOrderHint": "Faites glisser pour définir l'ordre de priorité."
 }

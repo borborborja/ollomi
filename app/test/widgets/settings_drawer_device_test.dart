@@ -10,13 +10,6 @@ import 'package:omi/pages/settings/settings_drawer.dart';
 import 'package:omi/providers/device_provider.dart';
 
 class _StubDeviceProvider extends ChangeNotifier implements DeviceProvider {
-  _StubDeviceProvider({required this.connected});
-
-  final bool connected;
-
-  @override
-  bool get isConnected => connected;
-
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -44,23 +37,15 @@ void main() {
     await SharedPreferencesUtil.init();
   });
 
-  testWidgets('hides the device settings entry when no device is connected', (tester) async {
-    final provider = _StubDeviceProvider(connected: false);
+  testWidgets('always exposes the known-devices entry in Settings', (tester) async {
+    final provider = _StubDeviceProvider();
     addTearDown(provider.dispose);
 
     await tester.pumpWidget(_app(provider));
     await tester.pump();
 
-    expect(find.text('Device Settings'), findsNothing);
-  });
-
-  testWidgets('shows the device settings entry when a device is connected', (tester) async {
-    final provider = _StubDeviceProvider(connected: true);
-    addTearDown(provider.dispose);
-
-    await tester.pumpWidget(_app(provider));
-    await tester.pump();
-
-    expect(find.text('Device Settings'), findsOneWidget);
+    // Device settings moved into the known-devices screen, so the entry is no
+    // longer gated on an active connection.
+    expect(find.text('Devices'), findsOneWidget);
   });
 }

@@ -10077,4 +10077,34 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi-server onbereikbaar';
+
+  @override
+  String get devices => 'Apparaten';
+
+  @override
+  String get autoConnect => 'Automatisch verbinden';
+
+  @override
+  String get recordingOnConnect => 'Bij verbinden';
+
+  @override
+  String get recordingOnConnectNone => 'Niets';
+
+  @override
+  String get recordingOnConnectOneOff => 'Eenmalige opname';
+
+  @override
+  String get connectNow => 'Nu verbinden';
+
+  @override
+  String get forgetDevice => 'Apparaat vergeten';
+
+  @override
+  String get forgetDeviceConfirm => 'Dit apparaat uit de lijst verwijderen? Naam en instellingen gaan verloren.';
+
+  @override
+  String get backgroundModeRequired => 'De achtergrondmodus staat uit. Automatisch opnieuw verbinden met gesloten app hangt daarvan af.';
+
+  @override
+  String get priorityOrderHint => 'Sleep om de prioriteitsorde te wijzigen.';
 }

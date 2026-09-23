@@ -9877,4 +9877,34 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomiサーバーに接続できません';
+
+  @override
+  String get devices => 'デバイス';
+
+  @override
+  String get autoConnect => '自動接続';
+
+  @override
+  String get recordingOnConnect => '接続時';
+
+  @override
+  String get recordingOnConnectNone => '何もしない';
+
+  @override
+  String get recordingOnConnectOneOff => '単発録音';
+
+  @override
+  String get connectNow => '今すぐ接続';
+
+  @override
+  String get forgetDevice => 'デバイスを削除';
+
+  @override
+  String get forgetDeviceConfirm => 'このデバイスを一覧から削除しますか？カスタム名と設定も失われます。';
+
+  @override
+  String get backgroundModeRequired => 'バックグラウンドモードがオフです。アプリ終了時の自動再接続には必要です。';
+
+  @override
+  String get priorityOrderHint => 'ドラッグして接続の優先順位を設定します。';
 }

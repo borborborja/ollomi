@@ -3375,5 +3375,15 @@
     "newConversation": "Új beszélgetés",
     "newConversationDescription": "Folytatja a felvételt, és ezt a részt külön beszélgetésként menti",
     "stopContinuousRecording": "Folyamatos felvétel leállítása",
-    "serverUnreachable": "Az Ollomi szerver nem érhető el"
+    "serverUnreachable": "Az Ollomi szerver nem érhető el",
+    "devices": "Eszközök",
+    "autoConnect": "Automatikus csatlakozás",
+    "recordingOnConnect": "Csatlakozáskor",
+    "recordingOnConnectNone": "Semmi",
+    "recordingOnConnectOneOff": "Egyszeri felvétel",
+    "connectNow": "Csatlakozás most",
+    "forgetDevice": "Eszköz elfelejtése",
+    "forgetDeviceConfirm": "Eltávolítod ezt az eszközt a listáról? A név és a beállítások elvesznek.",
+    "backgroundModeRequired": "A háttérmód ki van kapcsolva. Az automatikus újracsatlakozás zárt alkalmazásnál ettől függ.",
+    "priorityOrderHint": "Húzd a prioritási sorrend beállításához."
 }

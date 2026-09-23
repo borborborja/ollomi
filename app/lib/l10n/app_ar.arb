@@ -3255,5 +3255,15 @@
     "newConversation": "محادثة جديدة",
     "newConversationDescription": "يواصل التسجيل ويحفظ هذا الجزء كمحادثة مستقلة",
     "stopContinuousRecording": "إيقاف التسجيل المستمر",
-    "serverUnreachable": "تعذّر الوصول إلى خادم Ollomi"
+    "serverUnreachable": "تعذّر الوصول إلى خادم Ollomi",
+    "devices": "الأجهزة",
+    "autoConnect": "الاتصال تلقائيًا",
+    "recordingOnConnect": "عند الاتصال",
+    "recordingOnConnectNone": "لا شيء",
+    "recordingOnConnectOneOff": "تسجيل لمرة واحدة",
+    "connectNow": "اتصل الآن",
+    "forgetDevice": "انسَ الجهاز",
+    "forgetDeviceConfirm": "إزالة هذا الجهاز من القائمة؟ سيُفقد الاسم المخصص والإعدادات.",
+    "backgroundModeRequired": "وضع الخلفية معطّل. إعادة الاتصال التلقائي أثناء إغلاق التطبيق تعتمد عليه.",
+    "priorityOrderHint": "اسحب لترتيب أولوية الاتصال."
 }

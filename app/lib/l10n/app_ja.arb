@@ -3255,5 +3255,15 @@
     "newConversation": "新しい会話",
     "newConversationDescription": "録音を続けながら、この部分を別の会話として保存します",
     "stopContinuousRecording": "連続録音を停止",
-    "serverUnreachable": "Ollomiサーバーに接続できません"
+    "serverUnreachable": "Ollomiサーバーに接続できません",
+    "devices": "デバイス",
+    "autoConnect": "自動接続",
+    "recordingOnConnect": "接続時",
+    "recordingOnConnectNone": "何もしない",
+    "recordingOnConnectOneOff": "単発録音",
+    "connectNow": "今すぐ接続",
+    "forgetDevice": "デバイスを削除",
+    "forgetDeviceConfirm": "このデバイスを一覧から削除しますか？カスタム名と設定も失われます。",
+    "backgroundModeRequired": "バックグラウンドモードがオフです。アプリ終了時の自動再接続には必要です。",
+    "priorityOrderHint": "ドラッグして接続の優先順位を設定します。"
 }

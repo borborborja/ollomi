@@ -10028,4 +10028,34 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi सर्वर उपलब्ध नहीं है';
+
+  @override
+  String get devices => 'डिवाइस';
+
+  @override
+  String get autoConnect => 'स्वतः कनेक्ट करें';
+
+  @override
+  String get recordingOnConnect => 'कनेक्ट होने पर';
+
+  @override
+  String get recordingOnConnectNone => 'कुछ नहीं';
+
+  @override
+  String get recordingOnConnectOneOff => 'एकबारगी रिकॉर्डिंग';
+
+  @override
+  String get connectNow => 'अभी कनेक्ट करें';
+
+  @override
+  String get forgetDevice => 'डिवाइस भूलें';
+
+  @override
+  String get forgetDeviceConfirm => 'इस डिवाइस को सूची से हटाएँ? नाम और सेटिंग्स भुला दी जाएँगी।';
+
+  @override
+  String get backgroundModeRequired => 'बैकग्राउंड मोड बंद है। ऐप बंद होने पर स्वतः पुनः कनेक्ट इस पर निर्भर है।';
+
+  @override
+  String get priorityOrderHint => 'प्राथमिकता क्रम के लिए खींचें।';
 }

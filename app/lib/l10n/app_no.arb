@@ -3279,5 +3279,15 @@
     "newConversation": "Ny samtale",
     "newConversationDescription": "Fortsetter opptaket og lagrer denne delen som en egen samtale",
     "stopContinuousRecording": "Stopp kontinuerlig opptak",
-    "serverUnreachable": "Ollomi-serveren er ikke tilgjengelig"
+    "serverUnreachable": "Ollomi-serveren er ikke tilgjengelig",
+    "devices": "Enheter",
+    "autoConnect": "Koble til automatisk",
+    "recordingOnConnect": "Ved tilkobling",
+    "recordingOnConnectNone": "Ingenting",
+    "recordingOnConnectOneOff": "Engangsopptak",
+    "connectNow": "Koble til nå",
+    "forgetDevice": "Glem enhet",
+    "forgetDeviceConfirm": "Fjerne denne enheten fra listen? Navn og innstillinger glemmes.",
+    "backgroundModeRequired": "Bakgrunnsmodus er av. Automatisk gjenkobling med lukket app avhenger av det.",
+    "priorityOrderHint": "Dra for å angi prioritetsrekkefølge."
 }

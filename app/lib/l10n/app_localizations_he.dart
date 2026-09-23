@@ -9968,4 +9968,34 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'לא ניתן להגיע לשרת Ollomi';
+
+  @override
+  String get devices => 'מכשירים';
+
+  @override
+  String get autoConnect => 'התחבר אוטומטית';
+
+  @override
+  String get recordingOnConnect => 'בעת התחברות';
+
+  @override
+  String get recordingOnConnectNone => 'כלום';
+
+  @override
+  String get recordingOnConnectOneOff => 'הקלטה חד-פעמית';
+
+  @override
+  String get connectNow => 'התחבר עכשיו';
+
+  @override
+  String get forgetDevice => 'שכח מכשיר';
+
+  @override
+  String get forgetDeviceConfirm => 'להסיר מכשיר זה מהרשימה? השם וההגדרות יישכחו.';
+
+  @override
+  String get backgroundModeRequired => 'מצב רקע כבוי. התחברות מחדש אוטומטית כשהאפליקציה סגורה תלויה בכך.';
+
+  @override
+  String get priorityOrderHint => 'גרור כדי לקבוע סדר עדיפות.';
 }

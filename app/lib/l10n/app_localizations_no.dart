@@ -10047,4 +10047,34 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get serverUnreachable => 'Ollomi-serveren er ikke tilgjengelig';
+
+  @override
+  String get devices => 'Enheter';
+
+  @override
+  String get autoConnect => 'Koble til automatisk';
+
+  @override
+  String get recordingOnConnect => 'Ved tilkobling';
+
+  @override
+  String get recordingOnConnectNone => 'Ingenting';
+
+  @override
+  String get recordingOnConnectOneOff => 'Engangsopptak';
+
+  @override
+  String get connectNow => 'Koble til nå';
+
+  @override
+  String get forgetDevice => 'Glem enhet';
+
+  @override
+  String get forgetDeviceConfirm => 'Fjerne denne enheten fra listen? Navn og innstillinger glemmes.';
+
+  @override
+  String get backgroundModeRequired => 'Bakgrunnsmodus er av. Automatisk gjenkobling med lukket app avhenger av det.';
+
+  @override
+  String get priorityOrderHint => 'Dra for å angi prioritetsrekkefølge.';
 }
