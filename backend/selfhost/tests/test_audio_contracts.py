@@ -171,7 +171,7 @@ def test_friend_pendant_socket_decodes_frames_and_queues_transcription(client, a
     monkeypatch.setattr(
         worker,
         "transcribe_file",
-        lambda profile, clip, language="auto": [
+        lambda profile, clip, language="auto", **kwargs: [
             {"id": "friend-segment", "start": 0.0, "end": 0.03, "text": "Prova Friend", "speaker": None}
         ],
     )
@@ -270,7 +270,7 @@ def test_omi_pcm_capture_reaches_completed_transcript(client, admin, monkeypatch
     monkeypatch.setattr(
         worker,
         "transcribe_file",
-        lambda profile, clip, language="auto": [
+        lambda profile, clip, language="auto", **kwargs: [
             {"id": "segment-1", "start": 0.0, "end": 1.0, "text": "Prova Omi", "speaker": None}
         ],
     )
