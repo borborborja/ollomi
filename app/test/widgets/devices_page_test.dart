@@ -39,7 +39,7 @@ class _StubDeviceProvider extends ChangeNotifier implements DeviceProvider {
   void suppressAutoConnect() {}
 
   @override
-  Future<void> setIsConnected(bool value) async {}
+  void setIsConnected(bool value) {}
 
   @override
   Future<void> setConnectedDevice(BtDevice? device) async {}
