@@ -10076,4 +10076,16 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'Permet triar entre el micròfon del telèfon i el dispositiu connectat.';
+
+  @override
+  String get deviceAliasTitle => 'Nom personalitzat';
+
+  @override
+  String get deviceAliasDescription => 'Es mostra a l\'aplicació en lloc del nom predeterminat del dispositiu.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Nom del dispositiu actualitzat';
 }

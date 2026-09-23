@@ -10009,4 +10009,16 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Vali telefoni mikrofoni ja ühendatud seadme vahel.';
+
+  @override
+  String get deviceAliasTitle => 'Kohandatud nimi';
+
+  @override
+  String get deviceAliasDescription => 'Kuvatakse rakenduses seadme vaikenime asemel.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Seadme nimi värskendatud';
 }

@@ -3303,5 +3303,9 @@
     "activeCaptureButtonHide": "Masquer le bouton",
     "activeCaptureButtonHideDescription": "Retire le bouton d’accueil jusqu’à l’arrêt de l’enregistrement.",
     "activeCaptureButtonSwitchSource": "Changer de source audio",
-    "activeCaptureButtonSwitchSourceDescription": "Choisissez entre le microphone du téléphone et l’appareil connecté."
+    "activeCaptureButtonSwitchSourceDescription": "Choisissez entre le microphone du téléphone et l’appareil connecté.",
+    "deviceAliasTitle": "Nom personnalisé",
+    "deviceAliasDescription": "Affiché dans l'application à la place du nom par défaut de l'appareil.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Nom de l'appareil mis à jour"
 }

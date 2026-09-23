@@ -9935,4 +9935,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'בחרו בין מיקרופון הטלפון למכשיר המחובר.';
+
+  @override
+  String get deviceAliasTitle => 'שם מותאם אישית';
+
+  @override
+  String get deviceAliasDescription => 'מוצג באפליקציה במקום שם ברירת המחדל של המכשיר.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'שם המכשיר עודכן';
 }

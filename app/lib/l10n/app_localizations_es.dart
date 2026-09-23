@@ -10042,4 +10042,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'Permite elegir entre el micrófono del teléfono y el dispositivo conectado.';
+
+  @override
+  String get deviceAliasTitle => 'Nombre personalizado';
+
+  @override
+  String get deviceAliasDescription => 'Se muestra en la aplicación en lugar del nombre predeterminado del dispositivo.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Nombre del dispositivo actualizado';
 }

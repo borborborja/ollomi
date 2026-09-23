@@ -9847,4 +9847,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => '휴대전화 마이크와 연결된 기기 중에서 선택하세요.';
+
+  @override
+  String get deviceAliasTitle => '사용자 지정 이름';
+
+  @override
+  String get deviceAliasDescription => '기기 기본 이름 대신 앱 전체에 표시됩니다.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => '기기 이름이 업데이트되었습니다';
 }

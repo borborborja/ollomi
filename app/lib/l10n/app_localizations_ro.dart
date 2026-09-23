@@ -10064,4 +10064,16 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'Alege între microfonul telefonului și dispozitivul conectat.';
+
+  @override
+  String get deviceAliasTitle => 'Nume personalizat';
+
+  @override
+  String get deviceAliasDescription => 'Afișat în aplicație în locul numelui implicit al dispozitivului.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Numele dispozitivului a fost actualizat';
 }

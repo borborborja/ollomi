@@ -10020,4 +10020,16 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Välj mellan telefonens mikrofon och den anslutna enheten.';
+
+  @override
+  String get deviceAliasTitle => 'Anpassat namn';
+
+  @override
+  String get deviceAliasDescription => 'Visas i appen i stället för enhetens standardnamn.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Enhetsnamn uppdaterat';
 }

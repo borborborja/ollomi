@@ -3303,5 +3303,9 @@
     "activeCaptureButtonHide": "Скрыть кнопку",
     "activeCaptureButtonHideDescription": "Убрать кнопку с главного экрана до остановки записи.",
     "activeCaptureButtonSwitchSource": "Сменить источник аудио",
-    "activeCaptureButtonSwitchSourceDescription": "Выберите микрофон телефона или подключённое устройство."
+    "activeCaptureButtonSwitchSourceDescription": "Выберите микрофон телефона или подключённое устройство.",
+    "deviceAliasTitle": "Пользовательское имя",
+    "deviceAliasDescription": "Отображается в приложении вместо имени устройства по умолчанию.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Имя устройства обновлено"
 }

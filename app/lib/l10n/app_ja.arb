@@ -3244,5 +3244,9 @@
     "activeCaptureButtonHide": "ボタンを隠す",
     "activeCaptureButtonHideDescription": "録音が停止するまでホームボタンを非表示にします。",
     "activeCaptureButtonSwitchSource": "音声入力元を変更",
-    "activeCaptureButtonSwitchSourceDescription": "スマートフォンのマイクまたは接続済みデバイスを選択します。"
+    "activeCaptureButtonSwitchSourceDescription": "スマートフォンのマイクまたは接続済みデバイスを選択します。",
+    "deviceAliasTitle": "カスタム名",
+    "deviceAliasDescription": "デバイスの既定の名前の代わりにアプリ全体で表示されます。",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "デバイス名を更新しました"
 }

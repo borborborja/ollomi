@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Sembunyikan butang",
     "activeCaptureButtonHideDescription": "Alih keluar butang utama sehingga rakaman berhenti.",
     "activeCaptureButtonSwitchSource": "Tukar sumber audio",
-    "activeCaptureButtonSwitchSourceDescription": "Pilih mikrofon telefon atau peranti yang disambungkan."
+    "activeCaptureButtonSwitchSourceDescription": "Pilih mikrofon telefon atau peranti yang disambungkan.",
+    "deviceAliasTitle": "Nama tersuai",
+    "deviceAliasDescription": "Ditunjukkan dalam apl dan bukan nama lalai peranti.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Nama peranti dikemas kini"
 }

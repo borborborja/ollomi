@@ -10044,4 +10044,16 @@ class AppLocalizationsBs extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Odaberite mikrofon telefona ili povezani uređaj.';
+
+  @override
+  String get deviceAliasTitle => 'Prilagođeno ime';
+
+  @override
+  String get deviceAliasDescription => 'Prikazuje se u aplikaciji umjesto zadanog naziva uređaja.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Naziv uređaja ažuriran';
 }

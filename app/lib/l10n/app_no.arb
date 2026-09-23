@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Skjul knappen",
     "activeCaptureButtonHideDescription": "Fjern hjemknappen til opptaket stopper.",
     "activeCaptureButtonSwitchSource": "Bytt lydkilde",
-    "activeCaptureButtonSwitchSourceDescription": "Velg mellom telefonmikrofonen og den tilkoblede enheten."
+    "activeCaptureButtonSwitchSourceDescription": "Velg mellom telefonmikrofonen og den tilkoblede enheten.",
+    "deviceAliasTitle": "Egendefinert navn",
+    "deviceAliasDescription": "Vises i appen i stedet for enhetens standardnavn.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Enhetsnavn oppdatert"
 }

@@ -10108,4 +10108,16 @@ class AppLocalizationsTl extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Pumili sa mikropono ng telepono o nakakonektang device.';
+
+  @override
+  String get deviceAliasTitle => 'Custom na pangalan';
+
+  @override
+  String get deviceAliasDescription => 'Ipinapakita sa app sa halip na ang default na pangalan ng device.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Na-update ang pangalan ng device';
 }

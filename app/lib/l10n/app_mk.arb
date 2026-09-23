@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "Скриј го копчето",
     "activeCaptureButtonHideDescription": "Отстрани го почетното копче додека снимањето не запре.",
     "activeCaptureButtonSwitchSource": "Смени извор на звук",
-    "activeCaptureButtonSwitchSourceDescription": "Изберете го микрофонот на телефонот или поврзаниот уред."
+    "activeCaptureButtonSwitchSourceDescription": "Изберете го микрофонот на телефонот или поврзаниот уред.",
+    "deviceAliasTitle": "Прилагодено име",
+    "deviceAliasDescription": "Се прикажува во апликацијата наместо стандардното име на уредот.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Името на уредот е ажурирано"
 }

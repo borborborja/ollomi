@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Dölj knappen",
     "activeCaptureButtonHideDescription": "Ta bort hemknappen tills inspelningen stoppas.",
     "activeCaptureButtonSwitchSource": "Byt ljudkälla",
-    "activeCaptureButtonSwitchSourceDescription": "Välj mellan telefonens mikrofon och den anslutna enheten."
+    "activeCaptureButtonSwitchSourceDescription": "Välj mellan telefonens mikrofon och den anslutna enheten.",
+    "deviceAliasTitle": "Anpassat namn",
+    "deviceAliasDescription": "Visas i appen i stället för enhetens standardnamn.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Enhetsnamn uppdaterat"
 }

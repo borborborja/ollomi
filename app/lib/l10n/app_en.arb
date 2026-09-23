@@ -11840,5 +11840,21 @@
     "activeCaptureButtonHide": "Hide the button",
     "activeCaptureButtonHideDescription": "Remove the home button until recording stops.",
     "activeCaptureButtonSwitchSource": "Change audio source",
-    "activeCaptureButtonSwitchSourceDescription": "Choose between the phone microphone and the connected device."
+    "activeCaptureButtonSwitchSourceDescription": "Choose between the phone microphone and the connected device.",
+    "deviceAliasTitle": "Custom name",
+    "deviceAliasDescription": "Shown across the app instead of the device's default name.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Device name updated",
+    "@deviceAliasTitle": {
+        "description": "Title of the local device custom name editor row."
+    },
+    "@deviceAliasDescription": {
+        "description": "Explains that the custom name is shown across the app instead of the default device name."
+    },
+    "@deviceAliasHint": {
+        "description": "Example placeholder shown in the custom device name field."
+    },
+    "@deviceAliasSaved": {
+        "description": "Confirmation shown after saving a custom device name."
+    }
 }

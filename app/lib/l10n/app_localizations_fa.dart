@@ -10015,4 +10015,16 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'بین میکروفون تلفن و دستگاه متصل انتخاب کنید.';
+
+  @override
+  String get deviceAliasTitle => 'نام سفارشی';
+
+  @override
+  String get deviceAliasDescription => 'در برنامه به‌جای نام پیش‌فرض دستگاه نمایش داده می‌شود.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'نام دستگاه به‌روزرسانی شد';
 }

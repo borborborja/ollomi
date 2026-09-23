@@ -3310,5 +3310,9 @@
     "activeCaptureButtonHide": "Sembunyikan tombol",
     "activeCaptureButtonHideDescription": "Hapus tombol beranda hingga perekaman berhenti.",
     "activeCaptureButtonSwitchSource": "Ubah sumber audio",
-    "activeCaptureButtonSwitchSourceDescription": "Pilih mikrofon ponsel atau perangkat yang terhubung."
+    "activeCaptureButtonSwitchSourceDescription": "Pilih mikrofon ponsel atau perangkat yang terhubung.",
+    "deviceAliasTitle": "Nama khusus",
+    "deviceAliasDescription": "Ditampilkan di aplikasi sebagai ganti nama bawaan perangkat.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Nama perangkat diperbarui"
 }

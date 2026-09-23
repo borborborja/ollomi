@@ -10088,4 +10088,16 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'தொலைபேசி மைக்ரோஃபோன் அல்லது இணைக்கப்பட்ட சாதனத்தைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get deviceAliasTitle => 'தனிப்பயன் பெயர்';
+
+  @override
+  String get deviceAliasDescription => 'சாதனத்தின் இயல்புநிலை பெயருக்கு பதிலாக ஆப்பில் காட்டப்படும்.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'சாதனத்தின் பெயர் புதுப்பிக்கப்பட்டது';
 }

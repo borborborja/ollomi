@@ -9825,4 +9825,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => '在手机麦克风和已连接设备之间选择。';
+
+  @override
+  String get deviceAliasTitle => '自定义名称';
+
+  @override
+  String get deviceAliasDescription => '在应用中显示以替代设备的默认名称。';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => '设备名称已更新';
 }

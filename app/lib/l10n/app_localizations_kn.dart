@@ -10048,4 +10048,16 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'ಫೋನ್ ಮೈಕ್ರೋಫೋನ್ ಅಥವಾ ಸಂಪರ್ಕಿತ ಸಾಧನವನ್ನು ಆಯ್ಕೆಮಾಡಿ.';
+
+  @override
+  String get deviceAliasTitle => 'ಕಸ್ಟಮ್ ಹೆಸರು';
+
+  @override
+  String get deviceAliasDescription => 'ಸಾಧನದ ಡೀಫಾಲ್ಟ್ ಹೆಸರಿನ ಬದಲಾಗಿ ಅಪ್‌ನಲ್ಲಿ ತೋರಿಸಲಾಗುತ್ತದೆ.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'ಸಾಧನದ ಹೆಸರು ನವೀಕರಿಸಲಾಗಿದೆ';
 }

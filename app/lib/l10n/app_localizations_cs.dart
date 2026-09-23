@@ -10016,4 +10016,16 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Vyberte mikrofon telefonu nebo připojené zařízení.';
+
+  @override
+  String get deviceAliasTitle => 'Vlastní název';
+
+  @override
+  String get deviceAliasDescription => 'Zobrazí se v aplikaci místo výchozího názvu zařízení.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Název zařízení aktualizován';
 }

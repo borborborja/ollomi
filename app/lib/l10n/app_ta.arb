@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "பொத்தானை மறை",
     "activeCaptureButtonHideDescription": "பதிவு நிற்கும் வரை முகப்பு பொத்தானை அகற்று.",
     "activeCaptureButtonSwitchSource": "ஆடியோ மூலத்தை மாற்று",
-    "activeCaptureButtonSwitchSourceDescription": "தொலைபேசி மைக்ரோஃபோன் அல்லது இணைக்கப்பட்ட சாதனத்தைத் தேர்ந்தெடுக்கவும்."
+    "activeCaptureButtonSwitchSourceDescription": "தொலைபேசி மைக்ரோஃபோன் அல்லது இணைக்கப்பட்ட சாதனத்தைத் தேர்ந்தெடுக்கவும்.",
+    "deviceAliasTitle": "தனிப்பயன் பெயர்",
+    "deviceAliasDescription": "சாதனத்தின் இயல்புநிலை பெயருக்கு பதிலாக ஆப்பில் காட்டப்படும்.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "சாதனத்தின் பெயர் புதுப்பிக்கப்பட்டது"
 }

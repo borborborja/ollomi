@@ -10065,4 +10065,16 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'ఫోన్ మైక్రోఫోన్ లేదా కనెక్ట్ చేసిన పరికరాన్ని ఎంచుకోండి.';
+
+  @override
+  String get deviceAliasTitle => 'కస్టమ్ పేరు';
+
+  @override
+  String get deviceAliasDescription => 'పరికరం యొక్క డిఫాల్ట్ పేరుకు బదులుగా యాప్‌లో చూపబడుతుంది.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'పరికరం పేరు నవీకరించబడింది';
 }

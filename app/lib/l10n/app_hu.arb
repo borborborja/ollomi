@@ -3364,5 +3364,9 @@
     "activeCaptureButtonHide": "Gomb elrejtése",
     "activeCaptureButtonHideDescription": "A kezdőképernyő gombjának eltávolítása a felvétel leállításáig.",
     "activeCaptureButtonSwitchSource": "Hangforrás módosítása",
-    "activeCaptureButtonSwitchSourceDescription": "Válassz a telefon mikrofonja és a csatlakoztatott eszköz között."
+    "activeCaptureButtonSwitchSourceDescription": "Válassz a telefon mikrofonja és a csatlakoztatott eszköz között.",
+    "deviceAliasTitle": "Egyéni név",
+    "deviceAliasDescription": "Az alkalmazásban az eszköz alapértelmezett neve helyett jelenik meg.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Eszköznév frissítve"
 }

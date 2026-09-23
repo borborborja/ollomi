@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Nascondi il pulsante",
     "activeCaptureButtonHideDescription": "Rimuove il pulsante Home finché la registrazione non termina.",
     "activeCaptureButtonSwitchSource": "Cambia sorgente audio",
-    "activeCaptureButtonSwitchSourceDescription": "Scegli tra il microfono del telefono e il dispositivo connesso."
+    "activeCaptureButtonSwitchSourceDescription": "Scegli tra il microfono del telefono e il dispositivo connesso.",
+    "deviceAliasTitle": "Nome personalizzato",
+    "deviceAliasDescription": "Mostrato nell'app al posto del nome predefinito del dispositivo.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Nome del dispositivo aggiornato"
 }

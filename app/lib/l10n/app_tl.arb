@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "Itago ang button",
     "activeCaptureButtonHideDescription": "Alisin ang home button hanggang huminto ang recording.",
     "activeCaptureButtonSwitchSource": "Palitan ang audio source",
-    "activeCaptureButtonSwitchSourceDescription": "Pumili sa mikropono ng telepono o nakakonektang device."
+    "activeCaptureButtonSwitchSourceDescription": "Pumili sa mikropono ng telepono o nakakonektang device.",
+    "deviceAliasTitle": "Custom na pangalan",
+    "deviceAliasDescription": "Ipinapakita sa app sa halip na ang default na pangalan ng device.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Na-update ang pangalan ng device"
 }

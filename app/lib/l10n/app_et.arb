@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Peida nupp",
     "activeCaptureButtonHideDescription": "Eemalda avalehe nupp kuni salvestamise lõpuni.",
     "activeCaptureButtonSwitchSource": "Muuda heliallikat",
-    "activeCaptureButtonSwitchSourceDescription": "Vali telefoni mikrofoni ja ühendatud seadme vahel."
+    "activeCaptureButtonSwitchSourceDescription": "Vali telefoni mikrofoni ja ühendatud seadme vahel.",
+    "deviceAliasTitle": "Kohandatud nimi",
+    "deviceAliasDescription": "Kuvatakse rakenduses seadme vaikenime asemel.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Seadme nimi värskendatud"
 }

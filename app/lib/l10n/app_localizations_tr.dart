@@ -10028,4 +10028,16 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Telefon mikrofonu veya bağlı cihaz arasında seçim yapın.';
+
+  @override
+  String get deviceAliasTitle => 'Özel ad';
+
+  @override
+  String get deviceAliasDescription => 'Cihazın varsayılan adı yerine uygulamada gösterilir.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Cihaz adı güncellendi';
 }

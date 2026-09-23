@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Knop verbergen",
     "activeCaptureButtonHideDescription": "Verwijder de startknop totdat de opname stopt.",
     "activeCaptureButtonSwitchSource": "Audiobron wijzigen",
-    "activeCaptureButtonSwitchSourceDescription": "Kies tussen de microfoon van de telefoon en het verbonden apparaat."
+    "activeCaptureButtonSwitchSourceDescription": "Kies tussen de microfoon van de telefoon en het verbonden apparaat.",
+    "deviceAliasTitle": "Aangepaste naam",
+    "deviceAliasDescription": "Wordt in de app weergegeven in plaats van de standaardnaam van het apparaat.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Apparaatnaam bijgewerkt"
 }

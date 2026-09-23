@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Απόκρυψη κουμπιού",
     "activeCaptureButtonHideDescription": "Αφαιρεί το κουμπί αρχικής οθόνης μέχρι να σταματήσει η εγγραφή.",
     "activeCaptureButtonSwitchSource": "Αλλαγή πηγής ήχου",
-    "activeCaptureButtonSwitchSourceDescription": "Επιλέξτε το μικρόφωνο του τηλεφώνου ή τη συνδεδεμένη συσκευή."
+    "activeCaptureButtonSwitchSourceDescription": "Επιλέξτε το μικρόφωνο του τηλεφώνου ή τη συνδεδεμένη συσκευή.",
+    "deviceAliasTitle": "Προσαρμοσμένο όνομα",
+    "deviceAliasDescription": "Εμφανίζεται στην εφαρμογή αντί για το προεπιλεγμένο όνομα της συσκευής.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Το όνομα της συσκευής ενημερώθηκε"
 }

@@ -10018,4 +10018,16 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Valitse puhelimen mikrofoni tai yhdistetty laite.';
+
+  @override
+  String get deviceAliasTitle => 'Mukautettu nimi';
+
+  @override
+  String get deviceAliasDescription => 'Näytetään sovelluksessa laitteen oletusnimen sijaan.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Laitteen nimi päivitetty';
 }

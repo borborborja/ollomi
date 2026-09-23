@@ -10054,4 +10054,16 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'Изберете между микрофона на телефона и свързаното устройство.';
+
+  @override
+  String get deviceAliasTitle => 'Персонализирано име';
+
+  @override
+  String get deviceAliasDescription => 'Показва се в приложението вместо името на устройството по подразбиране.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Името на устройството е обновено';
 }

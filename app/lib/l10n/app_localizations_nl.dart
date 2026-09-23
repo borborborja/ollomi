@@ -10044,4 +10044,16 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'Kies tussen de microfoon van de telefoon en het verbonden apparaat.';
+
+  @override
+  String get deviceAliasTitle => 'Aangepaste naam';
+
+  @override
+  String get deviceAliasDescription => 'Wordt in de app weergegeven in plaats van de standaardnaam van het apparaat.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Apparaatnaam bijgewerkt';
 }

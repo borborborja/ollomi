@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Ascunde butonul",
     "activeCaptureButtonHideDescription": "Elimină butonul principal până când înregistrarea se oprește.",
     "activeCaptureButtonSwitchSource": "Schimbă sursa audio",
-    "activeCaptureButtonSwitchSourceDescription": "Alege între microfonul telefonului și dispozitivul conectat."
+    "activeCaptureButtonSwitchSourceDescription": "Alege între microfonul telefonului și dispozitivul conectat.",
+    "deviceAliasTitle": "Nume personalizat",
+    "deviceAliasDescription": "Afișat în aplicație în locul numelui implicit al dispozitivului.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Numele dispozitivului a fost actualizat"
 }

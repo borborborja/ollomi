@@ -10058,4 +10058,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'Válassz a telefon mikrofonja és a csatlakoztatott eszköz között.';
+
+  @override
+  String get deviceAliasTitle => 'Egyéni név';
+
+  @override
+  String get deviceAliasDescription => 'Az alkalmazásban az eszköz alapértelmezett neve helyett jelenik meg.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Eszköznév frissítve';
 }

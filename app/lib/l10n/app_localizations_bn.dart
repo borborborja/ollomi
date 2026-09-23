@@ -10021,4 +10021,16 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'ফোনের মাইক্রোফোন বা সংযুক্ত ডিভাইস বেছে নিন।';
+
+  @override
+  String get deviceAliasTitle => 'কাস্টম নাম';
+
+  @override
+  String get deviceAliasDescription => 'ডিভাইসের ডিফল্ট নামের বদলে অ্যাপে দেখানো হয়।';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'ডিভাইসের নাম আপডেট হয়েছে';
 }

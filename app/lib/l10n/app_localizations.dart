@@ -18650,6 +18650,14 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose between the phone microphone and the connected device.'**
   String get activeCaptureButtonSwitchSourceDescription;
+
+  String get deviceAliasTitle;
+
+  String get deviceAliasDescription;
+
+  String get deviceAliasHint;
+
+  String get deviceAliasSaved;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
