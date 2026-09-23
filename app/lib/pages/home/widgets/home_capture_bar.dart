@@ -155,7 +155,7 @@ class _HomeCaptureBarState extends State<HomeCaptureBar> {
   @override
   Widget build(BuildContext context) {
     return Consumer3<CaptureProvider, DeviceProvider, ConnectivityProvider>(
-      builder: (context, captureProvider, deviceProvider, connectivity) {
+      builder: (context, captureProvider, deviceProvider, connectivity, child) {
         final continuous = SharedPreferencesUtil().continuousCaptureEnabled;
         final isRecording = captureProvider.isCaptureActive;
         final isInitialising = captureProvider.recordingState == RecordingState.initialising;
