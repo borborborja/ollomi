@@ -10029,4 +10029,39 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Încă se procesează — durează mai mult decât de obicei.';
+
+  @override
+  String get captureNoSpeechDetected => 'Nu a fost detectată încă vorbire';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Transcrierea live nu este disponibilă — sunetul continuă să fie înregistrat';
+
+  @override
+  String get captureTranscriptionDelayed => 'Sunet primit — transcrierea este întârziată';
+
+  @override
+  String get activeCaptureButtonTitle => 'Buton în timpul înregistrării';
+
+  @override
+  String get activeCaptureButtonDescription => 'Alege ce face butonul principal cât timp o înregistrare este activă.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Deschide înregistrarea activă';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Arată sursa curentă, activitatea audio și transcrierea.';
+
+  @override
+  String get activeCaptureButtonHide => 'Ascunde butonul';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Elimină butonul principal până când înregistrarea se oprește.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Schimbă sursa audio';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'Alege între microfonul telefonului și dispozitivul conectat.';
 }

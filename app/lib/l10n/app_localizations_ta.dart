@@ -10052,4 +10052,40 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'இன்னும் செயல்படுகிறது — இது வழக்கத்தை விட அதிக நேரம் எடுக்கிறது.';
+
+  @override
+  String get captureNoSpeechDetected => 'இன்னும் பேச்சு கண்டறியப்படவில்லை';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'நேரடி உரைமாற்றம் கிடைக்கவில்லை — ஆடியோ தொடர்ந்து பதிவு செய்யப்படுகிறது';
+
+  @override
+  String get captureTranscriptionDelayed => 'ஆடியோ பெறப்பட்டது — உரைமாற்றம் தாமதமாகிறது';
+
+  @override
+  String get activeCaptureButtonTitle => 'பதிவின்போது பொத்தான்';
+
+  @override
+  String get activeCaptureButtonDescription =>
+      'பதிவு செயலில் இருக்கும்போது முகப்பு பொத்தான் என்ன செய்ய வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get activeCaptureButtonOpen => 'செயலில் உள்ள பதிவைத் திற';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'தற்போதைய மூலம், ஆடியோ செயல்பாடு மற்றும் உரைமாற்றத்தைக் காட்டு.';
+
+  @override
+  String get activeCaptureButtonHide => 'பொத்தானை மறை';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'பதிவு நிற்கும் வரை முகப்பு பொத்தானை அகற்று.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'ஆடியோ மூலத்தை மாற்று';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'தொலைபேசி மைக்ரோஃபோன் அல்லது இணைக்கப்பட்ட சாதனத்தைத் தேர்ந்தெடுக்கவும்.';
 }

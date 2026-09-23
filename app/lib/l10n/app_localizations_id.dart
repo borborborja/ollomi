@@ -9992,4 +9992,38 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Masih diproses — ini memakan waktu lebih lama dari biasanya.';
+
+  @override
+  String get captureNoSpeechDetected => 'Belum ada ucapan yang terdeteksi';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Transkripsi langsung tidak tersedia — audio masih direkam';
+
+  @override
+  String get captureTranscriptionDelayed => 'Audio diterima — transkripsi tertunda';
+
+  @override
+  String get activeCaptureButtonTitle => 'Tombol saat merekam';
+
+  @override
+  String get activeCaptureButtonDescription => 'Pilih fungsi tombol beranda saat perekaman aktif.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Buka rekaman aktif';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Tampilkan sumber saat ini, aktivitas audio, dan transkrip.';
+
+  @override
+  String get activeCaptureButtonHide => 'Sembunyikan tombol';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Hapus tombol beranda hingga perekaman berhenti.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Ubah sumber audio';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Pilih mikrofon ponsel atau perangkat yang terhubung.';
 }

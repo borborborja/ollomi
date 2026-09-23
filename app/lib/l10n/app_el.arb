@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "Η μετατροπή ομιλίας σε κείμενο δεν είναι διαθέσιμη αυτή τη στιγμή. Ελέγξτε τη σύνδεσή σας στο διαδίκτυο και τις ρυθμίσεις αναγνώρισης ομιλίας της συσκευής σας και δοκιμάστε ξανά.",
     "memoryHistoryPartial": "Ένα μέρος του ιστορικού αναμνήσεων δεν είναι διαθέσιμο. Εμφανίζεται το ιστορικό που έχει ληφθεί μέχρι τώρα.",
     "tapPlusToStartRecording": "Πατήστε + για να ξεκινήσετε την εγγραφή",
-    "processingTakingLonger": "Ακόμα σε εξέλιξη — χρειάζεται περισσότερο χρόνο από το συνηθισμένο."
+    "processingTakingLonger": "Ακόμα σε εξέλιξη — χρειάζεται περισσότερο χρόνο από το συνηθισμένο.",
+    "captureNoSpeechDetected": "Δεν εντοπίστηκε ακόμη ομιλία",
+    "captureTranscriptionUnavailableRecordingContinues": "Η ζωντανή μεταγραφή δεν είναι διαθέσιμη — η εγγραφή ήχου συνεχίζεται",
+    "captureTranscriptionDelayed": "Ο ήχος λήφθηκε — η μεταγραφή καθυστερεί",
+    "activeCaptureButtonTitle": "Κουμπί κατά την εγγραφή",
+    "activeCaptureButtonDescription": "Επιλέξτε τι κάνει το κουμπί αρχικής οθόνης ενώ μια εγγραφή είναι ενεργή.",
+    "activeCaptureButtonOpen": "Άνοιγμα ενεργής εγγραφής",
+    "activeCaptureButtonOpenDescription": "Εμφανίζει την τρέχουσα πηγή, τη δραστηριότητα ήχου και τη μεταγραφή.",
+    "activeCaptureButtonHide": "Απόκρυψη κουμπιού",
+    "activeCaptureButtonHideDescription": "Αφαιρεί το κουμπί αρχικής οθόνης μέχρι να σταματήσει η εγγραφή.",
+    "activeCaptureButtonSwitchSource": "Αλλαγή πηγής ήχου",
+    "activeCaptureButtonSwitchSourceDescription": "Επιλέξτε το μικρόφωνο του τηλεφώνου ή τη συνδεδεμένη συσκευή."
 }

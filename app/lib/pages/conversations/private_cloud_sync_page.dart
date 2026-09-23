@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:omi/providers/user_provider.dart';
 import 'package:omi/utils/error_message.dart';
 import 'package:omi/utils/l10n_extensions.dart';
+import 'package:omi/utils/logger.dart';
 
 class PrivateCloudSyncPage extends StatefulWidget {
   const PrivateCloudSyncPage({super.key});
@@ -37,7 +38,7 @@ class _PrivateCloudSyncPageState extends State<PrivateCloudSyncPage> {
         ),
       );
     } catch (e) {
-      print('Error toggling cloud storage: $e');
+      Logger.error('Error toggling server audio storage: $e');
       if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,7 +70,7 @@ class _PrivateCloudSyncPageState extends State<PrivateCloudSyncPage> {
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(
               context.l10n.enable,
-              style: const TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.w600),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -124,7 +125,7 @@ class _PrivateCloudSyncPageState extends State<PrivateCloudSyncPage> {
                           children: [
                             Row(
                               children: [
-                                _buildFaIcon(FontAwesomeIcons.cloud, size: 20, color: Colors.deepPurpleAccent),
+                                _buildFaIcon(FontAwesomeIcons.server, size: 20, color: Colors.white),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
@@ -177,7 +178,7 @@ class _PrivateCloudSyncPageState extends State<PrivateCloudSyncPage> {
                                   child: CupertinoSwitch(
                                     value: isEnabled,
                                     onChanged: _isSaving ? null : _togglePrivateCloudSync,
-                                    activeTrackColor: Colors.deepPurpleAccent,
+                                    activeTrackColor: const Color(0xFFFE5D50),
                                   ),
                                 ),
                               ],

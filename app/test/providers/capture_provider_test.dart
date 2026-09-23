@@ -21,6 +21,7 @@ import 'package:omi/app_globals.dart';
 import 'package:omi/models/custom_stt_config.dart';
 import 'package:omi/models/stt_provider.dart';
 import 'package:omi/providers/capture_provider.dart';
+import 'package:omi/services/capture/capture_controller.dart';
 import 'package:omi/services/capture/capture_external_actions.dart';
 import 'package:omi/services/capture/conversation_location_capture.dart';
 import 'package:omi/services/capture/recording_lifecycle_telemetry.dart';
@@ -926,6 +927,8 @@ void main() {
         'provider': 'parakeet',
         'retryable': true,
         'reason': 'send_failed',
+        'source': 'omi',
+        'audio_level': 0.42,
       });
 
       expect(legacy.outcome, isNull);
@@ -933,6 +936,50 @@ void main() {
       expect(failed.provider, 'parakeet');
       expect(failed.retryable, isTrue);
       expect(failed.reason, 'send_failed');
+      expect(failed.source, 'omi');
+      expect(failed.audioLevel, 0.42);
+    });
+
+    test('maps CV1 backend acknowledgements to truthful capture stages', () {
+      final provider = CaptureProvider();
+      provider.updateRecordingDevice(
+        BtDevice(
+          id: 'cv1',
+          name: 'Omi',
+          type: DeviceType.omi,
+          rssi: -42,
+          modelNumber: 'Omi CV 1',
+        ),
+      );
+      provider.updateRecordingState(RecordingState.deviceRecord);
+      provider.onConnected();
+
+      provider.onMessageEventReceived(MessageServiceStatusEvent(status: 'ready', source: 'omi'));
+      expect(provider.captureUiState.stage, CaptureUiStage.waitingForAudio);
+      expect(provider.captureUiState.deviceName, 'Omi CV1');
+
+      provider.onMessageEventReceived(
+        MessageServiceStatusEvent(status: 'audio_received', source: 'omi', audioLevel: 0.35),
+      );
+      expect(provider.captureUiState.stage, CaptureUiStage.receivingAudio);
+      expect(provider.captureUiState.audioLevel, 0.35);
+      expect(provider.captureUiState.serverSource, 'omi');
+
+      provider.onMessageEventReceived(MessageServiceStatusEvent(status: 'transcribing', source: 'omi'));
+      expect(provider.captureUiState.stage, CaptureUiStage.transcribing);
+
+      provider.onMessageEventReceived(MessageServiceStatusEvent(status: 'no_speech', source: 'omi'));
+      expect(provider.captureUiState.stage, CaptureUiStage.noSpeech);
+
+      provider.onMessageEventReceived(
+        MessageServiceStatusEvent(status: 'live_stt_unavailable', source: 'omi', retryable: true),
+      );
+      expect(provider.captureUiState.stage, CaptureUiStage.transcriptionUnavailable);
+
+      provider.onClosed();
+      expect(provider.captureUiState.stage, CaptureUiStage.reconnecting);
+      provider.updateRecordingState(RecordingState.stop);
+      provider.dispose();
     });
   });
 

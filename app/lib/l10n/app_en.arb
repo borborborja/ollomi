@@ -5712,27 +5712,27 @@
     "@enableLocalStorage": {
         "description": "enableLocalStorage label"
     },
-    "cloudStorageEnabled": "Cloud storage enabled",
+    "cloudStorageEnabled": "Audio storage on the Ollomi server enabled",
     "@cloudStorageEnabled": {
         "description": "cloudStorageEnabled label"
     },
-    "cloudStorageDisabled": "Cloud storage disabled",
+    "cloudStorageDisabled": "Audio storage on the Ollomi server disabled",
     "@cloudStorageDisabled": {
         "description": "cloudStorageDisabled label"
     },
-    "enableCloudStorage": "Enable Cloud Storage",
+    "enableCloudStorage": "Store audio on the Ollomi server",
     "@enableCloudStorage": {
         "description": "enableCloudStorage label"
     },
-    "storeAudioOnCloud": "Store Audio on Cloud",
+    "storeAudioOnCloud": "Store audio on the Ollomi server",
     "@storeAudioOnCloud": {
         "description": "Settings label for storing audio on cloud"
     },
-    "cloudStorageDialogMessage": "Your real-time recordings will be stored in private cloud storage as you speak.",
+    "cloudStorageDialogMessage": "New audio from Omi, the phone microphone, SD card sync, and imports will remain stored on this Ollomi server until you delete it or the server retention policy expires it.",
     "@cloudStorageDialogMessage": {
         "description": "cloudStorageDialogMessage label"
     },
-    "storeAudioCloudDescription": "Store your real-time recordings in private cloud storage as you speak. Audio is captured and saved securely in real-time.",
+    "storeAudioCloudDescription": "Applies to Omi, the phone microphone, SD card sync, and imports. When off, Ollomi processes new audio and deletes the server copy after successful transcription.",
     "@storeAudioCloudDescription": {
         "description": "storeAudioCloudDescription label"
     },
@@ -11829,5 +11829,16 @@
     "processingTakingLonger": "Still working — this is taking longer than usual.",
     "@processingTakingLonger": {
         "description": "Shown on the homepage processing card after ~2 minutes with a Retry action (#5481)."
-    }
+    },
+    "captureNoSpeechDetected": "No speech detected yet",
+    "captureTranscriptionUnavailableRecordingContinues": "Live transcription unavailable — audio is still being recorded",
+    "captureTranscriptionDelayed": "Audio received — transcription is delayed",
+    "activeCaptureButtonTitle": "Button while recording",
+    "activeCaptureButtonDescription": "Choose what the home button does while a recording is active.",
+    "activeCaptureButtonOpen": "Open active recording",
+    "activeCaptureButtonOpenDescription": "Show the current source, audio activity, and transcript.",
+    "activeCaptureButtonHide": "Hide the button",
+    "activeCaptureButtonHideDescription": "Remove the home button until recording stops.",
+    "activeCaptureButtonSwitchSource": "Change audio source",
+    "activeCaptureButtonSwitchSourceDescription": "Choose between the phone microphone and the connected device."
 }

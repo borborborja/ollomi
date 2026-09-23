@@ -42,7 +42,7 @@ contenedores:
 
 ```bash
 sed -i '/^OLLOMI_ADMIN_PASSWORD=/d' .env
-docker compose up -d --force-recreate migrate ollomi-api worker scheduler
+docker compose up -d --force-recreate ollomi-api worker scheduler
 ```
 
 Para acceso público, configure primero un DNS que resuelva al servidor y abra
@@ -67,10 +67,14 @@ operativos; si se activa sin `OLLOMI_TLS_DOMAIN`, Caddy se detendrá con un
 error en lugar de exponer un certificado o dominio implícito. No use una IP
 pública ni HTTP para MCP OAuth.
 
-`OLLOMI_IMAGE_TAG` debe estar fijado a una release revisada para que las
-actualizaciones sean deliberadas. Cambie la etiqueta, ejecute `docker compose
-pull` y después `docker compose up -d`. No use `docker compose down -v`, porque
-`-v` elimina la base de datos y los audios.
+`OLLOMI_IMAGE_TAG=vX.Y.Z` fija una release concreta.
+Si usa Dockge y quiere actualizar con su botón **Actualizar**, cambie una sola
+vez `OLLOMI_IMAGE_TAG=stable` y adopte este Compose sin el servicio `migrate`.
+Pulse **Deploy** una vez para retirar el antiguo contenedor de migración.
+Después, cada nueva release validada avanzará `stable` y **Actualizar** hará
+`pull` y `up` sin editar `.env`. La API ejecuta las migraciones antes de abrir
+el puerto; worker y scheduler esperan a que esté sana. No use `latest`, que
+sigue `main`, ni `docker compose down -v`, que borra base de datos y audios.
 
 Guarde copias fuera del servidor y compruebe periódicamente que restauran. El
 restaurador pide una confirmación explícita, verifica `SHA256SUMS` y exige el

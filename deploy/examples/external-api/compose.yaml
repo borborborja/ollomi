@@ -54,16 +54,9 @@ services:
     volumes: [search:/data]
     networks: [private]
 
-  migrate:
-    <<: *backend
-    restart: 'no'
-    command: [python, -m, selfhost.cli, migrate]
-
   ollomi-api:
     <<: *backend
     ports: ['${OLLOMI_BIND:-127.0.0.1}:${OLLOMI_PORT:-8090}:8080']
-    depends_on:
-      migrate: {condition: service_completed_successfully}
     healthcheck:
       test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health/ready")']
       interval: 15s
@@ -101,13 +94,13 @@ services:
     <<: *backend
     command: [celery, -A, selfhost.worker.celery, worker, --loglevel=INFO, --concurrency=2]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      ollomi-api: {condition: service_healthy}
 
   scheduler:
     <<: *backend
     command: [celery, -A, selfhost.worker.celery, beat, --loglevel=INFO, --schedule=/data/celerybeat]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      ollomi-api: {condition: service_healthy}
 
 networks:
   private:

@@ -9902,4 +9902,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'עדיין בעבודה — זה לוקח יותר זמן מהרגיל.';
+
+  @override
+  String get captureNoSpeechDetected => 'עדיין לא זוהה דיבור';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => 'התמלול החי אינו זמין — השמע עדיין מוקלט';
+
+  @override
+  String get captureTranscriptionDelayed => 'השמע התקבל — התמלול מתעכב';
+
+  @override
+  String get activeCaptureButtonTitle => 'כפתור בזמן הקלטה';
+
+  @override
+  String get activeCaptureButtonDescription => 'בחרו מה יעשה כפתור הבית בזמן שהקלטה פעילה.';
+
+  @override
+  String get activeCaptureButtonOpen => 'פתיחת ההקלטה הפעילה';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'הצגת המקור הנוכחי, פעילות השמע והתמלול.';
+
+  @override
+  String get activeCaptureButtonHide => 'הסתרת הכפתור';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'הסרת כפתור הבית עד שההקלטה נעצרת.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'שינוי מקור שמע';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'בחרו בין מיקרופון הטלפון למכשיר המחובר.';
 }

@@ -10010,4 +10010,38 @@ class AppLocalizationsBs extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Još traje — ovo traje duže nego inače.';
+
+  @override
+  String get captureNoSpeechDetected => 'Govor još nije otkriven';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Transkripcija uživo nije dostupna — zvuk se i dalje snima';
+
+  @override
+  String get captureTranscriptionDelayed => 'Zvuk je primljen — transkripcija kasni';
+
+  @override
+  String get activeCaptureButtonTitle => 'Dugme tokom snimanja';
+
+  @override
+  String get activeCaptureButtonDescription => 'Odaberite šta početno dugme radi dok je snimanje aktivno.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Otvori aktivno snimanje';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Prikaži trenutni izvor, aktivnost zvuka i transkript.';
+
+  @override
+  String get activeCaptureButtonHide => 'Sakrij dugme';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Ukloni početno dugme dok se snimanje ne zaustavi.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Promijeni izvor zvuka';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Odaberite mikrofon telefona ili povezani uređaj.';
 }

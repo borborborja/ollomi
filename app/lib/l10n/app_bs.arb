@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "Pretvaranje govora u tekst trenutno nije dostupno. Provjerite internetsku vezu i postavke prepoznavanja govora na uređaju, pa pokušajte ponovo.",
     "memoryHistoryPartial": "Dio historije sjećanja nije dostupan. Prikazuje se dosad primljena historija.",
     "tapPlusToStartRecording": "Dodirnite + za početak snimanja",
-    "processingTakingLonger": "Još traje — ovo traje duže nego inače."
+    "processingTakingLonger": "Još traje — ovo traje duže nego inače.",
+    "captureNoSpeechDetected": "Govor još nije otkriven",
+    "captureTranscriptionUnavailableRecordingContinues": "Transkripcija uživo nije dostupna — zvuk se i dalje snima",
+    "captureTranscriptionDelayed": "Zvuk je primljen — transkripcija kasni",
+    "activeCaptureButtonTitle": "Dugme tokom snimanja",
+    "activeCaptureButtonDescription": "Odaberite šta početno dugme radi dok je snimanje aktivno.",
+    "activeCaptureButtonOpen": "Otvori aktivno snimanje",
+    "activeCaptureButtonOpenDescription": "Prikaži trenutni izvor, aktivnost zvuka i transkript.",
+    "activeCaptureButtonHide": "Sakrij dugme",
+    "activeCaptureButtonHideDescription": "Ukloni početno dugme dok se snimanje ne zaustavi.",
+    "activeCaptureButtonSwitchSource": "Promijeni izvor zvuka",
+    "activeCaptureButtonSwitchSourceDescription": "Odaberite mikrofon telefona ili povezani uređaj."
 }

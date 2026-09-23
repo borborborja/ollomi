@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "பேச்சை உரையாக மாற்றும் வசதி தற்போது கிடைக்கவில்லை. உங்கள் இணைய இணைப்பையும் சாதனத்தின் பேச்சு அறிதல் அமைப்புகளையும் சரிபார்த்து, மீண்டும் முயற்சிக்கவும்.",
     "memoryHistoryPartial": "நினைவுகளின் வரலாற்றில் சில பகுதிகள் கிடைக்கவில்லை. இதுவரை பெறப்பட்ட வரலாறு காட்டப்படுகிறது.",
     "tapPlusToStartRecording": "பதிவைத் தொடங்க + ஐத் தட்டவும்",
-    "processingTakingLonger": "இன்னும் செயல்படுகிறது — இது வழக்கத்தை விட அதிக நேரம் எடுக்கிறது."
+    "processingTakingLonger": "இன்னும் செயல்படுகிறது — இது வழக்கத்தை விட அதிக நேரம் எடுக்கிறது.",
+    "captureNoSpeechDetected": "இன்னும் பேச்சு கண்டறியப்படவில்லை",
+    "captureTranscriptionUnavailableRecordingContinues": "நேரடி உரைமாற்றம் கிடைக்கவில்லை — ஆடியோ தொடர்ந்து பதிவு செய்யப்படுகிறது",
+    "captureTranscriptionDelayed": "ஆடியோ பெறப்பட்டது — உரைமாற்றம் தாமதமாகிறது",
+    "activeCaptureButtonTitle": "பதிவின்போது பொத்தான்",
+    "activeCaptureButtonDescription": "பதிவு செயலில் இருக்கும்போது முகப்பு பொத்தான் என்ன செய்ய வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும்.",
+    "activeCaptureButtonOpen": "செயலில் உள்ள பதிவைத் திற",
+    "activeCaptureButtonOpenDescription": "தற்போதைய மூலம், ஆடியோ செயல்பாடு மற்றும் உரைமாற்றத்தைக் காட்டு.",
+    "activeCaptureButtonHide": "பொத்தானை மறை",
+    "activeCaptureButtonHideDescription": "பதிவு நிற்கும் வரை முகப்பு பொத்தானை அகற்று.",
+    "activeCaptureButtonSwitchSource": "ஆடியோ மூலத்தை மாற்று",
+    "activeCaptureButtonSwitchSourceDescription": "தொலைபேசி மைக்ரோஃபோன் அல்லது இணைக்கப்பட்ட சாதனத்தைத் தேர்ந்தெடுக்கவும்."
 }

@@ -58,17 +58,11 @@ services:
     restart: unless-stopped
     volumes: [search:/data]
     networks: [private]
-  migrate:
-    <<: *backend
-    restart: 'no'
-    command: [python, -m, selfhost.cli, migrate]
   api:
     <<: *backend
     networks:
       private:
         aliases: [ollomi-api]
-    depends_on:
-      migrate: {condition: service_completed_successfully}
     healthcheck:
       test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health/ready")']
       interval: 15s
@@ -78,12 +72,12 @@ services:
     <<: *backend
     command: [celery, -A, selfhost.worker.celery, worker, --loglevel=INFO, --concurrency=2]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      api: {condition: service_healthy}
   scheduler:
     <<: *backend
     command: [celery, -A, selfhost.worker.celery, beat, --loglevel=INFO, --schedule=/data/celerybeat]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      api: {condition: service_healthy}
   stt:
     build:
       context: services/speech

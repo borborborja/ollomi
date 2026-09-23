@@ -9987,4 +9987,38 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'এখনও কাজ চলছে — এটি স্বাভাবিকের চেয়ে বেশি সময় নিচ্ছে।';
+
+  @override
+  String get captureNoSpeechDetected => 'এখনও কোনো কথা শনাক্ত হয়নি';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'লাইভ ট্রান্সক্রিপশন অনুপলব্ধ — অডিও এখনও রেকর্ড হচ্ছে';
+
+  @override
+  String get captureTranscriptionDelayed => 'অডিও পাওয়া গেছে — ট্রান্সক্রিপশন বিলম্বিত';
+
+  @override
+  String get activeCaptureButtonTitle => 'রেকর্ডিংয়ের সময় বোতাম';
+
+  @override
+  String get activeCaptureButtonDescription => 'রেকর্ডিং সক্রিয় থাকলে হোম বোতাম কী করবে তা বেছে নিন।';
+
+  @override
+  String get activeCaptureButtonOpen => 'সক্রিয় রেকর্ডিং খুলুন';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'বর্তমান উৎস, অডিও কার্যকলাপ ও ট্রান্সক্রিপ্ট দেখুন।';
+
+  @override
+  String get activeCaptureButtonHide => 'বোতাম লুকান';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'রেকর্ডিং বন্ধ না হওয়া পর্যন্ত হোম বোতাম সরিয়ে রাখুন।';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'অডিও উৎস পরিবর্তন করুন';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'ফোনের মাইক্রোফোন বা সংযুক্ত ডিভাইস বেছে নিন।';
 }

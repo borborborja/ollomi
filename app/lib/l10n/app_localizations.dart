@@ -9204,37 +9204,37 @@ abstract class AppLocalizations {
   /// cloudStorageEnabled label
   ///
   /// In en, this message translates to:
-  /// **'Cloud storage enabled'**
+  /// **'Audio storage on the Ollomi server enabled'**
   String get cloudStorageEnabled;
 
   /// cloudStorageDisabled label
   ///
   /// In en, this message translates to:
-  /// **'Cloud storage disabled'**
+  /// **'Audio storage on the Ollomi server disabled'**
   String get cloudStorageDisabled;
 
   /// enableCloudStorage label
   ///
   /// In en, this message translates to:
-  /// **'Enable Cloud Storage'**
+  /// **'Store audio on the Ollomi server'**
   String get enableCloudStorage;
 
   /// Settings label for storing audio on cloud
   ///
   /// In en, this message translates to:
-  /// **'Store Audio on Cloud'**
+  /// **'Store audio on the Ollomi server'**
   String get storeAudioOnCloud;
 
   /// cloudStorageDialogMessage label
   ///
   /// In en, this message translates to:
-  /// **'Your real-time recordings will be stored in private cloud storage as you speak.'**
+  /// **'New audio from Omi, the phone microphone, SD card sync, and imports will remain stored on this Ollomi server until you delete it or the server retention policy expires it.'**
   String get cloudStorageDialogMessage;
 
   /// storeAudioCloudDescription label
   ///
   /// In en, this message translates to:
-  /// **'Store your real-time recordings in private cloud storage as you speak. Audio is captured and saved securely in real-time.'**
+  /// **'Applies to Omi, the phone microphone, SD card sync, and imports. When off, Ollomi processes new audio and deletes the server copy after successful transcription.'**
   String get storeAudioCloudDescription;
 
   /// Status text shown while downloading firmware
@@ -18584,6 +18584,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Still working — this is taking longer than usual.'**
   String get processingTakingLonger;
+
+  /// No description provided for @captureNoSpeechDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'No speech detected yet'**
+  String get captureNoSpeechDetected;
+
+  /// No description provided for @captureTranscriptionUnavailableRecordingContinues.
+  ///
+  /// In en, this message translates to:
+  /// **'Live transcription unavailable — audio is still being recorded'**
+  String get captureTranscriptionUnavailableRecordingContinues;
+
+  /// No description provided for @captureTranscriptionDelayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio received — transcription is delayed'**
+  String get captureTranscriptionDelayed;
+
+  /// No description provided for @activeCaptureButtonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Button while recording'**
+  String get activeCaptureButtonTitle;
+
+  /// No description provided for @activeCaptureButtonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what the home button does while a recording is active.'**
+  String get activeCaptureButtonDescription;
+
+  /// No description provided for @activeCaptureButtonOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open active recording'**
+  String get activeCaptureButtonOpen;
+
+  /// No description provided for @activeCaptureButtonOpenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the current source, audio activity, and transcript.'**
+  String get activeCaptureButtonOpenDescription;
+
+  /// No description provided for @activeCaptureButtonHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the button'**
+  String get activeCaptureButtonHide;
+
+  /// No description provided for @activeCaptureButtonHideDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the home button until recording stops.'**
+  String get activeCaptureButtonHideDescription;
+
+  /// No description provided for @activeCaptureButtonSwitchSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Change audio source'**
+  String get activeCaptureButtonSwitchSource;
+
+  /// No description provided for @activeCaptureButtonSwitchSourceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose between the phone microphone and the connected device.'**
+  String get activeCaptureButtonSwitchSourceDescription;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

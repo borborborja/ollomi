@@ -9923,4 +9923,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'ما زال قيد العمل — يستغرق وقتًا أطول من المعتاد.';
+
+  @override
+  String get captureNoSpeechDetected => 'لم يتم اكتشاف كلام بعد';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => 'النسخ المباشر غير متاح — ما زال الصوت قيد التسجيل';
+
+  @override
+  String get captureTranscriptionDelayed => 'تم استلام الصوت — النسخ متأخر';
+
+  @override
+  String get activeCaptureButtonTitle => 'الزر أثناء التسجيل';
+
+  @override
+  String get activeCaptureButtonDescription => 'اختر ما يفعله زر الصفحة الرئيسية أثناء نشاط التسجيل.';
+
+  @override
+  String get activeCaptureButtonOpen => 'فتح التسجيل النشط';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'عرض المصدر الحالي ونشاط الصوت والنص.';
+
+  @override
+  String get activeCaptureButtonHide => 'إخفاء الزر';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'إزالة زر الصفحة الرئيسية حتى يتوقف التسجيل.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'تغيير مصدر الصوت';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'اختر بين ميكروفون الهاتف والجهاز المتصل.';
 }

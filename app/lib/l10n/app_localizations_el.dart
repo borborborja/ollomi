@@ -10052,4 +10052,41 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Ακόμα σε εξέλιξη — χρειάζεται περισσότερο χρόνο από το συνηθισμένο.';
+
+  @override
+  String get captureNoSpeechDetected => 'Δεν εντοπίστηκε ακόμη ομιλία';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Η ζωντανή μεταγραφή δεν είναι διαθέσιμη — η εγγραφή ήχου συνεχίζεται';
+
+  @override
+  String get captureTranscriptionDelayed => 'Ο ήχος λήφθηκε — η μεταγραφή καθυστερεί';
+
+  @override
+  String get activeCaptureButtonTitle => 'Κουμπί κατά την εγγραφή';
+
+  @override
+  String get activeCaptureButtonDescription =>
+      'Επιλέξτε τι κάνει το κουμπί αρχικής οθόνης ενώ μια εγγραφή είναι ενεργή.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Άνοιγμα ενεργής εγγραφής';
+
+  @override
+  String get activeCaptureButtonOpenDescription =>
+      'Εμφανίζει την τρέχουσα πηγή, τη δραστηριότητα ήχου και τη μεταγραφή.';
+
+  @override
+  String get activeCaptureButtonHide => 'Απόκρυψη κουμπιού';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Αφαιρεί το κουμπί αρχικής οθόνης μέχρι να σταματήσει η εγγραφή.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Αλλαγή πηγής ήχου';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'Επιλέξτε το μικρόφωνο του τηλεφώνου ή τη συνδεδεμένη συσκευή.';
 }

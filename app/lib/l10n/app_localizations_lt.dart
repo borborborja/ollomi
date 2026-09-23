@@ -10001,4 +10001,38 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Vis dar vyksta — tai užtrunka ilgiau nei įprasta.';
+
+  @override
+  String get captureNoSpeechDetected => 'Kalba dar neaptikta';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Tiesioginė transkripcija nepasiekiama — garsas vis dar įrašomas';
+
+  @override
+  String get captureTranscriptionDelayed => 'Garsas gautas — transkripcija vėluoja';
+
+  @override
+  String get activeCaptureButtonTitle => 'Mygtukas įrašymo metu';
+
+  @override
+  String get activeCaptureButtonDescription => 'Pasirinkite, ką pradžios mygtukas daro aktyvaus įrašymo metu.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Atidaryti aktyvų įrašą';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Rodyti dabartinį šaltinį, garso aktyvumą ir transkripciją.';
+
+  @override
+  String get activeCaptureButtonHide => 'Slėpti mygtuką';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Pašalinti pradžios mygtuką, kol įrašymas sustos.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Keisti garso šaltinį';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Pasirinkite telefono mikrofoną arba prijungtą įrenginį.';
 }

@@ -44,7 +44,7 @@ El primer arranque crea `OLLOMI_ADMIN_EMAIL` con
 la contraseña de `.env` y recree los servicios que la reciben:
 
 ```bash
-docker compose up -d --force-recreate migrate api worker scheduler
+docker compose up -d --force-recreate api worker scheduler
 ```
 
 La plantilla mantiene MCP desactivado. Para MCP con OAuth, primero configure
@@ -102,12 +102,12 @@ docker compose config --quiet
 El administrador se crea durante el primer arranque. El seed es idempotente: si el correo ya existe no cambia su contraseña, rol ni otros datos. Después de iniciar sesión correctamente, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y retire la variable del contenedor:
 
 ```bash
-docker compose up -d --force-recreate migrate api worker scheduler
+docker compose up -d --force-recreate api worker scheduler
 curl "http://127.0.0.1:$(sed -n 's/^OLLOMI_PORT=//p' .env)/health"
 docker compose ps
 ```
 
-La respuesta de salud debe ser `{"status":"ok"}`. `migrate` termina con código 0; los demás servicios permanecen activos. El backend y el worker usan la misma imagen `ollomi-backend`; `ollomi-speech` contiene el servidor compatible con la API de transcripción de OpenAI. PostgreSQL, Redis, Typesense y Ollama usan sus imágenes oficiales fijadas en `compose.yaml`.
+La respuesta de salud debe ser `{"status":"ok"}`. La API aplica las migraciones antes de servir peticiones; worker y scheduler esperan a que su comprobación de salud pase. Los tres usan la misma imagen `ollomi-backend`; `ollomi-speech` solo es necesario si ejecuta Whisper localmente. PostgreSQL, Redis, Typesense y Ollama usan sus imágenes oficiales fijadas en `compose.yaml`.
 
 ### Compose autónomo con solo APIs externas
 
@@ -125,7 +125,7 @@ docker compose pull
 docker compose up -d
 ```
 
-La imagen queda fijada por `OLLOMI_IMAGE_OWNER` y `OLLOMI_IMAGE_TAG`; use una etiqueta de release del mismo fork que haya pasado las puertas de validación. No use `latest` como sustituto de una release revisada. El Compose conserva localmente PostgreSQL/pgvector, Redis, Typesense y los audios: solo salen del servidor las peticiones de inferencia configuradas.
+La imagen queda fijada por `OLLOMI_IMAGE_OWNER` y `OLLOMI_IMAGE_TAG`; use una etiqueta de release del mismo fork que haya pasado las puertas de validación. En Dockge puede elegir `stable` para actualizar con un clic tras la migración única descrita abajo. No use `latest`: sigue `main`, no las releases validadas. El Compose conserva localmente PostgreSQL/pgvector, Redis, Typesense y los audios: solo salen del servidor las peticiones de inferencia configuradas.
 
 El mismo Compose externo incorpora el perfil opcional `public-tls`: con un DNS público, puertos 80/443 abiertos y las variables `OLLOMI_TLS_DOMAIN`, `OLLOMI_TLS_BIND`, `OLLOMI_HTTP_PORT`, `OLLOMI_HTTPS_PORT`, `OLLOMI_PUBLIC_URL=https://…` y `COMPOSE_PROFILES=public-tls`, Caddy obtiene el certificado y sirve tanto API como WebSocket. Esta es también la ruta autocontenida para activar MCP OAuth; mantenga `OLLOMI_BIND=127.0.0.1` y use el dominio HTTPS como `OLLOMI_MCP_PUBLIC_URL`.
 
@@ -147,7 +147,7 @@ git clone https://github.com/YOUR_GITHUB_OWNER/ollomi.git
 cd ollomi
 python3 scripts/selfhost_init.py --source-build
 docker compose build
-docker compose up -d postgres redis typesense migrate
+docker compose up -d postgres redis typesense api
 ```
 
 Los Dockerfiles que usa GitHub Actions también se pueden ejecutar directamente:
@@ -194,6 +194,8 @@ Instale la APK y escriba en la pantalla de entrada la URL del backend, correo y 
 Cuando el workflow `Publish Ollomi` del fork haya pasado las puertas de validación, su ejecución deja `ollomi-android-debug-<commit>` en **Artifacts** para pruebas físicas; es una APK de depuración, no distribuible. Una etiqueta `v*` que haya pasado las mismas puertas publica una Release con `ollomi.apk`, `SHA256SUMS` y el paquete `ollomi-backend.tar.gz`. La firma se conserva entre APK publicadas, por lo que las actualizaciones posteriores se instalan sobre la anterior. El paso desde una APK de desarrollo firmada con otra clave puede requerir una única desinstalación.
 
 El botón **Conectar dispositivo** de la cabecera abre siempre la búsqueda Bluetooth de un Omi/Friend compatible, incluso si se terminó el asistente inicial sin hardware. Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, un dispositivo ya conectado, buscar y asociar un dispositivo, o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android.
+
+Durante una captura, la app muestra la fuente real —por ejemplo, **Omi CV1** o **Este teléfono**— y distingue preparación, recepción de audio, transcripción, ausencia de voz, retraso y reconexión. Una caída de la transcripción en directo se indica sin detener la escritura del audio definitivo. En Ajustes → Voz y personas → Grabación puede decidir si el botón activo abre la captura (valor inicial), se oculta o permite cambiar de fuente. Un cambio de fuente pide confirmación, termina primero la captura actual y solo entonces inicia la nueva.
 
 La APK de desarrollo se construye así:
 
@@ -307,7 +309,7 @@ Las vistas previas geográficas usan `/v1/static-map` del backend: por defecto d
 
 ## Datos, retención y notificaciones
 
-Los datos se almacenan en volúmenes Docker: PostgreSQL, Redis, Typesense, audio y modelos Ollama. Los modelos de voz están en `selfhost-data/models`. Por defecto los audios se conservan hasta borrarlos. `OLLOMI_AUDIO_RETENTION_DAYS=N` elimina periódicamente el audio de conversaciones terminadas mayores de N días; cero desactiva la caducidad. La transcripción permanece. Si el usuario desactiva guardar grabaciones, el audio se elimina después de procesarlo correctamente.
+Los datos se almacenan en volúmenes Docker: PostgreSQL, Redis, Typesense, audio y modelos Ollama. Los modelos de voz están en `selfhost-data/models`. Cada usuario controla **Guardar el audio en el servidor Ollomi** desde la sincronización SD o desde Ajustes → Voz y personas → Grabación. Es una preferencia global para Omi, micrófono del teléfono, sincronizaciones e importaciones, y empieza desactivada. La elección se fija al admitir cada grabación: si está desactivada, el original se conserva mientras se procesa y se elimina solo después de terminar correctamente; la conversación y la transcripción permanecen. Si el trabajo falla, el original se conserva para reintentar. Activar o desactivar la opción afecta solo a grabaciones nuevas y nunca borra audio anterior de forma retroactiva. Para los audios conservados, `OLLOMI_AUDIO_RETENTION_DAYS=N` elimina periódicamente los de conversaciones terminadas mayores de N días; cero desactiva esa caducidad.
 
 Las notificaciones son locales y se alimentan de un cursor de eventos autenticado. Llegan al consultar el servidor mientras la app está activa. No hay Firebase ni garantía de entrega push con la app terminada o restringida por Android.
 
@@ -346,15 +348,17 @@ COMPOSE_FILE=compose.yaml:deploy/compose.ghcr.yaml
 COMPOSE_PROFILES=local-whisper,local-ollama
 ```
 
-Si usa IA externa o de la LAN, añada `:deploy/compose.connected.yaml` al primer valor. Deje solo `local-whisper` para STT local sin Ollama. Omita `COMPOSE_PROFILES` cuando STT, chat y embeddings sean externos. Después las actualizaciones quedan reducidas a:
+Si usa IA externa o de la LAN, añada `:deploy/compose.connected.yaml` al primer valor. Deje solo `local-whisper` para STT local sin Ollama. Omita `COMPOSE_PROFILES` cuando STT, chat y embeddings sean externos. En una instalación de Dockge existente, copie una vez el Compose actualizado (sin `migrate`) y cambie `OLLOMI_IMAGE_TAG=stable` en `.env`; pulse **Deploy** para retirar el contenedor antiguo. Después cada release que haya superado el workflow avanzará `stable`, y bastará con pulsar **Actualizar**. Dockge hará `pull` y `up` si todos los servicios del stack están activos. La API aplica las migraciones antes de arrancar y los workers esperan a que responda. No es necesario editar `.env` para cada release ni descargar imágenes STT/voz si la inferencia está en la LAN o fuera.
+
+Para continuar con una versión fijada manualmente, cambie `OLLOMI_IMAGE_TAG` y ejecute:
 
 ```bash
 git pull --ff-only
 docker compose pull
-docker compose up -d
+docker compose up -d --remove-orphans
 ```
 
-El servicio `migrate` aplica las migraciones antes de arrancar API y workers. No ejecute `docker compose down -v`: `-v` elimina los volúmenes con los datos.
+No ejecute `docker compose down -v`: `-v` elimina los volúmenes con los datos.
 
 ## Diagnóstico
 

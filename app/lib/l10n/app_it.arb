@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "La trascrizione vocale non è disponibile al momento. Controlla la connessione Internet e le impostazioni di riconoscimento vocale del dispositivo, poi riprova.",
     "memoryHistoryPartial": "Parte della cronologia dei ricordi non è disponibile. Viene mostrata la cronologia ricevuta finora.",
     "tapPlusToStartRecording": "Tocca + per iniziare a registrare",
-    "processingTakingLonger": "Ancora in corso: ci sta mettendo più del solito."
+    "processingTakingLonger": "Ancora in corso: ci sta mettendo più del solito.",
+    "captureNoSpeechDetected": "Nessuna voce rilevata per ora",
+    "captureTranscriptionUnavailableRecordingContinues": "Trascrizione in diretta non disponibile — l’audio continua a essere registrato",
+    "captureTranscriptionDelayed": "Audio ricevuto — la trascrizione è in ritardo",
+    "activeCaptureButtonTitle": "Pulsante durante la registrazione",
+    "activeCaptureButtonDescription": "Scegli cosa fa il pulsante Home mentre una registrazione è attiva.",
+    "activeCaptureButtonOpen": "Apri registrazione attiva",
+    "activeCaptureButtonOpenDescription": "Mostra la sorgente attuale, l’attività audio e la trascrizione.",
+    "activeCaptureButtonHide": "Nascondi il pulsante",
+    "activeCaptureButtonHideDescription": "Rimuove il pulsante Home finché la registrazione non termina.",
+    "activeCaptureButtonSwitchSource": "Cambia sorgente audio",
+    "activeCaptureButtonSwitchSourceDescription": "Scegli tra il microfono del telefono e il dispositivo connesso."
 }

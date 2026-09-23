@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "Претворањето говор во текст моментално не е достапно. Проверете ги интернет-врската и поставките за препознавање говор на уредот, па обидете се повторно.",
     "memoryHistoryPartial": "Дел од историјата на сеќавањата не е достапен. Се прикажува досега примената историја.",
     "tapPlusToStartRecording": "Допрете + за да започнете со снимање",
-    "processingTakingLonger": "Сè уште се обработува — ова трае подолго од вообичаеното."
+    "processingTakingLonger": "Сè уште се обработува — ова трае подолго од вообичаеното.",
+    "captureNoSpeechDetected": "Сè уште не е откриен говор",
+    "captureTranscriptionUnavailableRecordingContinues": "Транскрипцијата во живо не е достапна — звукот сè уште се снима",
+    "captureTranscriptionDelayed": "Звукот е примен — транскрипцијата доцни",
+    "activeCaptureButtonTitle": "Копче при снимање",
+    "activeCaptureButtonDescription": "Изберете што прави почетното копче додека снимањето е активно.",
+    "activeCaptureButtonOpen": "Отвори активно снимање",
+    "activeCaptureButtonOpenDescription": "Прикажи го тековниот извор, аудио активноста и транскриптот.",
+    "activeCaptureButtonHide": "Скриј го копчето",
+    "activeCaptureButtonHideDescription": "Отстрани го почетното копче додека снимањето не запре.",
+    "activeCaptureButtonSwitchSource": "Смени извор на звук",
+    "activeCaptureButtonSwitchSourceDescription": "Изберете го микрофонот на телефонот или поврзаниот уред."
 }

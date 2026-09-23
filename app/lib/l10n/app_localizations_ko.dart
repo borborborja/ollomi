@@ -9814,4 +9814,37 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get processingTakingLonger => '아직 처리 중입니다. 평소보다 더 오래 걸리고 있어요.';
+
+  @override
+  String get captureNoSpeechDetected => '아직 음성이 감지되지 않았습니다';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => '실시간 받아쓰기를 사용할 수 없습니다 — 오디오는 계속 녹음됩니다';
+
+  @override
+  String get captureTranscriptionDelayed => '오디오 수신됨 — 받아쓰기가 지연되고 있습니다';
+
+  @override
+  String get activeCaptureButtonTitle => '녹음 중 버튼';
+
+  @override
+  String get activeCaptureButtonDescription => '녹음이 진행 중일 때 홈 버튼의 동작을 선택하세요.';
+
+  @override
+  String get activeCaptureButtonOpen => '진행 중인 녹음 열기';
+
+  @override
+  String get activeCaptureButtonOpenDescription => '현재 소스, 오디오 활동 및 받아쓰기를 표시합니다.';
+
+  @override
+  String get activeCaptureButtonHide => '버튼 숨기기';
+
+  @override
+  String get activeCaptureButtonHideDescription => '녹음이 중지될 때까지 홈 버튼을 숨깁니다.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => '오디오 소스 변경';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => '휴대전화 마이크와 연결된 기기 중에서 선택하세요.';
 }

@@ -4876,24 +4876,24 @@ class AppLocalizationsCa extends AppLocalizations {
   String get enableLocalStorage => 'Activa l\'emmagatzematge local';
 
   @override
-  String get cloudStorageEnabled => 'Emmagatzematge al núvol activat';
+  String get cloudStorageEnabled => 'Emmagatzematge d\'àudio al servidor Ollomi activat';
 
   @override
-  String get cloudStorageDisabled => 'Emmagatzematge al núvol desactivat';
+  String get cloudStorageDisabled => 'Emmagatzematge d\'àudio al servidor Ollomi desactivat';
 
   @override
-  String get enableCloudStorage => 'Activa l\'emmagatzematge al núvol';
+  String get enableCloudStorage => 'Desar l\'àudio al servidor Ollomi';
 
   @override
-  String get storeAudioOnCloud => 'Emmagatzemar àudio al núvol';
+  String get storeAudioOnCloud => 'Desar l\'àudio al servidor Ollomi';
 
   @override
   String get cloudStorageDialogMessage =>
-      'Les vostres gravacions en temps real s\'emmagatzemaran a l\'emmagatzematge privat al núvol mentre parleu.';
+      'L\'àudio nou de l\'Omi, el micròfon del telèfon, la targeta SD i les importacions romandrà en aquest servidor Ollomi fins que l\'elimineu o caduqui segons la política de retenció.';
 
   @override
   String get storeAudioCloudDescription =>
-      'Emmagatzemeu les vostres gravacions en temps real a l\'emmagatzematge privat al núvol mentre parleu. L\'àudio es captura i es desa de manera segura en temps real.';
+      'S\'aplica a l\'Omi, el micròfon del telèfon, la sincronització de la targeta SD i les importacions. Si està desactivat, Ollomi processa l\'àudio nou i n\'elimina la còpia del servidor després de transcriure\'l correctament.';
 
   @override
   String get downloadingFirmware => 'Descarregant el firmware';
@@ -10039,4 +10039,41 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Encara en curs: això està trigant més del normal.';
+
+  @override
+  String get captureNoSpeechDetected => 'Encara no s\'ha detectat veu';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'La transcripció en directe no està disponible, però l\'àudio es continua gravant';
+
+  @override
+  String get captureTranscriptionDelayed => 'Àudio rebut; la transcripció va amb retard';
+
+  @override
+  String get activeCaptureButtonTitle => 'Botó durant la gravació';
+
+  @override
+  String get activeCaptureButtonDescription =>
+      'Tria què fa el botó de la pantalla principal mentre hi ha una gravació activa.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Obrir la gravació activa';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Mostra la font actual, l\'activitat d\'àudio i la transcripció.';
+
+  @override
+  String get activeCaptureButtonHide => 'Amagar el botó';
+
+  @override
+  String get activeCaptureButtonHideDescription =>
+      'Treu el botó de la pantalla principal fins que s\'aturi la gravació.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Canviar la font d\'àudio';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'Permet triar entre el micròfon del telèfon i el dispositiu connectat.';
 }

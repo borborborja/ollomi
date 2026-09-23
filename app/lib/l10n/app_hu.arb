@@ -3353,5 +3353,16 @@
     "speechToTextUnavailableDesc": "A beszéd szöveggé alakítása jelenleg nem érhető el. Ellenőrizd az internetkapcsolatot és az eszköz beszédfelismerési beállításait, majd próbáld újra.",
     "memoryHistoryPartial": "Az emlékek előzményeinek egy része nem érhető el. Az eddig megkapott előzmények láthatók.",
     "tapPlusToStartRecording": "Koppints a + jelre a felvétel indításához",
-    "processingTakingLonger": "Még folyamatban — ez tovább tart a szokásosnál."
+    "processingTakingLonger": "Még folyamatban — ez tovább tart a szokásosnál.",
+    "captureNoSpeechDetected": "Még nem észlelhető beszéd",
+    "captureTranscriptionUnavailableRecordingContinues": "Az élő átírás nem érhető el — a hang rögzítése folytatódik",
+    "captureTranscriptionDelayed": "Hang érkezett — az átírás késik",
+    "activeCaptureButtonTitle": "Gomb felvétel közben",
+    "activeCaptureButtonDescription": "Válaszd ki, mit tegyen a kezdőképernyő gombja aktív felvétel közben.",
+    "activeCaptureButtonOpen": "Aktív felvétel megnyitása",
+    "activeCaptureButtonOpenDescription": "Az aktuális forrás, hangaktivitás és átirat megjelenítése.",
+    "activeCaptureButtonHide": "Gomb elrejtése",
+    "activeCaptureButtonHideDescription": "A kezdőképernyő gombjának eltávolítása a felvétel leállításáig.",
+    "activeCaptureButtonSwitchSource": "Hangforrás módosítása",
+    "activeCaptureButtonSwitchSourceDescription": "Válassz a telefon mikrofonja és a csatlakoztatott eszköz között."
 }

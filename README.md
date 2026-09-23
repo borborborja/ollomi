@@ -57,7 +57,7 @@ La plantilla incluye PostgreSQL/pgvector, Redis, Typesense, API y workers, y
 exige un perfil numerado para STT, chat y embeddings. No arranca Whisper ni
 Ollama ni descarga pesos. El primer inicio crea `OLLOMI_ADMIN_EMAIL`; tras
 iniciar sesión, borre `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker
-compose up -d --force-recreate migrate api worker scheduler`. Para MCP OAuth o
+compose up -d --force-recreate api worker scheduler`. Para MCP OAuth o
 acceso público, active antes la modalidad TLS documentada; una URL HTTP de LAN
 no es una identidad OAuth válida.
 
@@ -82,7 +82,7 @@ docker compose exec ollama ollama pull embeddinggemma
 docker compose up -d
 ```
 
-El inicializador escribe `COMPOSE_FILE` en `.env`, construye esta revisión del código por defecto y busca un puerto libre empezando por 8080 y 8090. Consulte `OLLOMI_PORT` y abra `http://IP_DEL_SERVIDOR:PUERTO/health`; debe devolver `{"status":"ok"}`. Tras el primer acceso, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker compose up -d --force-recreate migrate api worker scheduler`. El seed es idempotente y nunca cambia una cuenta existente.
+El inicializador escribe `COMPOSE_FILE` en `.env`, construye esta revisión del código por defecto y busca un puerto libre empezando por 8080 y 8090. Consulte `OLLOMI_PORT` y abra `http://IP_DEL_SERVIDOR:PUERTO/health`; debe devolver `{"status":"ok"}`. Tras el primer acceso, elimine `OLLOMI_ADMIN_PASSWORD` de `.env` y ejecute `docker compose up -d --force-recreate api worker scheduler`. El seed es idempotente y nunca cambia una cuenta existente.
 
 Para usar únicamente IA en la LAN o en la nube, inicialice con `--external-ai`. Esto añade automáticamente `deploy/compose.connected.yaml`, no activa Whisper ni Ollama, no descarga pesos y deja ejemplos de OpenAI, OpenRouter, Ollama Cloud y endpoints OpenAI-compatible en `.env`. Configure STT, chat y embeddings antes de ejecutar `docker compose up -d`. También hay un [Compose autónomo con todas las variables de ejemplo](deploy/examples/external-api/README.md), utilizable después de publicar una imagen revisada desde el fork. Instale una APK creada por el workflow de su fork y use la URL del servidor en Android.
 
@@ -115,8 +115,17 @@ Las instalaciones creadas con una versión anterior deben añadir una vez `COMPO
 ```bash
 git pull --ff-only
 docker compose pull
-docker compose up -d
+docker compose up -d --remove-orphans
 ```
+
+La imagen `ollomi-api` se reutiliza en los contenedores API, worker y scheduler; los
+modelos STT y de voz locales son opcionales. En Dockge, después de adoptar el
+Compose sin el servicio temporal `migrate` y fijar `OLLOMI_IMAGE_TAG=stable`,
+el botón **Actualizar** descarga la última release validada y recrea el stack.
+Haga una vez **Deploy** tras cambiar el Compose para retirar el contenedor
+antiguo de migración. Las migraciones se ejecutan al arrancar la API, antes de
+servir peticiones; worker y scheduler esperan a que esté sana. `latest` sigue
+la rama `main` y no es el canal de releases.
 
 La APK mantiene la misma identidad de firma entre ejecuciones, por lo que las actualizaciones posteriores se instalan sobre la anterior. El primer cambio desde una APK de desarrollo firmada con otra clave puede requerir desinstalar esa instalación una única vez. El repositorio debe tener cuatro secretos de Actions: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` y `ANDROID_KEY_PASSWORD`.
 

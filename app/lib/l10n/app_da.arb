@@ -3275,5 +3275,16 @@
     "speechToTextUnavailableDesc": "Tale til tekst er ikke tilgængelig lige nu. Kontrollér din internetforbindelse og enhedens indstillinger for talegenkendelse, og prøv igen.",
     "memoryHistoryPartial": "Noget af mindehistorikken er ikke tilgængeligt. Viser den historik, der er modtaget indtil nu.",
     "tapPlusToStartRecording": "Tryk på + for at starte optagelsen",
-    "processingTakingLonger": "Arbejder stadig — det tager længere end normalt."
+    "processingTakingLonger": "Arbejder stadig — det tager længere end normalt.",
+    "captureNoSpeechDetected": "Ingen tale registreret endnu",
+    "captureTranscriptionUnavailableRecordingContinues": "Livetransskription er ikke tilgængelig — lyden optages stadig",
+    "captureTranscriptionDelayed": "Lyd modtaget — transskriptionen er forsinket",
+    "activeCaptureButtonTitle": "Knap under optagelse",
+    "activeCaptureButtonDescription": "Vælg, hvad startknappen gør, mens en optagelse er aktiv.",
+    "activeCaptureButtonOpen": "Åbn aktiv optagelse",
+    "activeCaptureButtonOpenDescription": "Vis den aktuelle kilde, lydaktivitet og transskription.",
+    "activeCaptureButtonHide": "Skjul knappen",
+    "activeCaptureButtonHideDescription": "Fjern startknappen, indtil optagelsen stopper.",
+    "activeCaptureButtonSwitchSource": "Skift lydkilde",
+    "activeCaptureButtonSwitchSourceDescription": "Vælg mellem telefonens mikrofon og den tilsluttede enhed."
 }

@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:omi/backend/preferences.dart';
 import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/pages/memories/page.dart';
+import 'package:omi/pages/conversations/private_cloud_sync_page.dart';
 import 'package:provider/provider.dart';
 import 'package:omi/pages/settings/change_name_widget.dart';
 import 'package:omi/pages/settings/language_settings_page.dart';
@@ -128,6 +129,83 @@ class _ProfilePageState extends State<ProfilePage> {
                     onTap: () => pick(2),
                   ),
                   const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _activeCaptureButtonBehaviorLabel(ActiveCaptureButtonBehavior behavior) {
+    return switch (behavior) {
+      ActiveCaptureButtonBehavior.openActive => context.l10n.activeCaptureButtonOpen,
+      ActiveCaptureButtonBehavior.hide => context.l10n.activeCaptureButtonHide,
+      ActiveCaptureButtonBehavior.switchSource => context.l10n.activeCaptureButtonSwitchSource,
+    };
+  }
+
+  void _showActiveCaptureButtonBehaviorSheet() {
+    var current = SharedPreferencesUtil().activeCaptureButtonBehavior;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1C1C1E),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            void pick(ActiveCaptureButtonBehavior value) {
+              SharedPreferencesUtil().activeCaptureButtonBehavior = value;
+              setState(() {});
+              setSheetState(() => current = value);
+              Navigator.pop(sheetContext);
+            }
+
+            Widget option(
+              ActiveCaptureButtonBehavior value,
+              String title,
+              String description,
+            ) {
+              return ListTile(
+                title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                subtitle: Text(description, style: const TextStyle(color: Color(0xFFB5B5BA))),
+                trailing: current == value ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
+                onTap: () => pick(value),
+              );
+            }
+
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 16),
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(color: const Color(0xFF3C3C43), borderRadius: BorderRadius.circular(2)),
+                  ),
+                  Text(
+                    context.l10n.activeCaptureButtonTitle,
+                    style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  option(
+                    ActiveCaptureButtonBehavior.openActive,
+                    context.l10n.activeCaptureButtonOpen,
+                    context.l10n.activeCaptureButtonOpenDescription,
+                  ),
+                  option(
+                    ActiveCaptureButtonBehavior.hide,
+                    context.l10n.activeCaptureButtonHide,
+                    context.l10n.activeCaptureButtonHideDescription,
+                  ),
+                  option(
+                    ActiveCaptureButtonBehavior.switchSource,
+                    context.l10n.activeCaptureButtonSwitchSource,
+                    context.l10n.activeCaptureButtonSwitchSourceDescription,
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             );
@@ -473,6 +551,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: context.l10n.voiceResponseMode,
                   chipValue: _voiceResponseModeLabel(SharedPreferencesUtil().voiceResponseMode),
                   onTap: _showVoiceResponseModeSheet,
+                ),
+                const Divider(height: 1, color: Color(0xFF3C3C43)),
+                _buildProfileItem(
+                  title: context.l10n.storeAudioOnCloud,
+                  subtitle: context.l10n.storeAudioCloudDescription,
+                  icon: const FaIcon(FontAwesomeIcons.server, color: Color(0xFF8E8E93), size: 20),
+                  onTap: () => routeToPage(context, const PrivateCloudSyncPage()),
+                ),
+                const Divider(height: 1, color: Color(0xFF3C3C43)),
+                _buildProfileItem(
+                  title: context.l10n.activeCaptureButtonTitle,
+                  subtitle: context.l10n.activeCaptureButtonDescription,
+                  chipValue: _activeCaptureButtonBehaviorLabel(SharedPreferencesUtil().activeCaptureButtonBehavior),
+                  icon: const FaIcon(FontAwesomeIcons.microphoneLines, color: Color(0xFF8E8E93), size: 20),
+                  onTap: _showActiveCaptureButtonBehaviorSheet,
                 ),
                 if (PlatformService.isAndroid) ...[
                   const Divider(height: 1, color: Color(0xFF3C3C43)),

@@ -52,6 +52,7 @@ import 'package:omi/utils/image/image_utils.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/services/battery_widget_service.dart';
 import 'package:omi/utils/logger.dart';
+import 'package:omi/utils/device.dart';
 import 'package:omi/app_globals.dart';
 
 import 'package:omi/backend/schema/message_event.dart'
@@ -67,6 +68,40 @@ import 'package:omi/backend/schema/message_event.dart'
         PhotoDescribedEvent,
         FreemiumThresholdReachedEvent,
         SegmentsDeletedEvent;
+
+enum CaptureUiStage {
+  inactive,
+  preparing,
+  waitingForAudio,
+  receivingAudio,
+  transcribing,
+  noSpeech,
+  transcriptionUnavailable,
+  transcriptionDelayed,
+  reconnecting,
+  paused,
+  offline,
+}
+
+enum CaptureUiSource { phone, systemAudio, device }
+
+class CaptureUiState {
+  const CaptureUiState({
+    required this.stage,
+    required this.source,
+    this.deviceName,
+    this.audioLevel,
+    this.serverSource,
+  });
+
+  final CaptureUiStage stage;
+  final CaptureUiSource source;
+  final String? deviceName;
+  final double? audioLevel;
+  final String? serverSource;
+
+  bool get isActive => stage != CaptureUiStage.inactive;
+}
 
 class CaptureController extends ChangeNotifier
     with MessageNotifierMixin
@@ -135,6 +170,8 @@ class CaptureController extends ChangeNotifier
   List<MessageEvent> get transcriptionServiceStatuses => _transcriptionServiceStatuses;
   MessageServiceStatusEvent? _terminalTranscriptionFailure;
   MessageServiceStatusEvent? get terminalTranscriptionFailure => _terminalTranscriptionFailure;
+  double? _backendAudioLevel;
+  String? _backendAudioSource;
 
   // When custom STT is configured, its polling socket keeps
   // buffering audio locally and retrying instead of tearing the transcription
@@ -525,6 +562,90 @@ class CaptureController extends ChangeNotifier
   bool get havingRecordingDevice => _recordingDevice != null;
 
   BtDevice? get recordingDevice => _recordingDevice;
+
+  bool get isCaptureActive =>
+      _phoneMicBatchActive ||
+      recordingState == RecordingState.initialising ||
+      recordingState == RecordingState.record ||
+      recordingState == RecordingState.deviceRecord ||
+      recordingState == RecordingState.systemAudioRecord ||
+      recordingState == RecordingState.pause ||
+      recordingState == RecordingState.interrupted;
+
+  bool get isPhoneCaptureActive =>
+      _phoneMicBatchActive ||
+      (_recordingDevice == null &&
+          (recordingState == RecordingState.initialising ||
+              recordingState == RecordingState.record ||
+              recordingState == RecordingState.pause ||
+              recordingState == RecordingState.interrupted));
+
+  CaptureUiState get captureUiState {
+    final source = _recordingDevice != null
+        ? CaptureUiSource.device
+        : recordingState == RecordingState.systemAudioRecord
+            ? CaptureUiSource.systemAudio
+            : CaptureUiSource.phone;
+    final deviceName = _recordingDevice == null
+        ? null
+        : DeviceUtils.isOmiCv1(
+            modelNumber: _recordingDevice!.modelNumber,
+            deviceName: _recordingDevice!.name,
+          )
+            ? 'Omi CV1'
+            : _recordingDevice!.name.trim().isNotEmpty
+                ? _recordingDevice!.name.trim()
+                : _recordingDevice!.modelNumber;
+
+    if (!isCaptureActive) {
+      return CaptureUiState(stage: CaptureUiStage.inactive, source: source, deviceName: deviceName);
+    }
+    if (_phoneMicBatchActive || (_recordingDevice != null && SharedPreferencesUtil().batchModeEnabled)) {
+      return CaptureUiState(stage: CaptureUiStage.offline, source: source, deviceName: deviceName);
+    }
+    if (_isPaused || recordingState == RecordingState.pause || _micInterrupted) {
+      return CaptureUiState(stage: CaptureUiStage.paused, source: source, deviceName: deviceName);
+    }
+    if (recordingState == RecordingState.initialising) {
+      return CaptureUiState(stage: CaptureUiStage.preparing, source: source, deviceName: deviceName);
+    }
+    if (_terminalTranscriptionFailure != null) {
+      return CaptureUiState(
+        stage: CaptureUiStage.transcriptionUnavailable,
+        source: source,
+        deviceName: deviceName,
+        audioLevel: _backendAudioLevel,
+        serverSource: _backendAudioSource,
+      );
+    }
+    if (!_transcriptServiceReady) {
+      return CaptureUiState(
+        stage: CaptureUiStage.reconnecting,
+        source: source,
+        deviceName: deviceName,
+        audioLevel: _backendAudioLevel,
+        serverSource: _backendAudioSource,
+      );
+    }
+
+    final latest = _transcriptionServiceStatuses.whereType<MessageServiceStatusEvent>().lastOrNull;
+    final stage = switch (latest?.status) {
+      'audio_received' => CaptureUiStage.receivingAudio,
+      'transcribing' => CaptureUiStage.transcribing,
+      'no_speech' => CaptureUiStage.noSpeech,
+      'live_stt_unavailable' => CaptureUiStage.transcriptionUnavailable,
+      'transcription_delayed' => CaptureUiStage.transcriptionDelayed,
+      'ready' || null => CaptureUiStage.waitingForAudio,
+      _ => CaptureUiStage.waitingForAudio,
+    };
+    return CaptureUiState(
+      stage: stage,
+      source: source,
+      deviceName: deviceName,
+      audioLevel: _backendAudioLevel,
+      serverSource: _backendAudioSource,
+    );
+  }
 
   void setHasTranscripts(bool value) {
     hasTranscripts = value;
@@ -1080,9 +1201,8 @@ class CaptureController extends ChangeNotifier
 
         // Process bytes through audio source and feed to WAL
         final frames = _activeSource?.processBytes(snapshot) ?? [];
-        final socketPayloads = _activeSource == null
-            ? <List<int>>[snapshot]
-            : frames.map((frame) => frame.payload).toList();
+        final socketPayloads =
+            _activeSource == null ? <List<int>>[snapshot] : frames.map((frame) => frame.payload).toList();
         final voiceCommandSupported =
             _recordingDevice?.type == DeviceType.omi || _recordingDevice?.type == DeviceType.openglass;
         if (_voiceCommandSession != null && voiceCommandSupported) {
@@ -1481,6 +1601,8 @@ class CaptureController extends ChangeNotifier
     hasTranscripts = false;
     _transcriptionServiceStatuses = [];
     _terminalTranscriptionFailure = null;
+    _backendAudioLevel = null;
+    _backendAudioSource = null;
     suggestionsBySegmentId = {};
     taggingSegmentIds = [];
     notifyListeners();
@@ -1895,10 +2017,35 @@ class CaptureController extends ChangeNotifier
     _recordingTelemetry.complete(reason: cleanDevice ? 'device_disconnected' : 'user_stopped');
   }
 
+  /// Moves capture between the phone microphone and one connected device.
+  /// The old pipeline is fully stopped before the new one starts, so a source
+  /// picker can never create two simultaneous recordings.
+  Future<void> switchCaptureSource({BtDevice? device}) async {
+    if (device == null && isPhoneCaptureActive) return;
+    if (device != null &&
+        _recordingDevice?.id == device.id &&
+        (recordingState == RecordingState.deviceRecord || recordingState == RecordingState.pause)) {
+      return;
+    }
+
+    if (_recordingDevice != null && isCaptureActive) {
+      await stopStreamDeviceRecording(cleanDevice: true);
+    } else if (isCaptureActive) {
+      await stopStreamRecording(reason: 'source_switched');
+    }
+
+    if (device == null) {
+      await streamRecording();
+    } else {
+      await streamDeviceRecording(device: device);
+    }
+  }
+
   @override
   void onClosed([int? closeCode]) {
     _transcriptionServiceStatuses = [];
     _transcriptServiceReady = false;
+    _backendAudioLevel = null;
 
     if (closeCode == 4002) {
       externalActions.markAsOutOfCreditsAndRefresh();
@@ -2026,6 +2173,7 @@ class CaptureController extends ChangeNotifier
   void onError(Object err) {
     _transcriptionServiceStatuses = [];
     _transcriptServiceReady = false;
+    _backendAudioLevel = null;
 
     notifyListeners();
     _startKeepAliveServices();
@@ -2264,7 +2412,11 @@ class CaptureController extends ChangeNotifier
         _terminalTranscriptionFailure = event;
       } else if (event.status == 'ready') {
         _terminalTranscriptionFailure = null;
+        _backendAudioLevel = null;
       }
+
+      if (event.audioLevel != null) _backendAudioLevel = event.audioLevel;
+      if (event.source != null) _backendAudioSource = event.source;
 
       _transcriptionServiceStatuses.add(event);
       _transcriptionServiceStatuses = List.from(_transcriptionServiceStatuses);

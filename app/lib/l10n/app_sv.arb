@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "Tal till text är inte tillgängligt just nu. Kontrollera internetanslutningen och enhetens inställningar för taligenkänning och försök igen.",
     "memoryHistoryPartial": "En del av minneshistoriken är inte tillgänglig. Visar historiken som har tagits emot hittills.",
     "tapPlusToStartRecording": "Tryck på + för att börja spela in",
-    "processingTakingLonger": "Fortfarande igång — det tar längre tid än vanligt."
+    "processingTakingLonger": "Fortfarande igång — det tar längre tid än vanligt.",
+    "captureNoSpeechDetected": "Inget tal har upptäckts ännu",
+    "captureTranscriptionUnavailableRecordingContinues": "Livetranskribering är inte tillgänglig — ljudet spelas fortfarande in",
+    "captureTranscriptionDelayed": "Ljud mottaget — transkriberingen är fördröjd",
+    "activeCaptureButtonTitle": "Knapp under inspelning",
+    "activeCaptureButtonDescription": "Välj vad hemknappen gör medan en inspelning är aktiv.",
+    "activeCaptureButtonOpen": "Öppna aktiv inspelning",
+    "activeCaptureButtonOpenDescription": "Visa aktuell källa, ljudaktivitet och transkribering.",
+    "activeCaptureButtonHide": "Dölj knappen",
+    "activeCaptureButtonHideDescription": "Ta bort hemknappen tills inspelningen stoppas.",
+    "activeCaptureButtonSwitchSource": "Byt ljudkälla",
+    "activeCaptureButtonSwitchSourceDescription": "Välj mellan telefonens mikrofon och den anslutna enheten."
 }

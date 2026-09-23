@@ -10039,4 +10039,39 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Ancora in corso: ci sta mettendo più del solito.';
+
+  @override
+  String get captureNoSpeechDetected => 'Nessuna voce rilevata per ora';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Trascrizione in diretta non disponibile — l’audio continua a essere registrato';
+
+  @override
+  String get captureTranscriptionDelayed => 'Audio ricevuto — la trascrizione è in ritardo';
+
+  @override
+  String get activeCaptureButtonTitle => 'Pulsante durante la registrazione';
+
+  @override
+  String get activeCaptureButtonDescription => 'Scegli cosa fa il pulsante Home mentre una registrazione è attiva.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Apri registrazione attiva';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Mostra la sorgente attuale, l’attività audio e la trascrizione.';
+
+  @override
+  String get activeCaptureButtonHide => 'Nascondi il pulsante';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Rimuove il pulsante Home finché la registrazione non termina.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Cambia sorgente audio';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'Scegli tra il microfono del telefono e il dispositivo connesso.';
 }

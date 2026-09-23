@@ -3279,5 +3279,16 @@
     "speechToTextUnavailableDesc": "目前无法将语音转换为文字。请检查网络连接和设备的语音识别设置，然后重试。",
     "memoryHistoryPartial": "部分记忆历史暂不可用。正在显示目前已获取的历史记录。",
     "tapPlusToStartRecording": "点击 + 开始录音",
-    "processingTakingLonger": "仍在处理中——比平时耗时更长。"
+    "processingTakingLonger": "仍在处理中——比平时耗时更长。",
+    "captureNoSpeechDetected": "尚未检测到语音",
+    "captureTranscriptionUnavailableRecordingContinues": "实时转写不可用 — 音频仍在录制",
+    "captureTranscriptionDelayed": "已收到音频 — 转写延迟",
+    "activeCaptureButtonTitle": "录音时的按钮",
+    "activeCaptureButtonDescription": "选择录音进行时主页按钮的功能。",
+    "activeCaptureButtonOpen": "打开当前录音",
+    "activeCaptureButtonOpenDescription": "显示当前来源、音频活动和转写内容。",
+    "activeCaptureButtonHide": "隐藏按钮",
+    "activeCaptureButtonHideDescription": "在录音停止前隐藏主页按钮。",
+    "activeCaptureButtonSwitchSource": "更改音频来源",
+    "activeCaptureButtonSwitchSourceDescription": "在手机麦克风和已连接设备之间选择。"
 }

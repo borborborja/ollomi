@@ -4,11 +4,11 @@ This file records what was verified for this checkout. It is deliberately not a
 claim that every Omi cloud feature, physical device, or third-party model has
 been tested.
 
-## Verified locally — 21 September 2026
+## Verified locally — 23 September 2026
 
 | Area | Evidence |
 | --- | --- |
-| Self-hosted backend | `docker build -f deploy/Dockerfile -t ollomi-backend:local .` completed; `PYTHONPATH=backend python -m pytest backend/selfhost/tests -q -p no:cacheprovider` passed **65 tests**. The sole warning is an upstream Starlette alias deprecation. |
+| Self-hosted backend | `PYTHONPATH=backend python -m pytest backend/selfhost/tests -q -p no:cacheprovider` passed **87 tests**, with two codec tests skipped because this macOS host does not provide the Linux image's native LC3/Opus libraries. Contracts include per-user audio-retention persistence, admission-time snapshots, success-only purge, failed/legacy retention, live status order, bounded preview saturation and complete durable WAV output. |
 | Configuration | `docker compose config --quiet` passed for the source, external-API and voiceprint Compose examples with temporary `.env` files. The external example now also validates with TLS disabled and no `OLLOMI_TLS_DOMAIN`; the optional `public-tls` profile refuses to start if an operator has not supplied that domain, before Caddy can bind an HTTP listener. The included proxy persists certificate storage and keeps the plain maintenance proxy on its loopback binding. |
 | Fresh external-API stack | An isolated Compose project started PostgreSQL/pgvector, Redis, Typesense, migrations, API, worker and scheduler from the current built backend image. Docker marked the API healthy and `/health/ready` returned `{"status":"ok"}` after PostgreSQL, Redis and Typesense were available. Earlier local checks also covered `/v1/server-info` and password login. Its containers, volumes and temporary configuration were removed after the test. |
 | Backup and recovery | An isolated external-API stack ran `scripts/selfhost_backup.sh`: writers stopped, PostgreSQL dump, audio archive, instance configuration and revision record were checksummed successfully; all writers were then restarted. It then deliberately truncated its test records/jobs and removed its test audio. `scripts/selfhost_restore.sh` validated checksums, the instance key and archive paths before writing, restored **2 records** and **1 audio file**, and queued **1** clean derived-index rebuild. Both scripts detect source-stack `api` and published external-stack `ollomi-api` service names. The isolated containers, volumes and temporary configuration were removed after the test. |
@@ -19,9 +19,10 @@ been tested.
 | Owner voice and speaker turns | The separate CPU-only SpeechBrain ECAPA image built successfully. It pins the reviewed `speechbrain/spkrec-ecapa-voxceleb` revision and SHA-256 values for all three loaded checkpoints at image build time, rewrites its configuration to the baked local model directory, and enables Hugging Face offline mode at runtime. A `--network none --read-only` container with only a temporary writable `/tmp` loaded the baked model and encoded a silent waveform to a 192-dimensional vector: this verifies no runtime model transfer, not recognition quality. Earlier endpoint checks reached health readiness, returned a normalized 192-dimensional embedding and returned a speaker turn from `/v1/diarize` for a temporary WAV sample. Backend contracts verify text-only STT is split over local turns, native provider labels are retained, and a voice-service outage does not fail transcription. No enrollment audio was retained. |
 | Android STT routing | The self-hosted capture resolver ignores legacy direct-provider keys and on-device mode stored on the phone, and always selects the authenticated server's `/v4/listen` path. The speech-profile flow has the same invariant: it surfaces server STT exhaustion instead of falling back to an on-device provider. Unit, capture-entry and speech-profile contracts are included in the Android CI gate. |
 | Live capture security | A WebSocket without a bearer token is rejected with `4401`; an authenticated PCM16 connection receives its initial state, creates an owner-bound conversation and rejects an unsupported codec with `4400`. The Android CI gate includes the socket header/authentication unit contract. |
+| Live capture state and retention | `/v4/listen` reports source-aware `ready`, receipt, transcription, no-speech, delayed and unavailable states while writing the definitive WAV independently of the preview queue. Flutter contracts verify CV1 source/stage mapping, exclusive source changes and all three persistent active-button behaviors. The selected Android workflow suite passed **143 tests** locally. |
 | Android Firebase removal | The Android Gradle configuration, ProGuard rules, `pubspec.yaml` and lockfile contain no Firebase, Google Services or Crashlytics dependency/reference. |
 | Self-host authority | The app's authenticated HTTP/WebSocket matching uses only the selected Ollomi URL; Omi Parakeet fails closed instead of configuring a direct URL; and the visible device, referral, privacy, developer-key and share defaults no longer point to Omi. The CI gate rejects the former Omi hosts in those core routes and runs their focused unit contracts. |
-| Android static analysis | In the Flutter 3.44.0 container, `flutter pub get`, formatter verification and targeted `dart analyze` passed for the server/model settings, IPv6 private-server policy, payment policy and chat quota guard. This is static analysis only; it does not compile or execute Flutter tests. |
+| Android validation | Flutter 3.44.5 completed `flutter analyze lib --no-fatal-warnings --no-fatal-infos` without errors (the existing source still reports lint warnings/information), the four native BLE endpoint Gradle tests passed, and `assembleDevDebug` produced `app-dev-debug.apk` locally. This does not replace installation and testing on a physical phone and Omi CV1. |
 | Payment gating | The self-hosted app always reports no subscription UI, no transcription-credit exhaustion and no payment gate for phone calls. Locked legacy rows and the chat quota handler both check that policy before navigating to a plan sheet. Its retained plans, checkout, upgrade, cancellation and customer-portal provider methods are no-ops; app submission always writes a free app and older paid app metadata is displayed as free. |
 | Release safeguards | `.github/workflows/ollomi-release.yml` runs backend contracts, focused local-auth, payment-policy, server-authoritative-STT and WebSocket-auth Flutter tests, and native BLE endpoint tests on every CI run. Pull requests and `main` pushes also compile and upload a complete debug APK; version tags instead compile the signed APK in parallel with validation and publish nothing until every required test and artifact succeeds. The two Android jobs use Flutter and Gradle caches. Pull requests and manual dispatches build (without publishing) backend, speech and CPU voiceprint images; only reviewed `main`/tag pushes authenticate to GHCR and publish the same versioned images. Signed APK generation is limited to `v*` tags, so an initial fork can validate CI before its private signing material exists. It also rejects reintroduction of Firebase/Google Services/Crashlytics into Android. |
 
@@ -29,30 +30,9 @@ been tested.
 
 - No image, APK, Git tag, GitHub release, remote fork or deployment was
   published by this checkout.
-- The local ARM Docker Flutter tool (`ghcr.io/cirruslabs/flutter:stable`) has
-  not completed either the focused test or a complete debug-APK compilation
-  after `pub get`. The latest complete APK attempt reached Gradle but Docker
-  marked its Gradle daemon as `OOMKilled` after 101 seconds; an earlier
-  focused test run exposed a missing generated import, which was corrected.
-  Its retry reached the frontend compiler and Docker marked it `OOMKilled`;
-  Flutter then reported `Null check operator used on a null value` while
-  handling the killed compiler. Later focused speech-profile and environment
-  policy tests reproduced the same compiler failure and their containers
-  exited with code 137 and `OOMKilled=true`. These are local ARM/Docker
-  environment-tool failures, not evidence that the Android app compiles. The new native-Linux
-  CI job runs the focused policy tests and a complete debug APK compilation;
-  it is a required release gate and has not run until these changes are
-  committed and pushed.
-- A separate, resource-capped Gradle attempt did complete `flutter pub get`,
-  the Flutter Gradle plugin compilation and the required Android NDK
-  installation before Docker killed its Gradle daemon with `OOMKilled=true`.
-  It had not reached Kotlin compilation or executed the native BLE endpoint
-  tests. Those tests therefore remain CI release-gate work, not a local pass.
-- During this final core-route audit, `dart format` completed, but the local
-  Dart analysis server crashed before completing type analysis, even when the
-  file list was reduced. It reported no source diagnostic first; this is not a
-  successful analysis result. The added focused tests and complete APK build on
-  the native Linux CI runner are therefore required for these changes too.
+- The debug APK compiled locally and the selected Flutter and native Android
+  tests passed, but the clean GitHub workflow and signed release build have not
+  run because nothing from this checkout has been pushed or tagged.
 - No Android device/emulator, Omi/Friend hardware, real model account, real
   voice enrollment, production TLS proxy, long recording,
   offline recovery or soak test was executed in this revision.

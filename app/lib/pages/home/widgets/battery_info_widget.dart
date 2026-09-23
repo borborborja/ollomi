@@ -9,6 +9,7 @@ import 'package:omi/backend/preferences.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/gen/assets.gen.dart';
 import 'package:omi/pages/capture/connect.dart';
+import 'package:omi/pages/capture/capture_status_view.dart';
 import 'package:omi/pages/conversation_capturing/page.dart';
 import 'package:omi/pages/home/device.dart';
 import 'package:omi/pages/phone_calls/phone_calls_page.dart';
@@ -21,6 +22,7 @@ import 'package:omi/utils/device.dart';
 import 'package:omi/utils/enums.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/utils/other/temp.dart';
+import 'package:omi/widgets/omi_confirm_dialog.dart';
 
 class BatteryInfoWidget extends StatefulWidget {
   const BatteryInfoWidget({super.key});
@@ -221,6 +223,64 @@ class HomeRecordButton extends StatefulWidget {
 }
 
 class _HomeRecordButtonState extends State<HomeRecordButton> {
+  void _openActiveCapture(BuildContext context) {
+    final captureProvider = context.read<CaptureProvider>();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/capture/active'),
+        builder: (_) => ConversationCapturingPage(topConversationId: captureProvider.topConversationId),
+      ),
+    );
+  }
+
+  Future<void> _confirmSourceSwitch(BuildContext context, {BtDevice? device}) async {
+    final captureProvider = context.read<CaptureProvider>();
+    final sameSource = device == null
+        ? captureProvider.isPhoneCaptureActive
+        : captureProvider.recordingDevice?.id == device.id &&
+            (captureProvider.recordingState == RecordingState.deviceRecord ||
+                captureProvider.recordingState == RecordingState.pause);
+    if (sameSource) {
+      _openActiveCapture(context);
+      return;
+    }
+
+    final target = device?.name ?? context.l10n.memoryThisDevice;
+    final confirmed = await OmiConfirmDialog.show(
+      context,
+      title: context.l10n.activeCaptureButtonSwitchSource,
+      message: '${context.l10n.stopRecordingConfirmation}\n\n${context.l10n.audioInputSetTo(target)}',
+      confirmLabel: context.l10n.switchAndRestart,
+      confirmColor: const Color(0xFFFE5D50),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await captureProvider.switchCaptureSource(device: device);
+    if (context.mounted && captureProvider.isCaptureActive) _openActiveCapture(context);
+  }
+
+  void _showActiveSourcePicker(BuildContext context) {
+    HapticFeedback.lightImpact();
+    final connectedDevice = context.read<DeviceProvider>().connectedDevice;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _ActiveCaptureSourceSheet(
+        connectedDevice: connectedDevice,
+        onPickPhone: () {
+          Navigator.pop(sheetContext);
+          _confirmSourceSwitch(context);
+        },
+        onPickDevice: connectedDevice == null
+            ? null
+            : () {
+                Navigator.pop(sheetContext);
+                _confirmSourceSwitch(context, device: connectedDevice);
+              },
+      ),
+    );
+  }
+
   void _showRecordOptions(BuildContext context) {
     HapticFeedback.lightImpact();
     final connectedDevice = context.read<DeviceProvider>().connectedDevice;
@@ -325,23 +385,55 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
   Widget build(BuildContext context) {
     return Consumer<CaptureProvider>(
       builder: (context, captureProvider, _) {
-        final isRecording = captureProvider.recordingState == RecordingState.record;
+        final isRecording = captureProvider.isCaptureActive;
         final isInitialising = captureProvider.recordingState == RecordingState.initialising;
+        final behavior = SharedPreferencesUtil().activeCaptureButtonBehavior;
+        if (isRecording && behavior == ActiveCaptureButtonBehavior.hide) {
+          return const SizedBox.shrink();
+        }
+        final captureState = captureProvider.captureUiState;
+        final source = captureSourceLabel(context, captureState);
+        final activeIcon =
+            behavior == ActiveCaptureButtonBehavior.switchSource ? Icons.swap_horiz_rounded : Icons.graphic_eq_rounded;
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => _startRecording(context),
+          onTap: () {
+            if (!isRecording) {
+              _startRecording(context);
+            } else if (behavior == ActiveCaptureButtonBehavior.switchSource) {
+              _showActiveSourcePicker(context);
+            } else {
+              _openActiveCapture(context);
+            }
+          },
           onLongPress: isRecording || isInitialising ? null : () => _showRecordOptions(context),
           child: AnimatedContainer(
+            key: const Key('home-record-button-surface'),
             duration: const Duration(milliseconds: 200),
-            width: 62,
+            width: isRecording ? 76 : 62,
             height: 62,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isRecording ? Colors.red.shade700 : Colors.deepPurple,
-              shape: BoxShape.circle,
+              color: isRecording ? const Color(0xFFB3261E) : const Color(0xFF35343B),
+              borderRadius: BorderRadius.circular(31),
             ),
             child: isRecording
-                ? const Icon(Icons.stop_rounded, size: 24, color: Colors.white)
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(activeIcon, size: 21, color: Colors.white),
+                      const SizedBox(height: 2),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Text(
+                          source,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  )
                 : isInitialising
                     ? const SizedBox(
                         width: 18,
@@ -387,6 +479,66 @@ class SlashLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ActiveCaptureSourceSheet extends StatelessWidget {
+  const _ActiveCaptureSourceSheet({
+    required this.connectedDevice,
+    required this.onPickPhone,
+    required this.onPickDevice,
+  });
+
+  final BtDevice? connectedDevice;
+  final VoidCallback onPickPhone;
+  final VoidCallback? onPickDevice;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 16),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1F1F25),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            context.l10n.activeCaptureButtonSwitchSource,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          _RecordOption(
+            key: const Key('active-capture-source-phone'),
+            icon: FontAwesomeIcons.microphone,
+            title: context.l10n.memoryThisDevice,
+            subtitle: context.l10n.recordWithPhoneMicSubtitle,
+            onTap: onPickPhone,
+          ),
+          if (connectedDevice != null && onPickDevice != null) ...[
+            const SizedBox(height: 10),
+            _RecordOption(
+              key: const Key('active-capture-source-device'),
+              icon: FontAwesomeIcons.bluetooth,
+              title: connectedDevice!.name,
+              subtitle: context.l10n.connected,
+              onTap: onPickDevice!,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class RecordOptionsSheet extends StatelessWidget {
@@ -500,21 +652,7 @@ class _RecordOption extends StatelessWidget {
               width: 44,
               height: 44,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF7B5CFF), Color(0xFF5733E0)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.deepPurple.withValues(alpha: 0.35),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+              decoration: const BoxDecoration(color: Color(0xFF35343B), shape: BoxShape.circle),
               child: FaIcon(icon, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 14),

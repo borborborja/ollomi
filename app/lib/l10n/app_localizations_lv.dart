@@ -10005,4 +10005,38 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Joprojām notiek — tas aizņem ilgāk nekā parasti.';
+
+  @override
+  String get captureNoSpeechDetected => 'Runa vēl nav noteikta';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Tiešā transkripcija nav pieejama — audio joprojām tiek ierakstīts';
+
+  @override
+  String get captureTranscriptionDelayed => 'Audio saņemts — transkripcija kavējas';
+
+  @override
+  String get activeCaptureButtonTitle => 'Poga ierakstīšanas laikā';
+
+  @override
+  String get activeCaptureButtonDescription => 'Izvēlieties sākuma pogas darbību aktīva ieraksta laikā.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Atvērt aktīvo ierakstu';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Rādīt pašreizējo avotu, audio aktivitāti un transkripciju.';
+
+  @override
+  String get activeCaptureButtonHide => 'Paslēpt pogu';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Noņemt sākuma pogu, līdz ierakstīšana tiek apturēta.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Mainīt audio avotu';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Izvēlieties tālruņa mikrofonu vai pievienoto ierīci.';
 }

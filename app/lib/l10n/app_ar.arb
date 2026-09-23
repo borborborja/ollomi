@@ -3233,5 +3233,16 @@
     "speechToTextUnavailableDesc": "تحويل الكلام إلى نص غير متاح الآن. تحقق من اتصالك بالإنترنت وإعدادات التعرف على الكلام في جهازك، ثم حاول مرة أخرى.",
     "memoryHistoryPartial": "بعض سجل الذكريات غير متاح. يتم عرض السجل المستلم حتى الآن.",
     "tapPlusToStartRecording": "اضغط على + لبدء التسجيل",
-    "processingTakingLonger": "ما زال قيد العمل — يستغرق وقتًا أطول من المعتاد."
+    "processingTakingLonger": "ما زال قيد العمل — يستغرق وقتًا أطول من المعتاد.",
+    "captureNoSpeechDetected": "لم يتم اكتشاف كلام بعد",
+    "captureTranscriptionUnavailableRecordingContinues": "النسخ المباشر غير متاح — ما زال الصوت قيد التسجيل",
+    "captureTranscriptionDelayed": "تم استلام الصوت — النسخ متأخر",
+    "activeCaptureButtonTitle": "الزر أثناء التسجيل",
+    "activeCaptureButtonDescription": "اختر ما يفعله زر الصفحة الرئيسية أثناء نشاط التسجيل.",
+    "activeCaptureButtonOpen": "فتح التسجيل النشط",
+    "activeCaptureButtonOpenDescription": "عرض المصدر الحالي ونشاط الصوت والنص.",
+    "activeCaptureButtonHide": "إخفاء الزر",
+    "activeCaptureButtonHideDescription": "إزالة زر الصفحة الرئيسية حتى يتوقف التسجيل.",
+    "activeCaptureButtonSwitchSource": "تغيير مصدر الصوت",
+    "activeCaptureButtonSwitchSourceDescription": "اختر بين ميكروفون الهاتف والجهاز المتصل."
 }

@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "ขณะนี้ไม่สามารถแปลงเสียงเป็นข้อความได้ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและการตั้งค่าการรู้จำเสียงของอุปกรณ์ แล้วลองอีกครั้ง",
     "memoryHistoryPartial": "ประวัติความทรงจำบางส่วนไม่พร้อมใช้งาน กำลังแสดงประวัติที่ได้รับจนถึงตอนนี้",
     "tapPlusToStartRecording": "แตะ + เพื่อเริ่มบันทึก",
-    "processingTakingLonger": "ยังทำงานอยู่ — ใช้เวลานานกว่าปกติ"
+    "processingTakingLonger": "ยังทำงานอยู่ — ใช้เวลานานกว่าปกติ",
+    "captureNoSpeechDetected": "ยังไม่พบเสียงพูด",
+    "captureTranscriptionUnavailableRecordingContinues": "การถอดเสียงสดไม่พร้อมใช้งาน — เสียงยังคงถูกบันทึก",
+    "captureTranscriptionDelayed": "ได้รับเสียงแล้ว — การถอดเสียงล่าช้า",
+    "activeCaptureButtonTitle": "ปุ่มขณะบันทึก",
+    "activeCaptureButtonDescription": "เลือกการทำงานของปุ่มหน้าหลักขณะกำลังบันทึก",
+    "activeCaptureButtonOpen": "เปิดการบันทึกที่กำลังทำงาน",
+    "activeCaptureButtonOpenDescription": "แสดงแหล่งเสียงปัจจุบัน กิจกรรมเสียง และข้อความถอดเสียง",
+    "activeCaptureButtonHide": "ซ่อนปุ่ม",
+    "activeCaptureButtonHideDescription": "นำปุ่มหน้าหลักออกจนกว่าจะหยุดบันทึก",
+    "activeCaptureButtonSwitchSource": "เปลี่ยนแหล่งเสียง",
+    "activeCaptureButtonSwitchSourceDescription": "เลือกระหว่างไมโครโฟนโทรศัพท์กับอุปกรณ์ที่เชื่อมต่อ"
 }

@@ -10012,4 +10012,37 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Še poteka — traja dlje kot običajno.';
+
+  @override
+  String get captureNoSpeechDetected => 'Govor še ni zaznan';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => 'Prepis v živo ni na voljo — zvok se še vedno snema';
+
+  @override
+  String get captureTranscriptionDelayed => 'Zvok je prejet — prepis zamuja';
+
+  @override
+  String get activeCaptureButtonTitle => 'Gumb med snemanjem';
+
+  @override
+  String get activeCaptureButtonDescription => 'Izberite, kaj naredi začetni gumb med aktivnim snemanjem.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Odpri aktivni posnetek';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Prikaži trenutni vir, dejavnost zvoka in prepis.';
+
+  @override
+  String get activeCaptureButtonHide => 'Skrij gumb';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Odstrani začetni gumb, dokler se snemanje ne ustavi.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Spremeni vir zvoka';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Izberite mikrofon telefona ali povezano napravo.';
 }

@@ -3292,5 +3292,16 @@
     "speechToTextUnavailableDesc": "Konuşmayı metne dönüştürme şu anda kullanılamıyor. İnternet bağlantınızı ve cihazınızın konuşma tanıma ayarlarını kontrol edip tekrar deneyin.",
     "memoryHistoryPartial": "Anı geçmişinin bir kısmı kullanılamıyor. Şimdiye kadar alınan geçmiş gösteriliyor.",
     "tapPlusToStartRecording": "Kaydı başlatmak için + simgesine dokunun",
-    "processingTakingLonger": "Hâlâ devam ediyor — bu her zamankinden daha uzun sürüyor."
+    "processingTakingLonger": "Hâlâ devam ediyor — bu her zamankinden daha uzun sürüyor.",
+    "captureNoSpeechDetected": "Henüz konuşma algılanmadı",
+    "captureTranscriptionUnavailableRecordingContinues": "Canlı transkripsiyon kullanılamıyor — ses kaydı devam ediyor",
+    "captureTranscriptionDelayed": "Ses alındı — transkripsiyon gecikiyor",
+    "activeCaptureButtonTitle": "Kayıt sırasında düğme",
+    "activeCaptureButtonDescription": "Kayıt etkinken ana ekran düğmesinin ne yapacağını seçin.",
+    "activeCaptureButtonOpen": "Etkin kaydı aç",
+    "activeCaptureButtonOpenDescription": "Geçerli kaynağı, ses etkinliğini ve transkripsiyonu göster.",
+    "activeCaptureButtonHide": "Düğmeyi gizle",
+    "activeCaptureButtonHideDescription": "Kayıt durana kadar ana ekran düğmesini kaldır.",
+    "activeCaptureButtonSwitchSource": "Ses kaynağını değiştir",
+    "activeCaptureButtonSwitchSourceDescription": "Telefon mikrofonu veya bağlı cihaz arasında seçim yapın."
 }

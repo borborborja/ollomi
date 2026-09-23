@@ -9994,4 +9994,38 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Hâlâ devam ediyor — bu her zamankinden daha uzun sürüyor.';
+
+  @override
+  String get captureNoSpeechDetected => 'Henüz konuşma algılanmadı';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Canlı transkripsiyon kullanılamıyor — ses kaydı devam ediyor';
+
+  @override
+  String get captureTranscriptionDelayed => 'Ses alındı — transkripsiyon gecikiyor';
+
+  @override
+  String get activeCaptureButtonTitle => 'Kayıt sırasında düğme';
+
+  @override
+  String get activeCaptureButtonDescription => 'Kayıt etkinken ana ekran düğmesinin ne yapacağını seçin.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Etkin kaydı aç';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Geçerli kaynağı, ses etkinliğini ve transkripsiyonu göster.';
+
+  @override
+  String get activeCaptureButtonHide => 'Düğmeyi gizle';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Kayıt durana kadar ana ekran düğmesini kaldır.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Ses kaynağını değiştir';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Telefon mikrofonu veya bağlı cihaz arasında seçim yapın.';
 }

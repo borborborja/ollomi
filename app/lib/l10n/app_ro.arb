@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "Conversia vorbirii în text nu este disponibilă momentan. Verifică conexiunea la internet și setările de recunoaștere vocală ale dispozitivului, apoi încearcă din nou.",
     "memoryHistoryPartial": "O parte din istoricul amintirilor nu este disponibilă. Se afișează istoricul primit până acum.",
     "tapPlusToStartRecording": "Atinge + pentru a începe înregistrarea",
-    "processingTakingLonger": "Încă se procesează — durează mai mult decât de obicei."
+    "processingTakingLonger": "Încă se procesează — durează mai mult decât de obicei.",
+    "captureNoSpeechDetected": "Nu a fost detectată încă vorbire",
+    "captureTranscriptionUnavailableRecordingContinues": "Transcrierea live nu este disponibilă — sunetul continuă să fie înregistrat",
+    "captureTranscriptionDelayed": "Sunet primit — transcrierea este întârziată",
+    "activeCaptureButtonTitle": "Buton în timpul înregistrării",
+    "activeCaptureButtonDescription": "Alege ce face butonul principal cât timp o înregistrare este activă.",
+    "activeCaptureButtonOpen": "Deschide înregistrarea activă",
+    "activeCaptureButtonOpenDescription": "Arată sursa curentă, activitatea audio și transcrierea.",
+    "activeCaptureButtonHide": "Ascunde butonul",
+    "activeCaptureButtonHideDescription": "Elimină butonul principal până când înregistrarea se oprește.",
+    "activeCaptureButtonSwitchSource": "Schimbă sursa audio",
+    "activeCaptureButtonSwitchSourceDescription": "Alege între microfonul telefonului și dispozitivul conectat."
 }

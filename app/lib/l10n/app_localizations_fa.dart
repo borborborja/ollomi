@@ -9982,4 +9982,37 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'هنوز در حال انجام است — بیشتر از حد معمول طول می‌کشد.';
+
+  @override
+  String get captureNoSpeechDetected => 'هنوز گفتاری تشخیص داده نشده است';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => 'رونویسی زنده در دسترس نیست — صدا همچنان ضبط می‌شود';
+
+  @override
+  String get captureTranscriptionDelayed => 'صدا دریافت شد — رونویسی با تأخیر انجام می‌شود';
+
+  @override
+  String get activeCaptureButtonTitle => 'دکمه هنگام ضبط';
+
+  @override
+  String get activeCaptureButtonDescription => 'انتخاب کنید دکمه صفحه اصلی هنگام ضبط فعال چه کاری انجام دهد.';
+
+  @override
+  String get activeCaptureButtonOpen => 'باز کردن ضبط فعال';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'منبع فعلی، فعالیت صدا و رونویسی را نشان می‌دهد.';
+
+  @override
+  String get activeCaptureButtonHide => 'پنهان کردن دکمه';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'دکمه صفحه اصلی را تا توقف ضبط حذف می‌کند.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'تغییر منبع صدا';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'بین میکروفون تلفن و دستگاه متصل انتخاب کنید.';
 }

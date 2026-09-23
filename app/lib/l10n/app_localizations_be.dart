@@ -10013,4 +10013,38 @@ class AppLocalizationsBe extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Яшчэ апрацоўваецца — гэта доўжыцца даўжэй, чым звычайна.';
+
+  @override
+  String get captureNoSpeechDetected => 'Маўленне пакуль не выяўлена';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Жывая транскрыпцыя недаступная — аўдыя працягвае запісвацца';
+
+  @override
+  String get captureTranscriptionDelayed => 'Аўдыя атрымана — транскрыпцыя затрымліваецца';
+
+  @override
+  String get activeCaptureButtonTitle => 'Кнопка падчас запісу';
+
+  @override
+  String get activeCaptureButtonDescription => 'Выберыце дзеянне кнопкі на галоўным экране падчас актыўнага запісу.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Адкрыць актыўны запіс';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Паказаць бягучую крыніцу, актыўнасць аўдыя і транскрыпцыю.';
+
+  @override
+  String get activeCaptureButtonHide => 'Схаваць кнопку';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Прыбраць кнопку з галоўнага экрана да спынення запісу.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Змяніць крыніцу аўдыя';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Выберыце мікрафон тэлефона або падлучаную прыладу.';
 }

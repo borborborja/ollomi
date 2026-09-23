@@ -10009,4 +10009,39 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Nog bezig — dit duurt langer dan normaal.';
+
+  @override
+  String get captureNoSpeechDetected => 'Nog geen spraak gedetecteerd';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Live transcriptie niet beschikbaar — audio wordt nog steeds opgenomen';
+
+  @override
+  String get captureTranscriptionDelayed => 'Audio ontvangen — transcriptie is vertraagd';
+
+  @override
+  String get activeCaptureButtonTitle => 'Knop tijdens opnemen';
+
+  @override
+  String get activeCaptureButtonDescription => 'Kies wat de startknop doet terwijl een opname actief is.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Actieve opname openen';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Toon de huidige bron, audioactiviteit en transcriptie.';
+
+  @override
+  String get activeCaptureButtonHide => 'Knop verbergen';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Verwijder de startknop totdat de opname stopt.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Audiobron wijzigen';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'Kies tussen de microfoon van de telefoon en het verbonden apparaat.';
 }
