@@ -510,6 +510,12 @@ async def listen(socket: WebSocket):
     if codec == "lc3_fs1030" and rate != 16000:
         await socket.close(code=4400, reason="Friend Pendant LC3 requires 16000 Hz")
         return
+    try:
+        # Seconds of silence after which a continual stream is split into a new
+        # conversation. 0 disables automatic splitting (manual "split" only).
+        conversation_timeout = int(socket.query_params.get("conversation_timeout", "0"))
+    except ValueError:
+        conversation_timeout = 0
     await socket.accept()
     # Keep device provenance on the conversation created by this socket.
     source = socket.query_params.get("source", "phone")
@@ -526,12 +532,11 @@ async def listen(socket: WebSocket):
         "rayban_meta",
     }:
         source = "phone"
-    file_id, conversation_id = (
-        ident(),
-        socket.query_params.get("conversation_id") or socket.query_params.get("client_conversation_id") or ident(),
+    initial_conversation_id = (
+        socket.query_params.get("conversation_id") or socket.query_params.get("client_conversation_id") or ident()
     )
 
-    def setup():
+    def prepare_conversation(conversation_id):
         with transaction() as db:
             row = db.get(Record, conversation_id)
             if row:
@@ -548,12 +553,10 @@ async def listen(socket: WebSocket):
             return selected_profile(db, user.id, "stt")
 
     try:
-        profile = await run_in_threadpool(setup)
+        profile = await run_in_threadpool(prepare_conversation, initial_conversation_id)
     except HTTPException:
         await socket.close(code=4404)
         return
-    path = storage_path(user.id, file_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
     decoder = None
     if codec == "opus":
         import opuslib
@@ -579,18 +582,45 @@ async def listen(socket: WebSocket):
             }
         )
 
-    await send_json({"type": "last_memory", "memory_id": conversation_id})
-    await send_status("ready")
-    buffer = bytearray()
-    total_samples = 0
-    preview_samples = 0
+    class Segment:
+        """One conversation captured within a long-lived listen socket.
+
+        A continuous capture keeps the socket open and rolls the segment over on
+        a manual ``split`` control frame or after ``conversation_timeout``
+        seconds without speech, so the previous segment becomes its own durable
+        conversation while audio continues into the next one.
+        """
+
+        def __init__(self, conversation_id):
+            self.conversation_id = conversation_id
+            self.file_id = ident()
+            self.path = storage_path(user.id, self.file_id)
+            self.wav = None
+            self.total_samples = 0
+            self.preview_samples = 0
+            self.buffer = bytearray()
+            self.last_audio_status_at = 0.0
+
+        def open(self):
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.wav = wave.open(str(self.path), "wb")
+            self.wav.setnchannels(1)
+            self.wav.setsampwidth(2)
+            self.wav.setframerate(rate)
+
+        def close_wav(self):
+            if self.wav is not None:
+                self.wav.close()
+                self.wav = None
+
     preview_queue = asyncio.Queue(maxsize=2)
-    last_audio_status_at = 0.0
+    current = Segment(initial_conversation_id)
+    current.open()
 
     async def preview_worker():
         while True:
-            pcm, offset = await preview_queue.get()
-            preview = path.with_suffix(".preview.wav")
+            pcm, offset, segment_path = await preview_queue.get()
+            preview = segment_path.with_suffix(".preview.wav")
 
             def preview_transcript():
                 with wave.open(str(preview), "wb") as clip:
@@ -620,59 +650,113 @@ async def listen(socket: WebSocket):
                 preview.unlink(missing_ok=True)
                 preview_queue.task_done()
 
+    async def close_segment(segment):
+        segment.close_wav()
+        if segment.total_samples:
+            job = await run_in_threadpool(
+                enqueue_audio,
+                user.id,
+                segment.file_id,
+                "recording.wav",
+                "auto",
+                segment.conversation_id,
+            )
+            try:
+                await send_json({"type": "processing_started", **job})
+            except Exception:
+                pass
+        else:
+            segment.path.unlink(missing_ok=True)
+
+    async def open_segment(conversation_id):
+        segment = Segment(conversation_id)
+        await run_in_threadpool(segment.open)
+        return segment
+
+    await send_json({"type": "last_memory", "memory_id": current.conversation_id})
+    await send_status("ready")
+    last_speech_at = time.monotonic()
+
+    async def split(reason):
+        nonlocal current, last_speech_at
+        previous = current
+        current = await open_segment(ident())
+        last_speech_at = time.monotonic()
+        await close_segment(previous)
+        await send_json(
+            {
+                "type": "conversation_split",
+                "reason": reason,
+                "conversation_id": current.conversation_id,
+                "memory_id": current.conversation_id,
+            }
+        )
+
     try:
         async with asyncio.TaskGroup() as tasks:
-            preview_task = tasks.create_task(preview_worker(), name=f"ollomi-live-preview:{conversation_id}")
+            preview_task = tasks.create_task(preview_worker(), name=f"ollomi-live-preview:{initial_conversation_id}")
             try:
-                with wave.open(str(path), "wb") as wav:
-                    wav.setnchannels(1)
-                    wav.setsampwidth(2)
-                    wav.setframerate(rate)
-                    while True:
-                        message = await asyncio.wait_for(socket.receive(), timeout=90)
-                        if message["type"] == "websocket.disconnect":
+                while True:
+                    message = await asyncio.wait_for(socket.receive(), timeout=90)
+                    if message["type"] == "websocket.disconnect":
+                        break
+                    if message.get("text"):
+                        kind = json.loads(message["text"]).get("type")
+                        if kind in {"stop", "finish"}:
                             break
-                        if message.get("text"):
-                            if json.loads(message["text"]).get("type") in {"stop", "finish"}:
-                                break
+                        if kind == "split":
+                            await split("manual")
                             continue
-                        chunk = message.get("bytes", b"")
-                        if codec == "lc3_fs1030":
-                            chunk = decoder.decode(chunk)
-                        elif decoder:
-                            chunk = decoder.decode(chunk, rate * 120 // 1000)
-                        if codec == "pcm8":
-                            import audioop
+                        continue
+                    chunk = message.get("bytes", b"")
+                    if codec == "lc3_fs1030":
+                        chunk = decoder.decode(chunk)
+                    elif decoder:
+                        chunk = decoder.decode(chunk, rate * 120 // 1000)
+                    if codec == "pcm8":
+                        import audioop
 
-                            chunk = audioop.lin2lin(audioop.bias(chunk, 1, -128), 1, 2)
-                        if len(chunk) % 2:
-                            raise ValueError("Unaligned PCM16")
-                        total_samples += len(chunk) // 2
-                        if total_samples > rate * settings().max_audio_seconds:
-                            break
-                        await run_in_threadpool(wav.writeframes, chunk)
-                        buffer.extend(chunk)
+                        chunk = audioop.lin2lin(audioop.bias(chunk, 1, -128), 1, 2)
+                    if len(chunk) % 2:
+                        raise ValueError("Unaligned PCM16")
+                    current_time = time.monotonic()
+                    if chunk:
+                        import audioop
 
-                        current_time = time.monotonic()
-                        if current_time - last_audio_status_at >= 1:
-                            import audioop
+                        if audioop.rms(chunk, 2) > settings().stt_silence_rms:
+                            last_speech_at = current_time
+                        if (
+                            conversation_timeout > 0
+                            and current.total_samples > 0
+                            and current_time - last_speech_at >= conversation_timeout
+                        ):
+                            await split("timeout")
+                            current_time = time.monotonic()
+                    current.total_samples += len(chunk) // 2
+                    if current.total_samples > rate * settings().max_audio_seconds:
+                        break
+                    await run_in_threadpool(current.wav.writeframes, chunk)
+                    current.buffer.extend(chunk)
 
-                            audio_level = min(1.0, audioop.rms(chunk, 2) / 32768) if chunk else 0.0
-                            await send_status("audio_received", audio_level=round(audio_level, 4))
-                            last_audio_status_at = current_time
+                    if current_time - current.last_audio_status_at >= 1:
+                        import audioop
 
-                        window_size = rate * 2 * 8
-                        while len(buffer) >= window_size:
-                            pcm = bytes(buffer[:window_size])
-                            del buffer[:window_size]
-                            offset = preview_samples / rate
-                            preview_samples += window_size // 2
-                            try:
-                                preview_queue.put_nowait((pcm, offset))
-                            except asyncio.QueueFull:
-                                # Only the live preview is skipped. The WAV has
-                                # already received these samples above.
-                                await send_status("transcription_delayed", retryable=True)
+                        audio_level = min(1.0, audioop.rms(chunk, 2) / 32768) if chunk else 0.0
+                        await send_status("audio_received", audio_level=round(audio_level, 4))
+                        current.last_audio_status_at = current_time
+
+                    window_size = rate * 2 * 8
+                    while len(current.buffer) >= window_size:
+                        pcm = bytes(current.buffer[:window_size])
+                        del current.buffer[:window_size]
+                        offset = current.preview_samples / rate
+                        current.preview_samples += window_size // 2
+                        try:
+                            preview_queue.put_nowait((pcm, offset, current.path))
+                        except asyncio.QueueFull:
+                            # Only the live preview is skipped. The WAV has
+                            # already received these samples above.
+                            await send_status("transcription_delayed", retryable=True)
             finally:
                 preview_task.cancel()
     except (WebSocketDisconnect, asyncio.TimeoutError):
@@ -688,18 +772,4 @@ async def listen(socket: WebSocket):
         except Exception:
             pass
     finally:
-        if total_samples:
-            job = await run_in_threadpool(
-                enqueue_audio,
-                user.id,
-                file_id,
-                "recording.wav",
-                "auto",
-                conversation_id,
-            )
-            try:
-                await send_json({"type": "processing_started", **job})
-            except Exception:
-                pass
-        else:
-            path.unlink(missing_ok=True)
+        await close_segment(current)
