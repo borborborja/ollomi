@@ -139,3 +139,78 @@ def test_native_embedding_adapters_use_their_documented_wire_shapes(monkeypatch)
     assert calls[0][1]["json"]["texts"] == ["document"]
     assert calls[1][0] == "embeddings"
     assert calls[1][1]["json"]["input_type"] == "query"
+
+
+def _stt_response(provider):
+    if provider == "deepgram":
+        return {
+            "results": {
+                "channels": [{"alternatives": [{"transcript": "ok"}]}],
+                "utterances": [],
+            }
+        }
+    return {"text": "ok", "segments": [{"start": 0.0, "end": 1.0, "text": "ok"}]}
+
+
+def test_openai_compatible_vocabulary_becomes_prompt(tmp_path, monkeypatch):
+    from selfhost import audio
+
+    calls = []
+
+    class Client:
+        def post(self, endpoint, **kwargs):
+            calls.append((endpoint, kwargs))
+            return Response(_stt_response("custom"))
+
+    monkeypatch.setattr(audio, "provider_client", lambda *args, **kwargs: nullcontext(Client()))
+    path = tmp_path / "audio.wav"
+    path.write_bytes(b"not-used-by-the-fake")
+    profile = {"purpose": "stt", "model": "whisper-large-v3", "capabilities": {"provider": "custom"}}
+
+    audio.transcribe_file(profile, path, vocabulary=["Ollomi", "Micapum"])
+
+    assert calls[0][1]["data"]["prompt"] == "Ollomi, Micapum"
+
+
+def test_openai_compatible_keeps_an_explicit_prompt(tmp_path, monkeypatch):
+    from selfhost import audio
+
+    calls = []
+
+    class Client:
+        def post(self, endpoint, **kwargs):
+            calls.append((endpoint, kwargs))
+            return Response(_stt_response("custom"))
+
+    monkeypatch.setattr(audio, "provider_client", lambda *args, **kwargs: nullcontext(Client()))
+    path = tmp_path / "audio.wav"
+    path.write_bytes(b"not-used-by-the-fake")
+    profile = {
+        "purpose": "stt",
+        "model": "whisper-large-v3",
+        "capabilities": {"provider": "custom", "options": {"prompt": "fixed"}},
+    }
+
+    audio.transcribe_file(profile, path, vocabulary=["Ollomi"])
+
+    assert calls[0][1]["data"]["prompt"] == "fixed"
+
+
+def test_deepgram_vocabulary_becomes_keywords(tmp_path, monkeypatch):
+    from selfhost import audio
+
+    calls = []
+
+    class Client:
+        def post(self, endpoint, **kwargs):
+            calls.append((endpoint, kwargs))
+            return Response(_stt_response("deepgram"))
+
+    monkeypatch.setattr(audio, "provider_client", lambda *args, **kwargs: nullcontext(Client()))
+    path = tmp_path / "audio.wav"
+    path.write_bytes(b"not-used-by-the-fake")
+    profile = {"purpose": "stt", "model": "nova-3", "capabilities": {"provider": "deepgram"}}
+
+    audio.transcribe_file(profile, path, vocabulary=["Ollomi"])
+
+    assert calls[0][1]["params"]["keywords"] == ["Ollomi"]
