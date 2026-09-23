@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "Skrij gumb",
     "activeCaptureButtonHideDescription": "Odstrani začetni gumb, dokler se snemanje ne ustavi.",
     "activeCaptureButtonSwitchSource": "Spremeni vir zvoka",
-    "activeCaptureButtonSwitchSourceDescription": "Izberite mikrofon telefona ali povezano napravo."
+    "activeCaptureButtonSwitchSourceDescription": "Izberite mikrofon telefona ali povezano napravo.",
+    "deviceAliasTitle": "Ime po meri",
+    "deviceAliasDescription": "Prikazano v aplikaciji namesto privzetega imena naprave.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Ime naprave posodobljeno"
 }

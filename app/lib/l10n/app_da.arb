@@ -3286,5 +3286,9 @@
     "activeCaptureButtonHide": "Skjul knappen",
     "activeCaptureButtonHideDescription": "Fjern startknappen, indtil optagelsen stopper.",
     "activeCaptureButtonSwitchSource": "Skift lydkilde",
-    "activeCaptureButtonSwitchSourceDescription": "Vælg mellem telefonens mikrofon og den tilsluttede enhed."
+    "activeCaptureButtonSwitchSourceDescription": "Vælg mellem telefonens mikrofon og den tilsluttede enhed.",
+    "deviceAliasTitle": "Brugerdefineret navn",
+    "deviceAliasDescription": "Vises i appen i stedet for enhedens standardnavn.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Enhedsnavn opdateret"
 }

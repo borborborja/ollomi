@@ -9844,4 +9844,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'スマートフォンのマイクまたは接続済みデバイスを選択します。';
+
+  @override
+  String get deviceAliasTitle => 'カスタム名';
+
+  @override
+  String get deviceAliasDescription => 'デバイスの既定の名前の代わりにアプリ全体で表示されます。';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'デバイス名を更新しました';
 }

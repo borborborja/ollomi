@@ -302,6 +302,25 @@ class SharedPreferencesUtil {
 
   String get deviceName => getString('deviceName');
 
+  //-------------------------------- Device Alias ----------------------------//
+
+  static const String _deviceAliasPrefix = 'deviceAlias:';
+
+  String deviceAliasFor(String deviceId) {
+    if (deviceId.isEmpty) return '';
+    return getString('$_deviceAliasPrefix$deviceId').trim();
+  }
+
+  Future<void> setDeviceAliasFor(String deviceId, String alias) async {
+    if (deviceId.isEmpty) return;
+    final trimmed = alias.trim();
+    if (trimmed.isEmpty) {
+      await remove('$_deviceAliasPrefix$deviceId');
+    } else {
+      await saveString('$_deviceAliasPrefix$deviceId', trimmed);
+    }
+  }
+
   bool get deviceIsV2 => getBool('deviceIsV2');
 
   set deviceIsV2(bool value) => saveBool('deviceIsV2', value);

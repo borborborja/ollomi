@@ -9957,4 +9957,16 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'เลือกระหว่างไมโครโฟนโทรศัพท์กับอุปกรณ์ที่เชื่อมต่อ';
+
+  @override
+  String get deviceAliasTitle => 'ชื่อที่กำหนดเอง';
+
+  @override
+  String get deviceAliasDescription => 'แสดงในแอปแทนชื่อเริ่มต้นของอุปกรณ์';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'อัปเดตชื่ออุปกรณ์แล้ว';
 }

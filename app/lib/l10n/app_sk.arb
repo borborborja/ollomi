@@ -3273,5 +3273,9 @@
     "activeCaptureButtonHide": "Skryť tlačidlo",
     "activeCaptureButtonHideDescription": "Odstrániť tlačidlo domov, kým sa nahrávanie nezastaví.",
     "activeCaptureButtonSwitchSource": "Zmeniť zdroj zvuku",
-    "activeCaptureButtonSwitchSourceDescription": "Vyberte mikrofón telefónu alebo pripojené zariadenie."
+    "activeCaptureButtonSwitchSourceDescription": "Vyberte mikrofón telefónu alebo pripojené zariadenie.",
+    "deviceAliasTitle": "Vlastný názov",
+    "deviceAliasDescription": "Zobrazí sa v aplikácii namiesto predvoleného názvu zariadenia.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Názov zariadenia bol aktualizovaný"
 }

@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Сховати кнопку",
     "activeCaptureButtonHideDescription": "Прибрати кнопку з головного екрана до зупинки запису.",
     "activeCaptureButtonSwitchSource": "Змінити джерело аудіо",
-    "activeCaptureButtonSwitchSourceDescription": "Виберіть мікрофон телефона або підключений пристрій."
+    "activeCaptureButtonSwitchSourceDescription": "Виберіть мікрофон телефона або підключений пристрій.",
+    "deviceAliasTitle": "Власна назва",
+    "deviceAliasDescription": "Показується в застосунку замість назви пристрою за замовчуванням.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Назву пристрою оновлено"
 }

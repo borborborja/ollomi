@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "بٹن چھپائیں",
     "activeCaptureButtonHideDescription": "ریکارڈنگ رکنے تک ہوم بٹن ہٹا دیں۔",
     "activeCaptureButtonSwitchSource": "آڈیو ماخذ تبدیل کریں",
-    "activeCaptureButtonSwitchSourceDescription": "فون مائیکروفون یا منسلک ڈیوائس منتخب کریں۔"
+    "activeCaptureButtonSwitchSourceDescription": "فون مائیکروفون یا منسلک ڈیوائس منتخب کریں۔",
+    "deviceAliasTitle": "حسب ضرورت نام",
+    "deviceAliasDescription": "ڈیوائس کے ڈیفالٹ نام کی بجائے ایپ میں دکھایا جاتا ہے۔",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "ڈیوائس کا نام اپ ڈیٹ ہو گیا"
 }

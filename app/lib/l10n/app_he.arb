@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "הסתרת הכפתור",
     "activeCaptureButtonHideDescription": "הסרת כפתור הבית עד שההקלטה נעצרת.",
     "activeCaptureButtonSwitchSource": "שינוי מקור שמע",
-    "activeCaptureButtonSwitchSourceDescription": "בחרו בין מיקרופון הטלפון למכשיר המחובר."
+    "activeCaptureButtonSwitchSourceDescription": "בחרו בין מיקרופון הטלפון למכשיר המחובר.",
+    "deviceAliasTitle": "שם מותאם אישית",
+    "deviceAliasDescription": "מוצג באפליקציה במקום שם ברירת המחדל של המכשיר.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "שם המכשיר עודכן"
 }

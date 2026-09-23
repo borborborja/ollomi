@@ -3246,5 +3246,9 @@
     "activeCaptureButtonHide": "Amagar el botó",
     "activeCaptureButtonHideDescription": "Treu el botó de la pantalla principal fins que s'aturi la gravació.",
     "activeCaptureButtonSwitchSource": "Canviar la font d'àudio",
-    "activeCaptureButtonSwitchSourceDescription": "Permet triar entre el micròfon del telèfon i el dispositiu connectat."
+    "activeCaptureButtonSwitchSourceDescription": "Permet triar entre el micròfon del telèfon i el dispositiu connectat.",
+    "deviceAliasTitle": "Nom personalitzat",
+    "deviceAliasDescription": "Es mostra a l'aplicació en lloc del nom predeterminat del dispositiu.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Nom del dispositiu actualitzat"
 }

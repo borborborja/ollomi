@@ -3246,5 +3246,9 @@
     "activeCaptureButtonHide": "Скриване на бутона",
     "activeCaptureButtonHideDescription": "Премахва началния бутон, докато записът спре.",
     "activeCaptureButtonSwitchSource": "Промяна на аудио източника",
-    "activeCaptureButtonSwitchSourceDescription": "Изберете между микрофона на телефона и свързаното устройство."
+    "activeCaptureButtonSwitchSourceDescription": "Изберете между микрофона на телефона и свързаното устройство.",
+    "deviceAliasTitle": "Персонализирано име",
+    "deviceAliasDescription": "Показва се в приложението вместо името на устройството по подразбиране.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Името на устройството е обновено"
 }

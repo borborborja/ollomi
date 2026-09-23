@@ -586,16 +586,18 @@ class CaptureController extends ChangeNotifier
         : recordingState == RecordingState.systemAudioRecord
             ? CaptureUiSource.systemAudio
             : CaptureUiSource.phone;
-    final deviceName = _recordingDevice == null
+    final recordingDevice = _recordingDevice;
+    final deviceName = recordingDevice == null
         ? null
-        : DeviceUtils.isOmiCv1(
-            modelNumber: _recordingDevice!.modelNumber,
-            deviceName: _recordingDevice!.name,
-          )
-            ? 'Omi CV1'
-            : _recordingDevice!.name.trim().isNotEmpty
-                ? _recordingDevice!.name.trim()
-                : _recordingDevice!.modelNumber;
+        : DeviceUtils.aliasFor(recordingDevice) ??
+            (DeviceUtils.isOmiCv1(
+                    modelNumber: recordingDevice.modelNumber,
+                    deviceName: recordingDevice.name,
+                  )
+                ? 'Omi CV1'
+                : recordingDevice.name.trim().isNotEmpty
+                    ? recordingDevice.name.trim()
+                    : recordingDevice.modelNumber);
 
     if (!isCaptureActive) {
       return CaptureUiState(stage: CaptureUiStage.inactive, source: source, deviceName: deviceName);

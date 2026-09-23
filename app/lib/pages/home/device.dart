@@ -522,7 +522,7 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
   }
 
   Widget _buildDeviceInfoSection(DeviceProvider provider) {
-    final deviceName = provider.pairedDevice?.name ?? context.l10n.unknownDevice;
+    final deviceName = DeviceUtils.displayName(provider.pairedDevice, fallback: context.l10n.unknownDevice);
     final modelNumber = provider.pairedDevice?.modelNumber ?? context.l10n.unknown;
     final manufacturer = provider.pairedDevice?.manufacturerName ?? context.l10n.unknown;
     final firmware = provider.pairedDevice?.firmwareRevision ?? context.l10n.unknown;
@@ -652,7 +652,7 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
                 Column(
                   children: [
                     Text(
-                      provider.pairedDevice?.name ?? context.l10n.unknownDevice,
+                      DeviceUtils.displayName(provider.pairedDevice, fallback: context.l10n.unknownDevice),
                       style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),

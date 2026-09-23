@@ -10025,4 +10025,16 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'फोनचा मायक्रोफोन किंवा जोडलेले डिव्हाइस निवडा.';
+
+  @override
+  String get deviceAliasTitle => 'कस्टम नाव';
+
+  @override
+  String get deviceAliasDescription => 'डिव्हाइसच्या डीफॉल्ट नावाऐवजी ॲपमध्ये दर्शविले जाते.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'डिव्हाइसचे नाव अद्ययावत केले';
 }

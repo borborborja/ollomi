@@ -10011,4 +10011,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Chọn micrô điện thoại hoặc thiết bị đã kết nối.';
+
+  @override
+  String get deviceAliasTitle => 'Tên tùy chỉnh';
+
+  @override
+  String get deviceAliasDescription => 'Hiển thị trong ứng dụng thay cho tên mặc định của thiết bị.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Đã cập nhật tên thiết bị';
 }

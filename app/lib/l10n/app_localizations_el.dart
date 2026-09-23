@@ -10089,4 +10089,16 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get activeCaptureButtonSwitchSourceDescription =>
       'Επιλέξτε το μικρόφωνο του τηλεφώνου ή τη συνδεδεμένη συσκευή.';
+
+  @override
+  String get deviceAliasTitle => 'Προσαρμοσμένο όνομα';
+
+  @override
+  String get deviceAliasDescription => 'Εμφανίζεται στην εφαρμογή αντί για το προεπιλεγμένο όνομα της συσκευής.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Το όνομα της συσκευής ενημερώθηκε';
 }

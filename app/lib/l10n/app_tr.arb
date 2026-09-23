@@ -3303,5 +3303,9 @@
     "activeCaptureButtonHide": "Düğmeyi gizle",
     "activeCaptureButtonHideDescription": "Kayıt durana kadar ana ekran düğmesini kaldır.",
     "activeCaptureButtonSwitchSource": "Ses kaynağını değiştir",
-    "activeCaptureButtonSwitchSourceDescription": "Telefon mikrofonu veya bağlı cihaz arasında seçim yapın."
+    "activeCaptureButtonSwitchSourceDescription": "Telefon mikrofonu veya bağlı cihaz arasında seçim yapın.",
+    "deviceAliasTitle": "Özel ad",
+    "deviceAliasDescription": "Cihazın varsayılan adı yerine uygulamada gösterilir.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Cihaz adı güncellendi"
 }

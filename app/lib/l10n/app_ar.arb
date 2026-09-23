@@ -3244,5 +3244,9 @@
     "activeCaptureButtonHide": "إخفاء الزر",
     "activeCaptureButtonHideDescription": "إزالة زر الصفحة الرئيسية حتى يتوقف التسجيل.",
     "activeCaptureButtonSwitchSource": "تغيير مصدر الصوت",
-    "activeCaptureButtonSwitchSourceDescription": "اختر بين ميكروفون الهاتف والجهاز المتصل."
+    "activeCaptureButtonSwitchSourceDescription": "اختر بين ميكروفون الهاتف والجهاز المتصل.",
+    "deviceAliasTitle": "اسم مخصص",
+    "deviceAliasDescription": "يظهر في التطبيق بدلاً من الاسم الافتراضي للجهاز.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "تم تحديث اسم الجهاز"
 }

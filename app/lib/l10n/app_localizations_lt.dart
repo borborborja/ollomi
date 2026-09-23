@@ -10035,4 +10035,16 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Pasirinkite telefono mikrofoną arba prijungtą įrenginį.';
+
+  @override
+  String get deviceAliasTitle => 'Pasirinktinis pavadinimas';
+
+  @override
+  String get deviceAliasDescription => 'Rodomas programoje vietoje numatytojo įrenginio pavadinimo.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Įrenginio pavadinimas atnaujintas';
 }

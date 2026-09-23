@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Slėpti mygtuką",
     "activeCaptureButtonHideDescription": "Pašalinti pradžios mygtuką, kol įrašymas sustos.",
     "activeCaptureButtonSwitchSource": "Keisti garso šaltinį",
-    "activeCaptureButtonSwitchSourceDescription": "Pasirinkite telefono mikrofoną arba prijungtą įrenginį."
+    "activeCaptureButtonSwitchSourceDescription": "Pasirinkite telefono mikrofoną arba prijungtą įrenginį.",
+    "deviceAliasTitle": "Pasirinktinis pavadinimas",
+    "deviceAliasDescription": "Rodomas programoje vietoje numatytojo įrenginio pavadinimo.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Įrenginio pavadinimas atnaujintas"
 }

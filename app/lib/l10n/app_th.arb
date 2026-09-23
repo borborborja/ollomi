@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "ซ่อนปุ่ม",
     "activeCaptureButtonHideDescription": "นำปุ่มหน้าหลักออกจนกว่าจะหยุดบันทึก",
     "activeCaptureButtonSwitchSource": "เปลี่ยนแหล่งเสียง",
-    "activeCaptureButtonSwitchSourceDescription": "เลือกระหว่างไมโครโฟนโทรศัพท์กับอุปกรณ์ที่เชื่อมต่อ"
+    "activeCaptureButtonSwitchSourceDescription": "เลือกระหว่างไมโครโฟนโทรศัพท์กับอุปกรณ์ที่เชื่อมต่อ",
+    "deviceAliasTitle": "ชื่อที่กำหนดเอง",
+    "deviceAliasDescription": "แสดงในแอปแทนชื่อเริ่มต้นของอุปกรณ์",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "อัปเดตชื่ออุปกรณ์แล้ว"
 }

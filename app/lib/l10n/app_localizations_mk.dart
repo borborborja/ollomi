@@ -10069,4 +10069,16 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Изберете го микрофонот на телефонот или поврзаниот уред.';
+
+  @override
+  String get deviceAliasTitle => 'Прилагодено име';
+
+  @override
+  String get deviceAliasDescription => 'Се прикажува во апликацијата наместо стандардното име на уредот.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Името на уредот е ажурирано';
 }

@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "Схаваць кнопку",
     "activeCaptureButtonHideDescription": "Прыбраць кнопку з галоўнага экрана да спынення запісу.",
     "activeCaptureButtonSwitchSource": "Змяніць крыніцу аўдыя",
-    "activeCaptureButtonSwitchSourceDescription": "Выберыце мікрафон тэлефона або падлучаную прыладу."
+    "activeCaptureButtonSwitchSourceDescription": "Выберыце мікрафон тэлефона або падлучаную прыладу.",
+    "deviceAliasTitle": "Уласная назва",
+    "deviceAliasDescription": "Паказваецца ў праграме замест назвы прылады па змаўчанні.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Назва прылады абноўлена"
 }

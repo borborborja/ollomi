@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "ಬಟನ್ ಮರೆಮಾಡಿ",
     "activeCaptureButtonHideDescription": "ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲುವವರೆಗೆ ಹೋಮ್ ಬಟನ್ ತೆಗೆದುಹಾಕಿ.",
     "activeCaptureButtonSwitchSource": "ಆಡಿಯೋ ಮೂಲ ಬದಲಿಸಿ",
-    "activeCaptureButtonSwitchSourceDescription": "ಫೋನ್ ಮೈಕ್ರೋಫೋನ್ ಅಥವಾ ಸಂಪರ್ಕಿತ ಸಾಧನವನ್ನು ಆಯ್ಕೆಮಾಡಿ."
+    "activeCaptureButtonSwitchSourceDescription": "ಫೋನ್ ಮೈಕ್ರೋಫೋನ್ ಅಥವಾ ಸಂಪರ್ಕಿತ ಸಾಧನವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+    "deviceAliasTitle": "ಕಸ್ಟಮ್ ಹೆಸರು",
+    "deviceAliasDescription": "ಸಾಧನದ ಡೀಫಾಲ್ಟ್ ಹೆಸರಿನ ಬದಲಾಗಿ ಅಪ್‌ನಲ್ಲಿ ತೋರಿಸಲಾಗುತ್ತದೆ.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "ಸಾಧನದ ಹೆಸರು ನವೀಕರಿಸಲಾಗಿದೆ"
 }

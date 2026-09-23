@@ -10026,4 +10026,16 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Pilih mikrofon ponsel atau perangkat yang terhubung.';
+
+  @override
+  String get deviceAliasTitle => 'Nama khusus';
+
+  @override
+  String get deviceAliasDescription => 'Ditampilkan di aplikasi sebagai ganti nama bawaan perangkat.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Nama perangkat diperbarui';
 }

@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "پنهان کردن دکمه",
     "activeCaptureButtonHideDescription": "دکمه صفحه اصلی را تا توقف ضبط حذف می‌کند.",
     "activeCaptureButtonSwitchSource": "تغییر منبع صدا",
-    "activeCaptureButtonSwitchSourceDescription": "بین میکروفون تلفن و دستگاه متصل انتخاب کنید."
+    "activeCaptureButtonSwitchSourceDescription": "بین میکروفون تلفن و دستگاه متصل انتخاب کنید.",
+    "deviceAliasTitle": "نام سفارشی",
+    "deviceAliasDescription": "در برنامه به‌جای نام پیش‌فرض دستگاه نمایش داده می‌شود.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "نام دستگاه به‌روزرسانی شد"
 }

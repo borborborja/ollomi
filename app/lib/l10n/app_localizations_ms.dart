@@ -10042,4 +10042,16 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Pilih mikrofon telefon atau peranti yang disambungkan.';
+
+  @override
+  String get deviceAliasTitle => 'Nama tersuai';
+
+  @override
+  String get deviceAliasDescription => 'Ditunjukkan dalam apl dan bukan nama lalai peranti.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Nama peranti dikemas kini';
 }

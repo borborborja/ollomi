@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "Сакриј дугме",
     "activeCaptureButtonHideDescription": "Уклони почетно дугме док се снимање не заустави.",
     "activeCaptureButtonSwitchSource": "Промени извор звука",
-    "activeCaptureButtonSwitchSourceDescription": "Изаберите микрофон телефона или повезани уређај."
+    "activeCaptureButtonSwitchSourceDescription": "Изаберите микрофон телефона или повезани уређај.",
+    "deviceAliasTitle": "Прилагођено име",
+    "deviceAliasDescription": "Приказује се у апликацији уместо подразумеваног имена уређаја.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Име уређаја је ажурирано"
 }

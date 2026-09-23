@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Paslēpt pogu",
     "activeCaptureButtonHideDescription": "Noņemt sākuma pogu, līdz ierakstīšana tiek apturēta.",
     "activeCaptureButtonSwitchSource": "Mainīt audio avotu",
-    "activeCaptureButtonSwitchSourceDescription": "Izvēlieties tālruņa mikrofonu vai pievienoto ierīci."
+    "activeCaptureButtonSwitchSourceDescription": "Izvēlieties tālruņa mikrofonu vai pievienoto ierīci.",
+    "deviceAliasTitle": "Pielāgots nosaukums",
+    "deviceAliasDescription": "Tiek rādīts lietotnē ierīces noklusējuma nosaukuma vietā.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Ierīces nosaukums atjaunināts"
 }

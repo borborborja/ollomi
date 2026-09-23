@@ -10000,4 +10000,16 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Vælg mellem telefonens mikrofon og den tilsluttede enhed.';
+
+  @override
+  String get deviceAliasTitle => 'Brugerdefineret navn';
+
+  @override
+  String get deviceAliasDescription => 'Vises i appen i stedet for enhedens standardnavn.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Enhedsnavn opdateret';
 }

@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "বোতাম লুকান",
     "activeCaptureButtonHideDescription": "রেকর্ডিং বন্ধ না হওয়া পর্যন্ত হোম বোতাম সরিয়ে রাখুন।",
     "activeCaptureButtonSwitchSource": "অডিও উৎস পরিবর্তন করুন",
-    "activeCaptureButtonSwitchSourceDescription": "ফোনের মাইক্রোফোন বা সংযুক্ত ডিভাইস বেছে নিন।"
+    "activeCaptureButtonSwitchSourceDescription": "ফোনের মাইক্রোফোন বা সংযুক্ত ডিভাইস বেছে নিন।",
+    "deviceAliasTitle": "কাস্টম নাম",
+    "deviceAliasDescription": "ডিভাইসের ডিফল্ট নামের বদলে অ্যাপে দেখানো হয়।",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "ডিভাইসের নাম আপডেট হয়েছে"
 }

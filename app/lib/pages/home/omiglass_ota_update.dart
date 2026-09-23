@@ -11,6 +11,7 @@ import 'package:omi/pages/home/page.dart';
 import 'package:omi/services/devices/connectors/omiglass_connection.dart';
 import 'package:omi/services/services.dart';
 import 'package:omi/providers/device_provider.dart';
+import 'package:omi/utils/device.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/utils/logger.dart';
 import 'package:omi/utils/other/temp.dart';
@@ -662,7 +663,7 @@ class _OmiGlassOtaUpdateState extends State<OmiGlassOtaUpdate> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Your ${widget.device?.name ?? "OmiGlass"} has been updated successfully. The device will restart automatically.',
+                  'Your ${DeviceUtils.displayName(widget.device, fallback: "OmiGlass")} has been updated successfully. The device will restart automatically.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade400, height: 1.4),
                 ),

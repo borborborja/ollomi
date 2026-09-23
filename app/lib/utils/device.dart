@@ -3,10 +3,24 @@ import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:version/version.dart';
 
+import 'package:omi/backend/preferences.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/gen/assets.gen.dart';
 
 class DeviceUtils {
+  static String? aliasFor(BtDevice? device) {
+    if (device == null) return null;
+    final alias = SharedPreferencesUtil().deviceAliasFor(device.id);
+    return alias.isEmpty ? null : alias;
+  }
+
+  static String displayName(BtDevice? device, {String fallback = ''}) {
+    final alias = aliasFor(device);
+    if (alias != null) return alias;
+    final name = device?.name.trim() ?? '';
+    return name.isNotEmpty ? name : fallback;
+  }
+
   /// Closed, analysis-safe hardware family used by product telemetry.
   static String analyticsHardwareFamily(BtDevice device) {
     switch (device.type) {

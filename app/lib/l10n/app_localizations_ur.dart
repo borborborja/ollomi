@@ -10028,4 +10028,16 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'فون مائیکروفون یا منسلک ڈیوائس منتخب کریں۔';
+
+  @override
+  String get deviceAliasTitle => 'حسب ضرورت نام';
+
+  @override
+  String get deviceAliasDescription => 'ڈیوائس کے ڈیفالٹ نام کی بجائے ایپ میں دکھایا جاتا ہے۔';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'ڈیوائس کا نام اپ ڈیٹ ہو گیا';
 }

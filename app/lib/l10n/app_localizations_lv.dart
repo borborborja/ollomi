@@ -10039,4 +10039,16 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Izvēlieties tālruņa mikrofonu vai pievienoto ierīci.';
+
+  @override
+  String get deviceAliasTitle => 'Pielāgots nosaukums';
+
+  @override
+  String get deviceAliasDescription => 'Tiek rādīts lietotnē ierīces noklusējuma nosaukuma vietā.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Ierīces nosaukums atjaunināts';
 }

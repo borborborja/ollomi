@@ -3273,5 +3273,9 @@
     "activeCaptureButtonHide": "Ẩn nút",
     "activeCaptureButtonHideDescription": "Ẩn nút trang chủ cho đến khi dừng ghi âm.",
     "activeCaptureButtonSwitchSource": "Đổi nguồn âm thanh",
-    "activeCaptureButtonSwitchSourceDescription": "Chọn micrô điện thoại hoặc thiết bị đã kết nối."
+    "activeCaptureButtonSwitchSourceDescription": "Chọn micrô điện thoại hoặc thiết bị đã kết nối.",
+    "deviceAliasTitle": "Tên tùy chỉnh",
+    "deviceAliasDescription": "Hiển thị trong ứng dụng thay cho tên mặc định của thiết bị.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Đã cập nhật tên thiết bị"
 }

@@ -3269,5 +3269,9 @@
     "activeCaptureButtonHide": "बटन छिपाएँ",
     "activeCaptureButtonHideDescription": "रिकॉर्डिंग रुकने तक होम बटन हटाएँ।",
     "activeCaptureButtonSwitchSource": "ऑडियो स्रोत बदलें",
-    "activeCaptureButtonSwitchSourceDescription": "फ़ोन माइक्रोफ़ोन या जुड़े डिवाइस में से चुनें।"
+    "activeCaptureButtonSwitchSourceDescription": "फ़ोन माइक्रोफ़ोन या जुड़े डिवाइस में से चुनें।",
+    "deviceAliasTitle": "कस्टम नाम",
+    "deviceAliasDescription": "डिवाइस के डिफ़ॉल्ट नाम के बजाय ऐप में दिखाया जाता है।",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "डिवाइस का नाम अपडेट किया गया"
 }

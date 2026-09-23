@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "बटण लपवा",
     "activeCaptureButtonHideDescription": "रेकॉर्डिंग थांबेपर्यंत होम बटण काढा.",
     "activeCaptureButtonSwitchSource": "ऑडिओ स्रोत बदला",
-    "activeCaptureButtonSwitchSourceDescription": "फोनचा मायक्रोफोन किंवा जोडलेले डिव्हाइस निवडा."
+    "activeCaptureButtonSwitchSourceDescription": "फोनचा मायक्रोफोन किंवा जोडलेले डिव्हाइस निवडा.",
+    "deviceAliasTitle": "कस्टम नाव",
+    "deviceAliasDescription": "डिव्हाइसच्या डीफॉल्ट नावाऐवजी ॲपमध्ये दर्शविले जाते.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "डिव्हाइसचे नाव अद्ययावत केले"
 }

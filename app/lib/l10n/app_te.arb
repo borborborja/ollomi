@@ -10834,5 +10834,9 @@
     "activeCaptureButtonHide": "బటన్‌ను దాచండి",
     "activeCaptureButtonHideDescription": "రికార్డింగ్ ఆగే వరకు హోమ్ బటన్‌ను తీసివేయండి.",
     "activeCaptureButtonSwitchSource": "ఆడియో మూలాన్ని మార్చండి",
-    "activeCaptureButtonSwitchSourceDescription": "ఫోన్ మైక్రోఫోన్ లేదా కనెక్ట్ చేసిన పరికరాన్ని ఎంచుకోండి."
+    "activeCaptureButtonSwitchSourceDescription": "ఫోన్ మైక్రోఫోన్ లేదా కనెక్ట్ చేసిన పరికరాన్ని ఎంచుకోండి.",
+    "deviceAliasTitle": "కస్టమ్ పేరు",
+    "deviceAliasDescription": "పరికరం యొక్క డిఫాల్ట్ పేరుకు బదులుగా యాప్‌లో చూపబడుతుంది.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "పరికరం పేరు నవీకరించబడింది"
 }

@@ -3268,5 +3268,9 @@
     "activeCaptureButtonHide": "Piilota painike",
     "activeCaptureButtonHideDescription": "Poista aloitusnäytön painike, kunnes tallennus päättyy.",
     "activeCaptureButtonSwitchSource": "Vaihda äänilähdettä",
-    "activeCaptureButtonSwitchSourceDescription": "Valitse puhelimen mikrofoni tai yhdistetty laite."
+    "activeCaptureButtonSwitchSourceDescription": "Valitse puhelimen mikrofoni tai yhdistetty laite.",
+    "deviceAliasTitle": "Mukautettu nimi",
+    "deviceAliasDescription": "Näytetään sovelluksessa laitteen oletusnimen sijaan.",
+    "deviceAliasHint": "Omi CV1",
+    "deviceAliasSaved": "Laitteen nimi päivitetty"
 }

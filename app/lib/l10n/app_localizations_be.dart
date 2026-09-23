@@ -10047,4 +10047,16 @@ class AppLocalizationsBe extends AppLocalizations {
 
   @override
   String get activeCaptureButtonSwitchSourceDescription => 'Выберыце мікрафон тэлефона або падлучаную прыладу.';
+
+  @override
+  String get deviceAliasTitle => 'Уласная назва';
+
+  @override
+  String get deviceAliasDescription => 'Паказваецца ў праграме замест назвы прылады па змаўчанні.';
+
+  @override
+  String get deviceAliasHint => 'Omi CV1';
+
+  @override
+  String get deviceAliasSaved => 'Назва прылады абноўлена';
 }
