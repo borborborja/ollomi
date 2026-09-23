@@ -415,7 +415,8 @@ jobs:
           fi
           for name in api stt voiceprint; do
             image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/ollomi-$name"
-            docker buildx imagetools create --tag "$image:stable" "$image:$GITHUB_REF_NAME"
+            docker buildx imagetools create --prefer-index=false \
+              --tag "$image:stable" "$image:$GITHUB_REF_NAME"
             expected=$(docker buildx imagetools inspect "$image:$GITHUB_REF_NAME" --format '{{json .Manifest}}' | jq -r '.digest')
             actual=$(docker buildx imagetools inspect "$image:stable" --format '{{json .Manifest}}' | jq -r '.digest')
             test -n "$expected" && test "$expected" = "$actual"
