@@ -174,19 +174,24 @@ class _DevicesPageState extends State<DevicesPage> {
 
   Widget _buildMasterSwitch(SharedPreferencesUtil preferences, bool enabled) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(20)),
-      child: SwitchListTile(
-        key: const Key('auto_connect_master_switch'),
-        value: enabled,
-        activeThumbColor: Colors.white,
-        activeTrackColor: const Color(0xFFFE5D50),
-        title: Text(context.l10n.autoConnect, style: const TextStyle(color: Colors.white, fontSize: 16)),
-        contentPadding: EdgeInsets.zero,
-        onChanged: (value) {
-          preferences.autoConnectEnabled = value;
-          if (mounted) setState(() {});
-        },
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(context.l10n.autoConnect, style: const TextStyle(color: Colors.white, fontSize: 16)),
+          ),
+          Switch(
+            key: const Key('auto_connect_master_switch'),
+            value: enabled,
+            activeThumbColor: Colors.white,
+            activeTrackColor: const Color(0xFFFE5D50),
+            onChanged: (value) {
+              preferences.autoConnectEnabled = value;
+              if (mounted) setState(() {});
+            },
+          ),
+        ],
       ),
     );
   }
