@@ -27,6 +27,7 @@ from selfhost.db import Job, Record, User, emit, ident, owned, transaction
 from selfhost.profiles import call_with_fallback, provider_client, selected_profile
 from selfhost.records import conversation_data
 from selfhost.security import authenticate, current_user
+from selfhost.stt_filter import filter_silent_hallucinations
 
 router = APIRouter()
 
@@ -467,6 +468,7 @@ def transcribe_file(profile, path, language="auto", diarize=True):
                 "speaker": None,
             }
         ]
+    segments = filter_silent_hallucinations(segments, path, settings().stt_silence_rms)
     return [
         {
             "id": ident(),

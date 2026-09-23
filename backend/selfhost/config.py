@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     typesense_url: str = "http://typesense:8108"
     typesense_key: SecretStr = SecretStr("")
     stt_url: str = "http://stt:8000/v1"
+    # Windows at or below this RMS (16-bit PCM) are treated as silence when
+    # deciding whether an STT segment is a Whisper-style silence artefact.
+    stt_silence_rms: int = 60
     ollama_url: str = "http://ollama:11434/v1"
     seed_local_whisper: bool = True
     seed_local_ollama: bool = True
@@ -49,6 +52,8 @@ class Settings(BaseSettings):
     def validate_runtime(self):
         if len(self.secret_key.get_secret_value()) < 32:
             raise ValueError("OLLOMI_SECRET_KEY must contain at least 32 characters")
+        if not 0 <= self.stt_silence_rms <= 32768:
+            raise ValueError("OLLOMI_STT_SILENCE_RMS must be between 0 and 32768")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         (self.data_dir / "files").mkdir(exist_ok=True)
         if self.mcp_enabled:
