@@ -259,24 +259,32 @@ def _ordered_env_rows(db, purpose):
 def selected_profile(db, user_id, purpose):
     env_rows = _ordered_env_rows(db, purpose)
     if env_rows:
-        preferred_id = (db.get(User, user_id).preferences or {}).get("ai_profiles", {}).get(purpose)
+        preferred_id = (
+            (db.get(User, user_id).preferences or {}).get("ai_profiles", {}).get(purpose)
+            if settings().allow_user_model_selection
+            else None
+        )
         preferred = next((row for row in env_rows if row.id == preferred_id), env_rows[0])
         profiles = [snapshot(preferred), *[snapshot(row) for row in env_rows if row.id != preferred.id]]
         return {**profiles[0], "fallbacks": profiles[1:]}
+    rows = list(db.scalars(select(AIProfile).where(AIProfile.purpose == purpose, AIProfile.enabled.is_(True))))
+    rows = [row for row in rows if (row.capabilities or {}).get("managed_by") != "env"]
+    rows.sort(key=lambda row: ((row.capabilities or {}).get("priority", 999999), row.id))
     user = db.get(User, user_id)
-    profile_id = (user.preferences or {}).get("ai_profiles", {}).get(purpose)
-    row = (
-        db.get(AIProfile, profile_id)
-        if profile_id
-        else db.scalar(
-            select(AIProfile).where(AIProfile.purpose == purpose, AIProfile.enabled.is_(True)).order_by(AIProfile.id)
-        )
+    profile_id = (
+        (user.preferences or {}).get("ai_profiles", {}).get(purpose)
+        if settings().allow_user_model_selection
+        else None
     )
-    if row is None or not row.enabled or row.purpose != purpose:
+    row = next((candidate for candidate in rows if candidate.id == profile_id), None) or (rows[0] if rows else None)
+    if row is None:
         raise HTTPException(503, f"No enabled {purpose} profile")
-    if row.external and settings().local_only:
+    ordered = [row, *[candidate for candidate in rows if candidate.id != row.id]]
+    ordered = [candidate for candidate in ordered if not candidate.external or not settings().local_only]
+    if not ordered:
         raise HTTPException(503, "External AI is disabled")
-    return snapshot(row)
+    profiles = [snapshot(candidate) for candidate in ordered]
+    return {**profiles[0], "fallbacks": profiles[1:]}
 
 
 def profile_chain(profile):

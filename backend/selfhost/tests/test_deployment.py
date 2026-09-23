@@ -18,7 +18,7 @@ def load_module(name, relative_path):
     return module
 
 
-def test_environment_admin_seed_is_idempotent(client, monkeypatch):
+def test_environment_admin_seed_applies_password_changes(client, monkeypatch):
     from selfhost.accounts import seed_admin_from_env
     from selfhost.db import User, transaction
     from selfhost.security import verify_password
@@ -35,11 +35,12 @@ def test_environment_admin_seed_is_idempotent(client, monkeypatch):
 
     monkeypatch.setenv("OLLOMI_ADMIN_PASSWORD", "replacement-password-456")
     with transaction() as db:
-        assert seed_admin_from_env(db) is False
+        assert seed_admin_from_env(db) is True
     with transaction() as db:
-        unchanged = db.scalar(select(User).where(User.email == "seed@test.local"))
-        assert unchanged.password_hash == original_hash
-        assert not verify_password("replacement-password-456", unchanged.password_hash)
+        changed = db.scalar(select(User).where(User.email == "seed@test.local"))
+        assert changed.password_hash != original_hash
+        assert verify_password("replacement-password-456", changed.password_hash)
+        assert seed_admin_from_env(db) is False
 
 
 def test_environment_admin_seed_requires_both_values(client, monkeypatch):
@@ -86,7 +87,11 @@ def test_cli_supports_password_environment_and_stdin(client, monkeypatch):
 
 def test_cli_rebuilds_only_derived_search_data(client, monkeypatch, capsys):
     from selfhost import cli
+    from selfhost.config import settings
     from selfhost.db import AIProfile, Job, Record, User, transaction
+
+    monkeypatch.setenv("OLLOMI_ALLOW_USER_MODEL_SELECTION", "true")
+    settings.cache_clear()
 
     with transaction() as db:
         # `embeddings` is intentionally migration-managed (pgvector), rather

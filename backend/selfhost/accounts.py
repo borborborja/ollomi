@@ -3,10 +3,10 @@
 import logging
 import os
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
-from selfhost.db import User
-from selfhost.security import passwords
+from selfhost.db import McpApiKey, McpOauthToken, Session, User
+from selfhost.security import passwords, verify_password
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +45,28 @@ def create_admin(db, email: str, password: str, *, if_missing: bool = False) -> 
 
 
 def seed_admin_from_env(db) -> bool:
-    """Create the initial admin once when both bootstrap variables are present."""
+    """Keep the environment-owned administrator in sync on every startup."""
     email = os.getenv("OLLOMI_ADMIN_EMAIL", "").strip()
     password = os.getenv("OLLOMI_ADMIN_PASSWORD", "")
     if not email and not password:
         return False
     if not email or not password:
         raise ValueError("OLLOMI_ADMIN_EMAIL and OLLOMI_ADMIN_PASSWORD must be set together")
-    created = create_admin(db, email, password, if_missing=True)
-    if created:
-        logger.info("Created initial Ollomi administrator")
-    return created
+    email = normalize_email(email)
+    validate_password(password)
+    existing = db.scalar(select(User).where(User.email == email))
+    if existing:
+        if not existing.admin:
+            raise ValueError("OLLOMI_ADMIN_EMAIL belongs to a non-administrator account")
+        changed = not verify_password(password, existing.password_hash)
+        existing.enabled = True
+        if changed:
+            existing.password_hash = passwords.hash(password)
+            db.execute(update(Session).where(Session.user_id == existing.id).values(revoked=True))
+            db.execute(update(McpOauthToken).where(McpOauthToken.user_id == existing.id).values(revoked=True))
+            db.execute(update(McpApiKey).where(McpApiKey.user_id == existing.id).values(revoked=True))
+            logger.info("Updated environment-owned Ollomi administrator credentials")
+        return changed
+    create_admin(db, email, password)
+    logger.info("Created initial Ollomi administrator")
+    return True

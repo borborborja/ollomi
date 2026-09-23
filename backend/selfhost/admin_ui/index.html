@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ollomi · Administració</title>
+  <link rel="stylesheet" href="/admin/assets/admin.css">
+  <script src="/admin/assets/admin.js" defer></script>
+</head>
+<body>
+  <main id="login" class="login-card">
+    <div class="brand">Ollomi <span>administració</span></div>
+    <h1>Entra al servidor</h1>
+    <p>Utilitza el compte administrador d’Ollomi.</p>
+    <form id="login-form">
+      <label>Correu electrònic<input name="email" type="email" autocomplete="username" required></label>
+      <label>Contrasenya<input name="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Entrar</button>
+    </form>
+    <p id="login-error" class="error" role="alert"></p>
+  </main>
+  <div id="shell" hidden>
+    <aside class="sidebar">
+      <div class="brand">Ollomi <span>administració</span></div>
+      <nav aria-label="Seccions">
+        <button class="nav active" data-page="overview">Resum</button>
+        <button class="nav" data-page="models">Models</button>
+        <button class="nav" data-page="users">Usuaris</button>
+        <button class="nav" data-page="config">Configuració</button>
+      </nav>
+      <div class="sidebar-bottom"><span id="signed-in"></span><button id="logout" class="link-button">Tanca la sessió</button></div>
+    </aside>
+    <main class="content">
+      <div id="notice" role="status" aria-live="polite"></div>
+      <section id="overview" class="page">
+        <h1>Estat del servidor</h1><p class="intro">Configuració i serveis de la teva instància.</p>
+        <div id="overview-content" class="grid"></div>
+      </section>
+      <section id="models" class="page" hidden>
+        <h1>Models</h1><p class="intro">Ordena els perfils per prioritat. Si falla el primer, Ollomi prova el següent.</p>
+        <label class="switch-row"><input id="model-selection" type="checkbox"> Permet als usuaris triar model <span id="selection-lock"></span></label>
+        <div id="model-groups"></div>
+        <h2 id="model-form-title">Afegeix un model</h2>
+        <form id="model-form" class="panel form-grid">
+          <input type="hidden" name="profile_id">
+          <label>Tasca<select name="purpose" required><option value="stt">Transcripció</option><option value="chat">Processament i xat</option><option value="embedding">Embeddings</option></select></label>
+          <label>Nom<input name="name" maxlength="100" required></label>
+          <label>Proveïdor<select name="provider" required><option value="custom">Personalitzat</option><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option><option value="ollama">Ollama</option><option value="ollama-cloud">Ollama Cloud</option><option value="whisper">Whisper</option><option value="gemini">Google Gemini</option><option value="assemblyai">AssemblyAI</option><option value="deepgram">Deepgram</option><option value="voyage">Voyage AI</option><option value="cohere">Cohere</option></select></label>
+          <label>Model<input name="model" maxlength="200" required></label>
+          <label class="wide">URL base<input name="base_url" type="url" maxlength="2000" placeholder="https://…/v1" required></label>
+          <label>Clau API <span class="hint">Deixa-la en blanc per conservar l’actual</span><input name="api_key" type="password" autocomplete="off" maxlength="4096"></label>
+          <label class="checkbox"><input name="external" type="checkbox"> Proveïdor extern</label>
+          <label class="checkbox"><input name="enabled" type="checkbox" checked> Actiu</label>
+          <div class="actions wide"><button type="submit">Desa el model</button><button type="button" id="model-cancel" class="secondary">Neteja el formulari</button></div>
+        </form>
+      </section>
+      <section id="users" class="page" hidden>
+        <h1>Usuaris</h1><p class="intro">Crea comptes locals i gestiona l’accés.</p>
+        <div id="user-list" class="panel"></div>
+        <h2>Crea un usuari</h2>
+        <form id="user-form" class="panel form-grid">
+          <label>Nom<input name="name" maxlength="200"></label>
+          <label>Correu electrònic<input name="email" type="email" required></label>
+          <label>Contrasenya inicial<input name="password" type="password" minlength="12" required></label>
+          <label class="checkbox"><input name="admin" type="checkbox"> Administrador</label>
+          <div class="actions wide"><button type="submit">Crea l’usuari</button></div>
+        </form>
+      </section>
+      <section id="config" class="page" hidden>
+        <h1>Configuració</h1>
+        <p class="intro">Els valors definits a <code>.env</code> tenen prioritat i apareixen bloquejats. Els secrets no es mostren mai.</p>
+        <p class="hint">Les opcions de Docker, base de dades i claus d’infraestructura només es poden canviar a <code>.env</code> i recreant els contenidors.</p>
+        <div id="config-list"></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
