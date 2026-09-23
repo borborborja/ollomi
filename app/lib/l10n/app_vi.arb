@@ -3262,5 +3262,16 @@
     "speechToTextUnavailableDesc": "Hiện không thể chuyển giọng nói thành văn bản. Hãy kiểm tra kết nối internet và cài đặt nhận dạng giọng nói trên thiết bị rồi thử lại.",
     "memoryHistoryPartial": "Một phần lịch sử ký ức không khả dụng. Đang hiển thị lịch sử đã nhận được cho đến nay.",
     "tapPlusToStartRecording": "Nhấn + để bắt đầu ghi âm",
-    "processingTakingLonger": "Vẫn đang xử lý — mất nhiều thời gian hơn bình thường."
+    "processingTakingLonger": "Vẫn đang xử lý — mất nhiều thời gian hơn bình thường.",
+    "captureNoSpeechDetected": "Chưa phát hiện giọng nói",
+    "captureTranscriptionUnavailableRecordingContinues": "Không thể chép lời trực tiếp — âm thanh vẫn đang được ghi",
+    "captureTranscriptionDelayed": "Đã nhận âm thanh — bản chép lời bị trễ",
+    "activeCaptureButtonTitle": "Nút khi đang ghi âm",
+    "activeCaptureButtonDescription": "Chọn chức năng của nút trang chủ khi đang ghi âm.",
+    "activeCaptureButtonOpen": "Mở bản ghi đang hoạt động",
+    "activeCaptureButtonOpenDescription": "Hiển thị nguồn hiện tại, hoạt động âm thanh và bản chép lời.",
+    "activeCaptureButtonHide": "Ẩn nút",
+    "activeCaptureButtonHideDescription": "Ẩn nút trang chủ cho đến khi dừng ghi âm.",
+    "activeCaptureButtonSwitchSource": "Đổi nguồn âm thanh",
+    "activeCaptureButtonSwitchSourceDescription": "Chọn micrô điện thoại hoặc thiết bị đã kết nối."
 }

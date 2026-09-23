@@ -9980,4 +9980,38 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Jobber fortsatt — dette tar lengre tid enn vanlig.';
+
+  @override
+  String get captureNoSpeechDetected => 'Ingen tale registrert ennå';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Direktetranskripsjon er utilgjengelig — lyd tas fortsatt opp';
+
+  @override
+  String get captureTranscriptionDelayed => 'Lyd mottatt — transkripsjonen er forsinket';
+
+  @override
+  String get activeCaptureButtonTitle => 'Knapp under opptak';
+
+  @override
+  String get activeCaptureButtonDescription => 'Velg hva hjemknappen gjør mens et opptak er aktivt.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Åpne aktivt opptak';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Vis gjeldende kilde, lydaktivitet og transkripsjon.';
+
+  @override
+  String get activeCaptureButtonHide => 'Skjul knappen';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Fjern hjemknappen til opptaket stopper.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Bytt lydkilde';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Velg mellom telefonmikrofonen og den tilkoblede enheten.';
 }

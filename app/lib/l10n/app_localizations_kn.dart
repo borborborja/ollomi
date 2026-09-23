@@ -10014,4 +10014,38 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'ಇನ್ನೂ ಕೆಲಸ ನಡೆಯುತ್ತಿದೆ — ಇದು ಸಾಮಾನ್ಯಕ್ಕಿಂತ ಹೆಚ್ಚು ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದೆ.';
+
+  @override
+  String get captureNoSpeechDetected => 'ಇನ್ನೂ ಮಾತು ಪತ್ತೆಯಾಗಿಲ್ಲ';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'ಲೈವ್ ಲಿಪ್ಯಂತರ ಲಭ್ಯವಿಲ್ಲ — ಆಡಿಯೋ ಇನ್ನೂ ರೆಕಾರ್ಡ್ ಆಗುತ್ತಿದೆ';
+
+  @override
+  String get captureTranscriptionDelayed => 'ಆಡಿಯೋ ಸ್ವೀಕರಿಸಲಾಗಿದೆ — ಲಿಪ್ಯಂತರ ವಿಳಂಬವಾಗಿದೆ';
+
+  @override
+  String get activeCaptureButtonTitle => 'ರೆಕಾರ್ಡಿಂಗ್ ವೇಳೆ ಬಟನ್';
+
+  @override
+  String get activeCaptureButtonDescription => 'ರೆಕಾರ್ಡಿಂಗ್ ಸಕ್ರಿಯವಾಗಿರುವಾಗ ಹೋಮ್ ಬಟನ್ ಏನು ಮಾಡಬೇಕು ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ.';
+
+  @override
+  String get activeCaptureButtonOpen => 'ಸಕ್ರಿಯ ರೆಕಾರ್ಡಿಂಗ್ ತೆರೆಯಿರಿ';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'ಪ್ರಸ್ತುತ ಮೂಲ, ಆಡಿಯೋ ಚಟುವಟಿಕೆ ಮತ್ತು ಲಿಪ್ಯಂತರವನ್ನು ತೋರಿಸಿ.';
+
+  @override
+  String get activeCaptureButtonHide => 'ಬಟನ್ ಮರೆಮಾಡಿ';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲುವವರೆಗೆ ಹೋಮ್ ಬಟನ್ ತೆಗೆದುಹಾಕಿ.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'ಆಡಿಯೋ ಮೂಲ ಬದಲಿಸಿ';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'ಫೋನ್ ಮೈಕ್ರೋಫೋನ್ ಅಥವಾ ಸಂಪರ್ಕಿತ ಸಾಧನವನ್ನು ಆಯ್ಕೆಮಾಡಿ.';
 }

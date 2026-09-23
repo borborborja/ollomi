@@ -23,7 +23,7 @@ from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from selfhost.config import settings
-from selfhost.db import Job, Record, emit, ident, owned, transaction
+from selfhost.db import Job, Record, User, emit, ident, owned, transaction
 from selfhost.profiles import call_with_fallback, provider_client, selected_profile
 from selfhost.records import conversation_data
 from selfhost.security import authenticate, current_user
@@ -62,6 +62,8 @@ def enqueue_audio(
     file_count=1,
 ):
     with transaction() as db:
+        user = db.get(User, uid)
+        retain_audio = bool(user and user.preferences.get("private_cloud_sync_enabled", False))
         file_row = Record(
             id=file_id,
             user_id=uid,
@@ -101,6 +103,10 @@ def enqueue_audio(
                 "conversation_id": row.id,
                 "language": language,
                 "file_count": file_count,
+                # Snapshot the user's choice when audio is admitted. A later
+                # settings change must not rewrite the retention contract of a
+                # queued or running recording.
+                "retain_audio": retain_audio,
                 **{p: selected_profile(db, uid, p) for p in ("stt", "chat", "embedding")},
             },
         )
@@ -506,8 +512,16 @@ async def listen(socket: WebSocket):
     # Keep device provenance on the conversation created by this socket.
     source = socket.query_params.get("source", "phone")
     if source not in {
-        "omi", "friend_com", "openglass", "phone", "fieldy", "bee",
-        "plaud", "apple_watch", "limitless", "rayban_meta",
+        "omi",
+        "friend_com",
+        "openglass",
+        "phone",
+        "fieldy",
+        "bee",
+        "plaud",
+        "apple_watch",
+        "limitless",
+        "rayban_meta",
     }:
         source = "phone"
     file_id, conversation_id = (
@@ -547,69 +561,123 @@ async def listen(socket: WebSocket):
         from selfhost.lc3_audio import Lc3Decoder
 
         decoder = Lc3Decoder()
-    await socket.send_json({"type": "last_memory", "memory_id": conversation_id})
+    send_lock = asyncio.Lock()
+
+    async def send_json(payload):
+        async with send_lock:
+            await socket.send_json(payload)
+
+    async def send_status(status, **details):
+        await send_json(
+            {
+                "type": "service_status",
+                "status": status,
+                "source": source,
+                **details,
+            }
+        )
+
+    await send_json({"type": "last_memory", "memory_id": conversation_id})
+    await send_status("ready")
     buffer = bytearray()
     total_samples = 0
+    preview_samples = 0
+    preview_queue = asyncio.Queue(maxsize=2)
+    last_audio_status_at = 0.0
+
+    async def preview_worker():
+        while True:
+            pcm, offset = await preview_queue.get()
+            preview = path.with_suffix(".preview.wav")
+
+            def preview_transcript():
+                with wave.open(str(preview), "wb") as clip:
+                    clip.setnchannels(1)
+                    clip.setsampwidth(2)
+                    clip.setframerate(rate)
+                    clip.writeframes(pcm)
+                return transcribe_file(profile, preview, diarize=False)
+
+            try:
+                await send_status("transcribing")
+                segments = await run_in_threadpool(preview_transcript)
+                for segment in segments:
+                    segment["start"] += offset
+                    segment["end"] += offset
+                if segments:
+                    await send_json(segments)
+                else:
+                    await send_status("no_speech")
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                # Live STT is advisory. The final durable job still owns the
+                # transcript and can be retried independently.
+                await send_status("live_stt_unavailable", retryable=True)
+            finally:
+                preview.unlink(missing_ok=True)
+                preview_queue.task_done()
+
     try:
-        with wave.open(str(path), "wb") as wav:
-            wav.setnchannels(1)
-            wav.setsampwidth(2)
-            wav.setframerate(rate)
-            while True:
-                message = await asyncio.wait_for(socket.receive(), timeout=90)
-                if message["type"] == "websocket.disconnect":
-                    break
-                if message.get("text"):
-                    if json.loads(message["text"]).get("type") in {"stop", "finish"}:
-                        break
-                    continue
-                chunk = message.get("bytes", b"")
-                if codec == "lc3_fs1030":
-                    chunk = decoder.decode(chunk)
-                elif decoder:
-                    chunk = decoder.decode(chunk, rate * 120 // 1000)
-                if codec == "pcm8":
-                    import audioop
+        async with asyncio.TaskGroup() as tasks:
+            preview_task = tasks.create_task(preview_worker(), name=f"ollomi-live-preview:{conversation_id}")
+            try:
+                with wave.open(str(path), "wb") as wav:
+                    wav.setnchannels(1)
+                    wav.setsampwidth(2)
+                    wav.setframerate(rate)
+                    while True:
+                        message = await asyncio.wait_for(socket.receive(), timeout=90)
+                        if message["type"] == "websocket.disconnect":
+                            break
+                        if message.get("text"):
+                            if json.loads(message["text"]).get("type") in {"stop", "finish"}:
+                                break
+                            continue
+                        chunk = message.get("bytes", b"")
+                        if codec == "lc3_fs1030":
+                            chunk = decoder.decode(chunk)
+                        elif decoder:
+                            chunk = decoder.decode(chunk, rate * 120 // 1000)
+                        if codec == "pcm8":
+                            import audioop
 
-                    chunk = audioop.lin2lin(audioop.bias(chunk, 1, -128), 1, 2)
-                if len(chunk) % 2:
-                    raise ValueError("Unaligned PCM16")
-                total_samples += len(chunk) // 2
-                if total_samples > rate * settings().max_audio_seconds:
-                    break
-                await run_in_threadpool(wav.writeframes, chunk)
-                buffer.extend(chunk)
-                if len(buffer) >= rate * 2 * 8:
-                    preview = path.with_suffix(".preview.wav")
-                    offset = (total_samples - len(buffer) // 2) / rate
+                            chunk = audioop.lin2lin(audioop.bias(chunk, 1, -128), 1, 2)
+                        if len(chunk) % 2:
+                            raise ValueError("Unaligned PCM16")
+                        total_samples += len(chunk) // 2
+                        if total_samples > rate * settings().max_audio_seconds:
+                            break
+                        await run_in_threadpool(wav.writeframes, chunk)
+                        buffer.extend(chunk)
 
-                    def preview_transcript():
-                        with wave.open(str(preview), "wb") as clip:
-                            clip.setnchannels(1)
-                            clip.setsampwidth(2)
-                            clip.setframerate(rate)
-                            clip.writeframes(bytes(buffer))
-                        return transcribe_file(profile, preview, diarize=False)
+                        current_time = time.monotonic()
+                        if current_time - last_audio_status_at >= 1:
+                            import audioop
 
-                    try:
-                        segments = await run_in_threadpool(preview_transcript)
-                    except Exception:
-                        # A provider preview is best-effort. Keep receiving the
-                        # device stream so the durable final job can retry STT.
-                        segments = []
-                    finally:
-                        preview.unlink(missing_ok=True)
-                    buffer.clear()
-                    for s in segments:
-                        s["start"] += offset
-                        s["end"] += offset
-                    if segments:
-                        await socket.send_json(segments)
+                            audio_level = min(1.0, audioop.rms(chunk, 2) / 32768) if chunk else 0.0
+                            await send_status("audio_received", audio_level=round(audio_level, 4))
+                            last_audio_status_at = current_time
+
+                        window_size = rate * 2 * 8
+                        while len(buffer) >= window_size:
+                            pcm = bytes(buffer[:window_size])
+                            del buffer[:window_size]
+                            offset = preview_samples / rate
+                            preview_samples += window_size // 2
+                            try:
+                                preview_queue.put_nowait((pcm, offset))
+                            except asyncio.QueueFull:
+                                # Only the live preview is skipped. The WAV has
+                                # already received these samples above.
+                                await send_status("transcription_delayed", retryable=True)
+            finally:
+                preview_task.cancel()
     except (WebSocketDisconnect, asyncio.TimeoutError):
         pass
     except Exception:
         try:
-            await socket.send_json(
+            await send_json(
                 {
                     "type": "error",
                     "message": "Live transcription interrupted; recorded audio will be processed",
@@ -628,7 +696,7 @@ async def listen(socket: WebSocket):
                 conversation_id,
             )
             try:
-                await socket.send_json({"type": "processing_started", **job})
+                await send_json({"type": "processing_started", **job})
             except Exception:
                 pass
         else:

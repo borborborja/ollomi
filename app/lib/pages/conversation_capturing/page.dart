@@ -10,11 +10,12 @@ import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/message_event.dart';
 import 'package:omi/backend/schema/transcript_segment.dart';
 import 'package:omi/pages/capture/widgets/widgets.dart';
+import 'package:omi/pages/capture/capture_status_view.dart';
+import 'package:omi/services/capture/capture_controller.dart';
 import 'package:omi/pages/conversation_detail/widgets/name_speaker_sheet.dart';
 import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/providers/connectivity_provider.dart';
 import 'package:omi/providers/device_provider.dart';
-import 'package:omi/utils/enums.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/services/wals/wal.dart';
 import 'package:omi/widgets/confirmation_dialog.dart';
@@ -55,7 +56,8 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
   }
 
   Future<void> _toggleMute(CaptureProvider provider) async {
-    if (_isMuted) {
+    final currentlyMuted = _isMuted || provider.captureUiState.stage == CaptureUiStage.paused;
+    if (currentlyMuted) {
       // Unmute - resume recording
       HapticFeedback.mediumImpact();
       setState(() {
@@ -115,65 +117,64 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
   }
 
   Future<void> _stopConversation(CaptureProvider provider) async {
-    if (provider.segments.isNotEmpty || provider.photos.isNotEmpty) {
-      // Helper function to stop recording and process conversation
-      Future<void> stopRecordingAndProcess() async {
-        // Stop any active recording (phone mic)
-        if (provider.recordingState == RecordingState.record) {
-          await provider.stopStreamRecording();
-        }
-        // Then process the conversation
-        provider.forceProcessingCurrentConversation();
-      }
+    final hasContent = provider.segments.isNotEmpty || provider.photos.isNotEmpty;
 
-      if (!showSummarizeConfirmation) {
-        await stopRecordingAndProcess();
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
-        return;
+    Future<void> stopRecordingAndProcess() async {
+      if (provider.havingRecordingDevice) {
+        await provider.stopStreamDeviceRecording();
+      } else if (provider.isCaptureActive) {
+        await provider.stopStreamRecording();
       }
-      showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(
-            builder: (context, setState) {
-              final timeoutDuration = SharedPreferencesUtil().conversationSilenceDuration;
-              String timeoutText;
-              if (timeoutDuration == -1) {
-                timeoutText = context.l10n.conversationEndsManually;
-              } else {
-                final minutes = timeoutDuration ~/ 60;
-                timeoutText = context.l10n.conversationSummarizedAfterMinutes(minutes, minutes == 1 ? '' : 's');
-              }
-
-              return ConfirmationDialog(
-                title: context.l10n.finishedConversation,
-                description: "${context.l10n.stopRecordingConfirmation}\n\n${context.l10n.hints(timeoutText)}",
-                checkboxValue: !showSummarizeConfirmation,
-                checkboxText: context.l10n.dontAskAgain,
-                onCheckboxChanged: (value) {
-                  setState(() {
-                    showSummarizeConfirmation = !value;
-                  });
-                },
-                onCancel: () {
-                  Navigator.of(context).pop();
-                },
-                onConfirm: () async {
-                  SharedPreferencesUtil().showSummarizeConfirmation = showSummarizeConfirmation;
-                  await stopRecordingAndProcess();
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  }
-                },
-              );
-            },
-          );
-        },
-      );
+      if (hasContent) provider.forceProcessingCurrentConversation();
     }
+
+    if (!hasContent || !showSummarizeConfirmation) {
+      await stopRecordingAndProcess();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final timeoutDuration = SharedPreferencesUtil().conversationSilenceDuration;
+            String timeoutText;
+            if (timeoutDuration == -1) {
+              timeoutText = context.l10n.conversationEndsManually;
+            } else {
+              final minutes = timeoutDuration ~/ 60;
+              timeoutText = context.l10n.conversationSummarizedAfterMinutes(minutes, minutes == 1 ? '' : 's');
+            }
+
+            return ConfirmationDialog(
+              title: context.l10n.finishedConversation,
+              description: "${context.l10n.stopRecordingConfirmation}\n\n${context.l10n.hints(timeoutText)}",
+              checkboxValue: !showSummarizeConfirmation,
+              checkboxText: context.l10n.dontAskAgain,
+              onCheckboxChanged: (value) {
+                setState(() {
+                  showSummarizeConfirmation = !value;
+                });
+              },
+              onCancel: () {
+                Navigator.of(context).pop();
+              },
+              onConfirm: () async {
+                SharedPreferencesUtil().showSummarizeConfirmation = showSummarizeConfirmation;
+                await stopRecordingAndProcess();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                }
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -181,6 +182,7 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
     return Consumer2<CaptureProvider, DeviceProvider>(
       builder: (context, provider, deviceProvider, child) {
         final effectivelyMuted = _isMuted || provider.isCallActive;
+        final captureState = provider.captureUiState;
         final transcriptSessionId =
             provider.activeCaptureSessionId ?? widget.topConversationId ?? 'pending-live-capture';
         final transcriptScrollState = _scrollStateFor(transcriptSessionId);
@@ -205,19 +207,25 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
                     icon: const Icon(Icons.arrow_back_rounded, size: 24.0),
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    provider.photos.isNotEmpty
-                        ? "📸"
-                        : effectivelyMuted
-                            ? "🔇"
-                            : "🎙️",
+                  Icon(
+                    effectivelyMuted ? Icons.mic_off_rounded : Icons.graphic_eq_rounded,
+                    color: effectivelyMuted ? Colors.orange : const Color(0xFFFE5D50),
+                    size: 22,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
-                    child: Text(
-                      provider.photos.isNotEmpty
-                          ? 'Capturing'
-                          : (effectivelyMuted ? context.l10n.muted : context.l10n.listening),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(captureStageLabel(context, captureState), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(
+                          captureSourceLabel(context, captureState),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Color(0xFFB5B5BA), fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -241,7 +249,7 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
                                   ? Center(
                                       child: Padding(
                                         padding: const EdgeInsets.only(top: 50.0),
-                                        child: Text(context.l10n.waitingForTranscriptOrPhotos),
+                                        child: CaptureStatusView(state: captureState),
                                       ),
                                     )
                                   : provider.photos.isNotEmpty
@@ -333,7 +341,7 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
               ],
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-            floatingActionButton: (provider.segments.isNotEmpty || provider.photos.isNotEmpty)
+            floatingActionButton: (captureState.isActive || provider.segments.isNotEmpty || provider.photos.isNotEmpty)
                 ? Row(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -361,7 +369,9 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
                               const FaIcon(FontAwesomeIcons.stop, color: Colors.black, size: 16.0),
                               const SizedBox(width: 10),
                               Text(
-                                context.l10n.processNow,
+                                provider.segments.isEmpty && provider.photos.isEmpty
+                                    ? context.l10n.stopRecording
+                                    : context.l10n.processNow,
                                 style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w600),
                               ),
                             ],

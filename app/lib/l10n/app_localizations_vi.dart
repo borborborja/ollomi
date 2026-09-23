@@ -9977,4 +9977,38 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Vẫn đang xử lý — mất nhiều thời gian hơn bình thường.';
+
+  @override
+  String get captureNoSpeechDetected => 'Chưa phát hiện giọng nói';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Không thể chép lời trực tiếp — âm thanh vẫn đang được ghi';
+
+  @override
+  String get captureTranscriptionDelayed => 'Đã nhận âm thanh — bản chép lời bị trễ';
+
+  @override
+  String get activeCaptureButtonTitle => 'Nút khi đang ghi âm';
+
+  @override
+  String get activeCaptureButtonDescription => 'Chọn chức năng của nút trang chủ khi đang ghi âm.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Mở bản ghi đang hoạt động';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Hiển thị nguồn hiện tại, hoạt động âm thanh và bản chép lời.';
+
+  @override
+  String get activeCaptureButtonHide => 'Ẩn nút';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Ẩn nút trang chủ cho đến khi dừng ghi âm.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Đổi nguồn âm thanh';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Chọn micrô điện thoại hoặc thiết bị đã kết nối.';
 }

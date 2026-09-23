@@ -3234,5 +3234,16 @@
     "speechToTextUnavailableDesc": "Die Spracherkennung ist derzeit nicht verfügbar. Prüfe deine Internetverbindung und die Einstellungen zur Spracherkennung auf deinem Gerät und versuche es erneut.",
     "memoryHistoryPartial": "Ein Teil des Erinnerungsverlaufs ist nicht verfügbar. Der bisher empfangene Verlauf wird angezeigt.",
     "tapPlusToStartRecording": "Tippe auf +, um die Aufnahme zu starten",
-    "processingTakingLonger": "Arbeitet noch — das dauert länger als üblich."
+    "processingTakingLonger": "Arbeitet noch — das dauert länger als üblich.",
+    "captureNoSpeechDetected": "Noch keine Sprache erkannt",
+    "captureTranscriptionUnavailableRecordingContinues": "Live-Transkription nicht verfügbar — Audio wird weiterhin aufgenommen",
+    "captureTranscriptionDelayed": "Audio empfangen — Transkription verzögert",
+    "activeCaptureButtonTitle": "Taste während der Aufnahme",
+    "activeCaptureButtonDescription": "Lege fest, was die Starttaste während einer aktiven Aufnahme tut.",
+    "activeCaptureButtonOpen": "Aktive Aufnahme öffnen",
+    "activeCaptureButtonOpenDescription": "Zeigt die aktuelle Quelle, Audioaktivität und Transkription.",
+    "activeCaptureButtonHide": "Taste ausblenden",
+    "activeCaptureButtonHideDescription": "Blendet die Starttaste aus, bis die Aufnahme endet.",
+    "activeCaptureButtonSwitchSource": "Audioquelle wechseln",
+    "activeCaptureButtonSwitchSourceDescription": "Wähle zwischen dem Telefonmikrofon und dem verbundenen Gerät."
 }

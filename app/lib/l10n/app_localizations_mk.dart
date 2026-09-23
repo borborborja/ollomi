@@ -10035,4 +10035,38 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Сè уште се обработува — ова трае подолго од вообичаеното.';
+
+  @override
+  String get captureNoSpeechDetected => 'Сè уште не е откриен говор';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Транскрипцијата во живо не е достапна — звукот сè уште се снима';
+
+  @override
+  String get captureTranscriptionDelayed => 'Звукот е примен — транскрипцијата доцни';
+
+  @override
+  String get activeCaptureButtonTitle => 'Копче при снимање';
+
+  @override
+  String get activeCaptureButtonDescription => 'Изберете што прави почетното копче додека снимањето е активно.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Отвори активно снимање';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Прикажи го тековниот извор, аудио активноста и транскриптот.';
+
+  @override
+  String get activeCaptureButtonHide => 'Скриј го копчето';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Отстрани го почетното копче додека снимањето не запре.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Смени извор на звук';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Изберете го микрофонот на телефонот или поврзаниот уред.';
 }

@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "Пераўтварэнне маўлення ў тэкст зараз недаступнае. Праверце падключэнне да інтэрнэту і налады распазнавання маўлення на прыладзе, затым паспрабуйце яшчэ раз.",
     "memoryHistoryPartial": "Частка гісторыі ўспамінаў недаступная. Паказана гісторыя, атрыманая дагэтуль.",
     "tapPlusToStartRecording": "Націсніце +, каб пачаць запіс",
-    "processingTakingLonger": "Яшчэ апрацоўваецца — гэта доўжыцца даўжэй, чым звычайна."
+    "processingTakingLonger": "Яшчэ апрацоўваецца — гэта доўжыцца даўжэй, чым звычайна.",
+    "captureNoSpeechDetected": "Маўленне пакуль не выяўлена",
+    "captureTranscriptionUnavailableRecordingContinues": "Жывая транскрыпцыя недаступная — аўдыя працягвае запісвацца",
+    "captureTranscriptionDelayed": "Аўдыя атрымана — транскрыпцыя затрымліваецца",
+    "activeCaptureButtonTitle": "Кнопка падчас запісу",
+    "activeCaptureButtonDescription": "Выберыце дзеянне кнопкі на галоўным экране падчас актыўнага запісу.",
+    "activeCaptureButtonOpen": "Адкрыць актыўны запіс",
+    "activeCaptureButtonOpenDescription": "Паказаць бягучую крыніцу, актыўнасць аўдыя і транскрыпцыю.",
+    "activeCaptureButtonHide": "Схаваць кнопку",
+    "activeCaptureButtonHideDescription": "Прыбраць кнопку з галоўнага экрана да спынення запісу.",
+    "activeCaptureButtonSwitchSource": "Змяніць крыніцу аўдыя",
+    "activeCaptureButtonSwitchSourceDescription": "Выберыце мікрафон тэлефона або падлучаную прыладу."
 }

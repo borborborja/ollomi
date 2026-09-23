@@ -9974,4 +9974,37 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Stále prebieha — trvá to dlhšie ako zvyčajne.';
+
+  @override
+  String get captureNoSpeechDetected => 'Zatiaľ nebola rozpoznaná žiadna reč';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => 'Živý prepis nie je dostupný — zvuk sa stále nahráva';
+
+  @override
+  String get captureTranscriptionDelayed => 'Zvuk bol prijatý — prepis sa oneskoruje';
+
+  @override
+  String get activeCaptureButtonTitle => 'Tlačidlo počas nahrávania';
+
+  @override
+  String get activeCaptureButtonDescription => 'Vyberte, čo má robiť tlačidlo domov počas aktívneho nahrávania.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Otvoriť aktívne nahrávanie';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Zobraziť aktuálny zdroj, aktivitu zvuku a prepis.';
+
+  @override
+  String get activeCaptureButtonHide => 'Skryť tlačidlo';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Odstrániť tlačidlo domov, kým sa nahrávanie nezastaví.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Zmeniť zdroj zvuku';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Vyberte mikrofón telefónu alebo pripojené zariadenie.';
 }

@@ -9975,4 +9975,38 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Ikka käimas — see võtab kauem aega kui tavaliselt.';
+
+  @override
+  String get captureNoSpeechDetected => 'Kõnet pole veel tuvastatud';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Reaalajas transkriptsioon pole saadaval — heli salvestamine jätkub';
+
+  @override
+  String get captureTranscriptionDelayed => 'Heli vastu võetud — transkriptsioon viibib';
+
+  @override
+  String get activeCaptureButtonTitle => 'Nupp salvestamise ajal';
+
+  @override
+  String get activeCaptureButtonDescription => 'Vali, mida avalehe nupp aktiivse salvestamise ajal teeb.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Ava aktiivne salvestus';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Kuva praegune allikas, heli aktiivsus ja transkriptsioon.';
+
+  @override
+  String get activeCaptureButtonHide => 'Peida nupp';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Eemalda avalehe nupp kuni salvestamise lõpuni.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Muuda heliallikat';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Vali telefoni mikrofoni ja ühendatud seadme vahel.';
 }

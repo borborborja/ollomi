@@ -9,8 +9,10 @@ import 'package:omi/backend/preferences.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/l10n/app_localizations.dart';
 import 'package:omi/pages/home/widgets/battery_info_widget.dart';
+import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/providers/device_provider.dart';
 import 'package:omi/providers/home_provider.dart';
+import 'package:omi/utils/enums.dart';
 
 class _DisconnectedDeviceProvider extends ChangeNotifier implements DeviceProvider {
   @override
@@ -32,11 +34,80 @@ class _DisconnectedDeviceProvider extends ChangeNotifier implements DeviceProvid
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _RecordingNavigatorObserver extends NavigatorObserver {
+  final pushedRouteNames = <String?>[];
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushedRouteNames.add(route.settings.name);
+    super.didPush(route, previousRoute);
+  }
+}
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
     await SharedPreferencesUtil.init();
+  });
+
+  Future<void> pumpActiveButton(WidgetTester tester, CaptureProvider captureProvider,
+      {NavigatorObserver? navigatorObserver}) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<CaptureProvider>.value(value: captureProvider),
+          ChangeNotifierProvider<DeviceProvider>.value(value: _DisconnectedDeviceProvider()),
+        ],
+        child: MaterialApp(
+          navigatorObservers: navigatorObserver == null ? const [] : [navigatorObserver],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(body: HomeRecordButton()),
+        ),
+      ),
+    );
+    await tester.pump();
+  }
+
+  testWidgets('active button opens the existing capture by default', (tester) async {
+    SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.openActive;
+    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
+    final observer = _RecordingNavigatorObserver();
+    addTearDown(captureProvider.dispose);
+    await pumpActiveButton(tester, captureProvider, navigatorObserver: observer);
+
+    await tester.tap(find.byKey(const Key('home-record-button-surface')));
+
+    expect(observer.pushedRouteNames.last, '/capture/active');
+    expect(captureProvider.recordingState, RecordingState.record);
+  });
+
+  testWidgets('active button can be hidden without leaving layout space', (tester) async {
+    SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.hide;
+    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
+    addTearDown(captureProvider.dispose);
+    await pumpActiveButton(tester, captureProvider);
+
+    expect(find.byKey(const Key('home-record-button-surface')), findsNothing);
+  });
+
+  testWidgets('source-switch behavior opens the exclusive source picker', (tester) async {
+    SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.switchSource;
+    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
+    addTearDown(captureProvider.dispose);
+    await pumpActiveButton(tester, captureProvider);
+
+    await tester.tap(find.byKey(const Key('home-record-button-surface')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('active-capture-source-phone')), findsOneWidget);
+    expect(captureProvider.recordingState, RecordingState.record);
   });
 
   // Regression test: FaIcon (unlike material Icon) has no internal Center, so

@@ -17,6 +17,23 @@ import 'package:omi/models/custom_stt_config.dart';
 import 'package:omi/models/stt_provider.dart';
 import 'package:omi/utils/logger.dart';
 
+enum ActiveCaptureButtonBehavior {
+  openActive('open_active'),
+  hide('hide'),
+  switchSource('switch_source');
+
+  const ActiveCaptureButtonBehavior(this.storageValue);
+
+  final String storageValue;
+
+  static ActiveCaptureButtonBehavior fromStorage(String value) {
+    return ActiveCaptureButtonBehavior.values.firstWhere(
+      (behavior) => behavior.storageValue == value,
+      orElse: () => ActiveCaptureButtonBehavior.openActive,
+    );
+  }
+}
+
 class SharedPreferencesUtil {
   static final SharedPreferencesUtil _instance = SharedPreferencesUtil._internal();
   static SharedPreferences? _preferences;
@@ -303,6 +320,12 @@ class SharedPreferencesUtil {
   bool get batchModeEnabled => getBool('batchModeEnabled');
 
   set batchModeEnabled(bool value) => saveBool('batchModeEnabled', value);
+
+  ActiveCaptureButtonBehavior get activeCaptureButtonBehavior =>
+      ActiveCaptureButtonBehavior.fromStorage(getString('activeCaptureButtonBehavior'));
+
+  set activeCaptureButtonBehavior(ActiveCaptureButtonBehavior value) =>
+      saveString('activeCaptureButtonBehavior', value.storageValue);
 
   // Phone-mic batch capture marker. false = explicit Transcribe Later (files
   // named audio_omibatchphone_...), true = automatic offline fallback (files

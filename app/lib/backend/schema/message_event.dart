@@ -52,6 +52,8 @@ class MessageServiceStatusEvent extends MessageEvent {
   final String? provider;
   final bool? retryable;
   final String? reason;
+  final String? source;
+  final double? audioLevel;
 
   MessageServiceStatusEvent({
     required this.status,
@@ -60,6 +62,8 @@ class MessageServiceStatusEvent extends MessageEvent {
     this.provider,
     this.retryable,
     this.reason,
+    this.source,
+    this.audioLevel,
   }) : super(eventType: 'service_status');
 
   factory MessageServiceStatusEvent.fromJson(Map<String, dynamic> json) {
@@ -70,6 +74,8 @@ class MessageServiceStatusEvent extends MessageEvent {
       provider: json['provider'] as String?,
       retryable: json['retryable'] as bool?,
       reason: json['reason'] as String?,
+      source: json['source'] as String?,
+      audioLevel: (json['audio_level'] as num?)?.toDouble(),
     );
   }
 }

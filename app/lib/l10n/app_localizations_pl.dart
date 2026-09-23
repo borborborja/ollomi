@@ -10012,4 +10012,38 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Nadal działa — trwa to dłużej niż zwykle.';
+
+  @override
+  String get captureNoSpeechDetected => 'Nie wykryto jeszcze mowy';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Transkrypcja na żywo jest niedostępna — dźwięk nadal jest nagrywany';
+
+  @override
+  String get captureTranscriptionDelayed => 'Odebrano dźwięk — transkrypcja jest opóźniona';
+
+  @override
+  String get activeCaptureButtonTitle => 'Przycisk podczas nagrywania';
+
+  @override
+  String get activeCaptureButtonDescription => 'Wybierz działanie przycisku głównego podczas aktywnego nagrywania.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Otwórz aktywne nagranie';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Pokaż bieżące źródło, aktywność dźwięku i transkrypcję.';
+
+  @override
+  String get activeCaptureButtonHide => 'Ukryj przycisk';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Usuń przycisk główny do czasu zatrzymania nagrywania.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Zmień źródło dźwięku';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Wybierz mikrofon telefonu lub połączone urządzenie.';
 }

@@ -4849,24 +4849,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enableLocalStorage => 'Enable Local Storage';
 
   @override
-  String get cloudStorageEnabled => 'Cloud storage enabled';
+  String get cloudStorageEnabled => 'Audio storage on the Ollomi server enabled';
 
   @override
-  String get cloudStorageDisabled => 'Cloud storage disabled';
+  String get cloudStorageDisabled => 'Audio storage on the Ollomi server disabled';
 
   @override
-  String get enableCloudStorage => 'Enable Cloud Storage';
+  String get enableCloudStorage => 'Store audio on the Ollomi server';
 
   @override
-  String get storeAudioOnCloud => 'Store Audio on Cloud';
+  String get storeAudioOnCloud => 'Store audio on the Ollomi server';
 
   @override
   String get cloudStorageDialogMessage =>
-      'Your real-time recordings will be stored in private cloud storage as you speak.';
+      'New audio from Omi, the phone microphone, SD card sync, and imports will remain stored on this Ollomi server until you delete it or the server retention policy expires it.';
 
   @override
   String get storeAudioCloudDescription =>
-      'Store your real-time recordings in private cloud storage as you speak. Audio is captured and saved securely in real-time.';
+      'Applies to Omi, the phone microphone, SD card sync, and imports. When off, Ollomi processes new audio and deletes the server copy after successful transcription.';
 
   @override
   String get downloadingFirmware => 'Downloading Firmware';
@@ -9972,4 +9972,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Still working — this is taking longer than usual.';
+
+  @override
+  String get captureNoSpeechDetected => 'No speech detected yet';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Live transcription unavailable — audio is still being recorded';
+
+  @override
+  String get captureTranscriptionDelayed => 'Audio received — transcription is delayed';
+
+  @override
+  String get activeCaptureButtonTitle => 'Button while recording';
+
+  @override
+  String get activeCaptureButtonDescription => 'Choose what the home button does while a recording is active.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Open active recording';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Show the current source, audio activity, and transcript.';
+
+  @override
+  String get activeCaptureButtonHide => 'Hide the button';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Remove the home button until recording stops.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Change audio source';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'Choose between the phone microphone and the connected device.';
 }

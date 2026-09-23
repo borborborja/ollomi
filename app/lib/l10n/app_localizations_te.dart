@@ -10031,4 +10031,38 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'ఇంకా పని జరుగుతోంది — ఇది సాధారణం కంటే ఎక్కువ సమయం తీసుకుంటోంది.';
+
+  @override
+  String get captureNoSpeechDetected => 'ఇంకా మాట గుర్తించబడలేదు';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'లైవ్ ట్రాన్స్‌క్రిప్షన్ అందుబాటులో లేదు — ఆడియో ఇంకా రికార్డ్ అవుతోంది';
+
+  @override
+  String get captureTranscriptionDelayed => 'ఆడియో అందింది — ట్రాన్స్‌క్రిప్షన్ ఆలస్యమవుతోంది';
+
+  @override
+  String get activeCaptureButtonTitle => 'రికార్డింగ్ సమయంలో బటన్';
+
+  @override
+  String get activeCaptureButtonDescription => 'రికార్డింగ్ సక్రియంగా ఉన్నప్పుడు హోమ్ బటన్ ఏమి చేయాలో ఎంచుకోండి.';
+
+  @override
+  String get activeCaptureButtonOpen => 'సక్రియ రికార్డింగ్‌ను తెరవండి';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'ప్రస్తుత మూలం, ఆడియో కార్యకలాపం మరియు ట్రాన్స్‌క్రిప్ట్‌ను చూపండి.';
+
+  @override
+  String get activeCaptureButtonHide => 'బటన్‌ను దాచండి';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'రికార్డింగ్ ఆగే వరకు హోమ్ బటన్‌ను తీసివేయండి.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'ఆడియో మూలాన్ని మార్చండి';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'ఫోన్ మైక్రోఫోన్ లేదా కనెక్ట్ చేసిన పరికరాన్ని ఎంచుకోండి.';
 }

@@ -10019,4 +10019,38 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Ещё обрабатывается — это занимает больше обычного.';
+
+  @override
+  String get captureNoSpeechDetected => 'Речь пока не обнаружена';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Расшифровка в реальном времени недоступна — аудио продолжает записываться';
+
+  @override
+  String get captureTranscriptionDelayed => 'Аудио получено — расшифровка задерживается';
+
+  @override
+  String get activeCaptureButtonTitle => 'Кнопка во время записи';
+
+  @override
+  String get activeCaptureButtonDescription => 'Выберите действие кнопки на главном экране во время активной записи.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Открыть активную запись';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Показать текущий источник, активность аудио и расшифровку.';
+
+  @override
+  String get activeCaptureButtonHide => 'Скрыть кнопку';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Убрать кнопку с главного экрана до остановки записи.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Сменить источник аудио';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Выберите микрофон телефона или подключённое устройство.';
 }

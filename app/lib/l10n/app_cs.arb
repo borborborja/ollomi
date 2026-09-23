@@ -3235,5 +3235,16 @@
     "speechToTextUnavailableDesc": "Převod řeči na text momentálně není dostupný. Zkontrolujte připojení k internetu a nastavení rozpoznávání řeči v zařízení a zkuste to znovu.",
     "memoryHistoryPartial": "Část historie vzpomínek není dostupná. Zobrazuje se dosud přijatá historie.",
     "tapPlusToStartRecording": "Klepnutím na + začnete nahrávat",
-    "processingTakingLonger": "Stále probíhá — trvá to déle než obvykle."
+    "processingTakingLonger": "Stále probíhá — trvá to déle než obvykle.",
+    "captureNoSpeechDetected": "Zatím nebyla rozpoznána žádná řeč",
+    "captureTranscriptionUnavailableRecordingContinues": "Živý přepis není dostupný — zvuk se stále nahrává",
+    "captureTranscriptionDelayed": "Zvuk byl přijat — přepis má zpoždění",
+    "activeCaptureButtonTitle": "Tlačítko během nahrávání",
+    "activeCaptureButtonDescription": "Zvolte, co má dělat tlačítko na domovské obrazovce během aktivního nahrávání.",
+    "activeCaptureButtonOpen": "Otevřít aktivní nahrávání",
+    "activeCaptureButtonOpenDescription": "Zobrazí aktuální zdroj, aktivitu zvuku a přepis.",
+    "activeCaptureButtonHide": "Skrýt tlačítko",
+    "activeCaptureButtonHideDescription": "Skryje tlačítko na domovské obrazovce, dokud nahrávání neskončí.",
+    "activeCaptureButtonSwitchSource": "Změnit zdroj zvuku",
+    "activeCaptureButtonSwitchSourceDescription": "Vyberte mikrofon telefonu nebo připojené zařízení."
 }

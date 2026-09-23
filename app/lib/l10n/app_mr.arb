@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "सध्या बोलण्याचे मजकुरात रूपांतर उपलब्ध नाही. तुमचे इंटरनेट कनेक्शन आणि डिव्हाइसवरील वाणी ओळख सेटिंग्ज तपासा, नंतर पुन्हा प्रयत्न करा.",
     "memoryHistoryPartial": "आठवणींच्या इतिहासाचा काही भाग उपलब्ध नाही. आतापर्यंत मिळालेला इतिहास दाखवला जात आहे.",
     "tapPlusToStartRecording": "रेकॉर्डिंग सुरू करण्यासाठी + टॅप करा",
-    "processingTakingLonger": "अजूनही काम सुरू आहे — याला नेहमीपेक्षा जास्त वेळ लागत आहे."
+    "processingTakingLonger": "अजूनही काम सुरू आहे — याला नेहमीपेक्षा जास्त वेळ लागत आहे.",
+    "captureNoSpeechDetected": "अद्याप आवाज आढळला नाही",
+    "captureTranscriptionUnavailableRecordingContinues": "थेट प्रतिलेखन उपलब्ध नाही — ऑडिओ अजूनही रेकॉर्ड होत आहे",
+    "captureTranscriptionDelayed": "ऑडिओ मिळाला — प्रतिलेखनास विलंब होत आहे",
+    "activeCaptureButtonTitle": "रेकॉर्डिंगदरम्यान बटण",
+    "activeCaptureButtonDescription": "रेकॉर्डिंग सुरू असताना होम बटण काय करेल ते निवडा.",
+    "activeCaptureButtonOpen": "सक्रिय रेकॉर्डिंग उघडा",
+    "activeCaptureButtonOpenDescription": "सध्याचा स्रोत, ऑडिओ हालचाल आणि प्रतिलेख दाखवा.",
+    "activeCaptureButtonHide": "बटण लपवा",
+    "activeCaptureButtonHideDescription": "रेकॉर्डिंग थांबेपर्यंत होम बटण काढा.",
+    "activeCaptureButtonSwitchSource": "ऑडिओ स्रोत बदला",
+    "activeCaptureButtonSwitchSourceDescription": "फोनचा मायक्रोफोन किंवा जोडलेले डिव्हाइस निवडा."
 }

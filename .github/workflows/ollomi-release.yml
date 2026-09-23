@@ -141,6 +141,8 @@ jobs:
             test/unit/stt_mode_resolver_test.dart \
             test/unit/pure_socket_auth_test.dart \
             test/unit/account_cutover_gate_test.dart \
+            test/unit/active_capture_button_behavior_test.dart \
+            test/unit/capture_ui_state_test.dart \
             test/unit/share_links_test.dart \
             test/unit/multipart_401_retry_test.dart \
             test/unit/transient_network_error_test.dart \

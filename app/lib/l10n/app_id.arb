@@ -3299,5 +3299,16 @@
     "speechToTextUnavailableDesc": "Konversi suara ke teks sedang tidak tersedia. Periksa koneksi internet dan pengaturan pengenalan suara perangkat Anda, lalu coba lagi.",
     "memoryHistoryPartial": "Sebagian riwayat memori tidak tersedia. Menampilkan riwayat yang sudah diterima.",
     "tapPlusToStartRecording": "Ketuk + untuk mulai merekam",
-    "processingTakingLonger": "Masih diproses — ini memakan waktu lebih lama dari biasanya."
+    "processingTakingLonger": "Masih diproses — ini memakan waktu lebih lama dari biasanya.",
+    "captureNoSpeechDetected": "Belum ada ucapan yang terdeteksi",
+    "captureTranscriptionUnavailableRecordingContinues": "Transkripsi langsung tidak tersedia — audio masih direkam",
+    "captureTranscriptionDelayed": "Audio diterima — transkripsi tertunda",
+    "activeCaptureButtonTitle": "Tombol saat merekam",
+    "activeCaptureButtonDescription": "Pilih fungsi tombol beranda saat perekaman aktif.",
+    "activeCaptureButtonOpen": "Buka rekaman aktif",
+    "activeCaptureButtonOpenDescription": "Tampilkan sumber saat ini, aktivitas audio, dan transkrip.",
+    "activeCaptureButtonHide": "Sembunyikan tombol",
+    "activeCaptureButtonHideDescription": "Hapus tombol beranda hingga perekaman berhenti.",
+    "activeCaptureButtonSwitchSource": "Ubah sumber audio",
+    "activeCaptureButtonSwitchSourceDescription": "Pilih mikrofon ponsel atau perangkat yang terhubung."
 }

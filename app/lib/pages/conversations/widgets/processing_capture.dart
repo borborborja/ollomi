@@ -12,9 +12,10 @@ import 'package:omi/backend/http/api/conversations.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/backend/schema/conversation.dart';
-import 'package:omi/backend/schema/message_event.dart';
 import 'package:omi/pages/conversation_capturing/page.dart';
 import 'package:omi/pages/capture/widgets/widgets.dart';
+import 'package:omi/pages/capture/capture_status_view.dart';
+import 'package:omi/services/capture/capture_controller.dart';
 import 'package:omi/pages/conversations/widgets/capture.dart';
 import 'package:omi/pages/processing_conversations/page.dart';
 import 'package:omi/providers/capture_provider.dart';
@@ -186,6 +187,7 @@ class _ConversationCaptureWidgetState extends State<ConversationCaptureWidget> {
 
   Widget? _getConversationHeader(BuildContext context) {
     var captureProvider = context.read<CaptureProvider>();
+    final captureState = captureProvider.captureUiState;
     bool deviceServiceStateOk = captureProvider.recordingDeviceServiceReady;
     bool transcriptServiceStateOk = captureProvider.transcriptServiceReady;
     bool isHavingTranscript = captureProvider.segments.isNotEmpty;
@@ -296,22 +298,12 @@ class _ConversationCaptureWidgetState extends State<ConversationCaptureWidget> {
         stateText = _customSttBufferingText(bufferingFor);
         statusIndicator = const PausedStatusIndicator();
       } else {
-        // Show "Listening" for all active recording states — WAL ensures audio is
-        // saved locally regardless of transcription connection status.
-        if (transcriptServiceStateOk) {
-          var lastEvent = captureProvider.transcriptionServiceStatuses.lastOrNull;
-          if (lastEvent is MessageServiceStatusEvent) {
-            bool transcriptionDiagnosticEnabled = SharedPreferencesUtil().transcriptionDiagnosticEnabled;
-            stateText = transcriptionDiagnosticEnabled
-                ? (lastEvent.statusText ?? context.l10n.listening)
-                : context.l10n.listening;
-          } else {
-            stateText = context.l10n.listening;
-          }
-        } else {
-          stateText = context.l10n.listening;
-        }
-        statusIndicator = const RecordingStatusIndicator();
+        stateText = '${captureStageLabel(context, captureState)} · ${captureSourceLabel(context, captureState)}';
+        statusIndicator = captureState.stage == CaptureUiStage.reconnecting ||
+                captureState.stage == CaptureUiStage.transcriptionDelayed ||
+                captureState.stage == CaptureUiStage.transcriptionUnavailable
+            ? const PausedStatusIndicator()
+            : const RecordingStatusIndicator();
       }
     }
     Widget right = stateText.isNotEmpty || statusIndicator != null
@@ -345,12 +337,12 @@ class _ConversationCaptureWidgetState extends State<ConversationCaptureWidget> {
 
   // Short status text for how long the custom STT endpoint has
   // been unreachable while audio keeps recording and buffering locally.
-  String _customSttBufferingText(Duration bufferingFor) {
-    if (bufferingFor.inMinutes < 1) return 'Offline, buffering';
-    return 'Offline, buffering ${bufferingFor.inMinutes}m';
+  String _customSttBufferingText(Duration _) {
+    return context.l10n.phoneMicOfflineFallbackMessage;
   }
 
   Widget _buildUnifiedRecordingUI(CaptureProvider provider, Widget? header) {
+    final captureState = provider.captureUiState;
     bool isDeviceRecording = provider.havingRecordingDevice &&
         (provider.recordingState == RecordingState.deviceRecord || provider.recordingState == RecordingState.pause);
 
@@ -385,21 +377,13 @@ class _ConversationCaptureWidgetState extends State<ConversationCaptureWidget> {
 
     // Determine if this is an OmiGlass-type device (captures photos)
     bool hasPhotos = provider.photos.isNotEmpty;
-    // Show "Listening" for all active recording states — WAL ensures audio is
-    // saved locally regardless of transcription connection status.
-    String statusText = isAudioInterrupted
-        ? context.l10n.paused
-        : isPaused
-            ? (isDeviceRecording ? context.l10n.muted : context.l10n.paused)
-            : hasTerminalTranscriptionFailure
-                ? context.l10n.transcriptionUnavailable
-                // Custom STT endpoint unreachable, audio still buffering
-                // locally (see customSttBufferingDuration / PurePollingSocket).
-                : bufferingFor != null
-                    ? _customSttBufferingText(bufferingFor)
-                    : hasPhotos
-                        ? 'Capturing'
-                        : context.l10n.listening;
+    String statusText = isAudioInterrupted || isPaused
+        ? (isDeviceRecording ? context.l10n.muted : context.l10n.paused)
+        : hasTerminalTranscriptionFailure
+            ? context.l10n.captureTranscriptionUnavailableRecordingContinues
+            : bufferingFor != null
+                ? _customSttBufferingText(bufferingFor)
+                : captureStageLabel(context, captureState);
 
     // When recording is active, show the unified UI design
     if (isDeviceRecording || isPhoneRecording) {
@@ -413,7 +397,7 @@ class _ConversationCaptureWidgetState extends State<ConversationCaptureWidget> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  statusText,
+                  '$statusText · ${captureSourceLabel(context, captureState)}',
                   style: const TextStyle(color: Color(0xFFC9CBCF), fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(width: 6),

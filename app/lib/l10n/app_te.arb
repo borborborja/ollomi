@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "ప్రస్తుతం మాటలను వచనంగా మార్చే సదుపాయం అందుబాటులో లేదు. మీ ఇంటర్నెట్ కనెక్షన్ మరియు పరికరంలోని వాయిస్ గుర్తింపు సెట్టింగ్‌లను తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి.",
     "memoryHistoryPartial": "జ్ఞాపకాల చరిత్రలో కొంత భాగం అందుబాటులో లేదు. ఇప్పటివరకు అందిన చరిత్ర చూపబడుతోంది.",
     "tapPlusToStartRecording": "రికార్డింగ్ ప్రారంభించడానికి + నొక్కండి",
-    "processingTakingLonger": "ఇంకా పని జరుగుతోంది — ఇది సాధారణం కంటే ఎక్కువ సమయం తీసుకుంటోంది."
+    "processingTakingLonger": "ఇంకా పని జరుగుతోంది — ఇది సాధారణం కంటే ఎక్కువ సమయం తీసుకుంటోంది.",
+    "captureNoSpeechDetected": "ఇంకా మాట గుర్తించబడలేదు",
+    "captureTranscriptionUnavailableRecordingContinues": "లైవ్ ట్రాన్స్‌క్రిప్షన్ అందుబాటులో లేదు — ఆడియో ఇంకా రికార్డ్ అవుతోంది",
+    "captureTranscriptionDelayed": "ఆడియో అందింది — ట్రాన్స్‌క్రిప్షన్ ఆలస్యమవుతోంది",
+    "activeCaptureButtonTitle": "రికార్డింగ్ సమయంలో బటన్",
+    "activeCaptureButtonDescription": "రికార్డింగ్ సక్రియంగా ఉన్నప్పుడు హోమ్ బటన్ ఏమి చేయాలో ఎంచుకోండి.",
+    "activeCaptureButtonOpen": "సక్రియ రికార్డింగ్‌ను తెరవండి",
+    "activeCaptureButtonOpenDescription": "ప్రస్తుత మూలం, ఆడియో కార్యకలాపం మరియు ట్రాన్స్‌క్రిప్ట్‌ను చూపండి.",
+    "activeCaptureButtonHide": "బటన్‌ను దాచండి",
+    "activeCaptureButtonHideDescription": "రికార్డింగ్ ఆగే వరకు హోమ్ బటన్‌ను తీసివేయండి.",
+    "activeCaptureButtonSwitchSource": "ఆడియో మూలాన్ని మార్చండి",
+    "activeCaptureButtonSwitchSourceDescription": "ఫోన్ మైక్రోఫోన్ లేదా కనెక్ట్ చేసిన పరికరాన్ని ఎంచుకోండి."
 }

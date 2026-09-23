@@ -9811,4 +9811,37 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'まだ処理中です。通常より時間がかかっています。';
+
+  @override
+  String get captureNoSpeechDetected => 'まだ音声が検出されていません';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => 'ライブ文字起こしは利用できません — 音声の録音は続いています';
+
+  @override
+  String get captureTranscriptionDelayed => '音声を受信しました — 文字起こしが遅れています';
+
+  @override
+  String get activeCaptureButtonTitle => '録音中のボタン';
+
+  @override
+  String get activeCaptureButtonDescription => '録音中にホームボタンが行う操作を選択します。';
+
+  @override
+  String get activeCaptureButtonOpen => '録音中の画面を開く';
+
+  @override
+  String get activeCaptureButtonOpenDescription => '現在の入力元、音声の反応、文字起こしを表示します。';
+
+  @override
+  String get activeCaptureButtonHide => 'ボタンを隠す';
+
+  @override
+  String get activeCaptureButtonHideDescription => '録音が停止するまでホームボタンを非表示にします。';
+
+  @override
+  String get activeCaptureButtonSwitchSource => '音声入力元を変更';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'スマートフォンのマイクまたは接続済みデバイスを選択します。';
 }

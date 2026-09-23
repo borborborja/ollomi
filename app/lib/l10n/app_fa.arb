@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "تبدیل گفتار به نوشتار در حال حاضر در دسترس نیست. اتصال اینترنت و تنظیمات تشخیص گفتار دستگاه خود را بررسی کنید و دوباره تلاش کنید.",
     "memoryHistoryPartial": "بخشی از تاریخچهٔ خاطرات در دسترس نیست. تاریخچهٔ دریافت‌شده تا این لحظه نمایش داده می‌شود.",
     "tapPlusToStartRecording": "برای شروع ضبط روی + بزنید",
-    "processingTakingLonger": "هنوز در حال انجام است — بیشتر از حد معمول طول می‌کشد."
+    "processingTakingLonger": "هنوز در حال انجام است — بیشتر از حد معمول طول می‌کشد.",
+    "captureNoSpeechDetected": "هنوز گفتاری تشخیص داده نشده است",
+    "captureTranscriptionUnavailableRecordingContinues": "رونویسی زنده در دسترس نیست — صدا همچنان ضبط می‌شود",
+    "captureTranscriptionDelayed": "صدا دریافت شد — رونویسی با تأخیر انجام می‌شود",
+    "activeCaptureButtonTitle": "دکمه هنگام ضبط",
+    "activeCaptureButtonDescription": "انتخاب کنید دکمه صفحه اصلی هنگام ضبط فعال چه کاری انجام دهد.",
+    "activeCaptureButtonOpen": "باز کردن ضبط فعال",
+    "activeCaptureButtonOpenDescription": "منبع فعلی، فعالیت صدا و رونویسی را نشان می‌دهد.",
+    "activeCaptureButtonHide": "پنهان کردن دکمه",
+    "activeCaptureButtonHideDescription": "دکمه صفحه اصلی را تا توقف ضبط حذف می‌کند.",
+    "activeCaptureButtonSwitchSource": "تغییر منبع صدا",
+    "activeCaptureButtonSwitchSourceDescription": "بین میکروفون تلفن و دستگاه متصل انتخاب کنید."
 }

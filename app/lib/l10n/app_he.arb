@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "המרת דיבור לטקסט אינה זמינה כרגע. בדקו את החיבור לאינטרנט ואת הגדרות זיהוי הדיבור במכשיר, ואז נסו שוב.",
     "memoryHistoryPartial": "חלק מהיסטוריית הזיכרונות אינו זמין. מוצגת ההיסטוריה שהתקבלה עד כה.",
     "tapPlusToStartRecording": "הקישו על + כדי להתחיל להקליט",
-    "processingTakingLonger": "עדיין בעבודה — זה לוקח יותר זמן מהרגיל."
+    "processingTakingLonger": "עדיין בעבודה — זה לוקח יותר זמן מהרגיל.",
+    "captureNoSpeechDetected": "עדיין לא זוהה דיבור",
+    "captureTranscriptionUnavailableRecordingContinues": "התמלול החי אינו זמין — השמע עדיין מוקלט",
+    "captureTranscriptionDelayed": "השמע התקבל — התמלול מתעכב",
+    "activeCaptureButtonTitle": "כפתור בזמן הקלטה",
+    "activeCaptureButtonDescription": "בחרו מה יעשה כפתור הבית בזמן שהקלטה פעילה.",
+    "activeCaptureButtonOpen": "פתיחת ההקלטה הפעילה",
+    "activeCaptureButtonOpenDescription": "הצגת המקור הנוכחי, פעילות השמע והתמלול.",
+    "activeCaptureButtonHide": "הסתרת הכפתור",
+    "activeCaptureButtonHideDescription": "הסרת כפתור הבית עד שההקלטה נעצרת.",
+    "activeCaptureButtonSwitchSource": "שינוי מקור שמע",
+    "activeCaptureButtonSwitchSourceDescription": "בחרו בין מיקרופון הטלפון למכשיר המחובר."
 }

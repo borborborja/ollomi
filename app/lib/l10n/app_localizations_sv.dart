@@ -9986,4 +9986,38 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Fortfarande igång — det tar längre tid än vanligt.';
+
+  @override
+  String get captureNoSpeechDetected => 'Inget tal har upptäckts ännu';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Livetranskribering är inte tillgänglig — ljudet spelas fortfarande in';
+
+  @override
+  String get captureTranscriptionDelayed => 'Ljud mottaget — transkriberingen är fördröjd';
+
+  @override
+  String get activeCaptureButtonTitle => 'Knapp under inspelning';
+
+  @override
+  String get activeCaptureButtonDescription => 'Välj vad hemknappen gör medan en inspelning är aktiv.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Öppna aktiv inspelning';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Visa aktuell källa, ljudaktivitet och transkribering.';
+
+  @override
+  String get activeCaptureButtonHide => 'Dölj knappen';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Ta bort hemknappen tills inspelningen stoppas.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Byt ljudkälla';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Välj mellan telefonens mikrofon och den anslutna enheten.';
 }

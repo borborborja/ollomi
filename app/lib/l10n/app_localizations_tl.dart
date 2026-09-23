@@ -10073,4 +10073,39 @@ class AppLocalizationsTl extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Ginagawa pa — mas matagal ito kaysa karaniwan.';
+
+  @override
+  String get captureNoSpeechDetected => 'Wala pang natutukoy na pagsasalita';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Hindi available ang live transcription — patuloy pa ring nire-record ang audio';
+
+  @override
+  String get captureTranscriptionDelayed => 'Natanggap ang audio — nahuhuli ang transcription';
+
+  @override
+  String get activeCaptureButtonTitle => 'Button habang nagre-record';
+
+  @override
+  String get activeCaptureButtonDescription => 'Piliin ang gagawin ng home button habang aktibo ang recording.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Buksan ang aktibong recording';
+
+  @override
+  String get activeCaptureButtonOpenDescription =>
+      'Ipakita ang kasalukuyang source, aktibidad ng audio, at transcript.';
+
+  @override
+  String get activeCaptureButtonHide => 'Itago ang button';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Alisin ang home button hanggang huminto ang recording.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Palitan ang audio source';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Pumili sa mikropono ng telepono o nakakonektang device.';
 }

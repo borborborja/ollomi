@@ -24,6 +24,14 @@ def test_auth_rotation_revocation(client, admin):
     )
 
 
+def test_private_cloud_sync_is_persistent_and_user_scoped(client, admin, other):
+    path = "/v1/users/private-cloud-sync"
+    assert client.get(path, headers=admin).json() == {"private_cloud_sync_enabled": False}
+    assert client.post(path + "?value=true", headers=admin).json() == {"status": "ok"}
+    assert client.get(path, headers=admin).json() == {"private_cloud_sync_enabled": True}
+    assert client.get(path, headers=other).json() == {"private_cloud_sync_enabled": False}
+
+
 def test_readiness_requires_redis_and_typesense(client, monkeypatch):
     from selfhost import main
 

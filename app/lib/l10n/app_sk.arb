@@ -3262,5 +3262,16 @@
     "speechToTextUnavailableDesc": "Prevod reči na text momentálne nie je dostupný. Skontrolujte internetové pripojenie a nastavenia rozpoznávania reči v zariadení a skúste to znova.",
     "memoryHistoryPartial": "Časť histórie spomienok nie je dostupná. Zobrazuje sa doteraz prijatá história.",
     "tapPlusToStartRecording": "Ťuknutím na + spustíte nahrávanie",
-    "processingTakingLonger": "Stále prebieha — trvá to dlhšie ako zvyčajne."
+    "processingTakingLonger": "Stále prebieha — trvá to dlhšie ako zvyčajne.",
+    "captureNoSpeechDetected": "Zatiaľ nebola rozpoznaná žiadna reč",
+    "captureTranscriptionUnavailableRecordingContinues": "Živý prepis nie je dostupný — zvuk sa stále nahráva",
+    "captureTranscriptionDelayed": "Zvuk bol prijatý — prepis sa oneskoruje",
+    "activeCaptureButtonTitle": "Tlačidlo počas nahrávania",
+    "activeCaptureButtonDescription": "Vyberte, čo má robiť tlačidlo domov počas aktívneho nahrávania.",
+    "activeCaptureButtonOpen": "Otvoriť aktívne nahrávanie",
+    "activeCaptureButtonOpenDescription": "Zobraziť aktuálny zdroj, aktivitu zvuku a prepis.",
+    "activeCaptureButtonHide": "Skryť tlačidlo",
+    "activeCaptureButtonHideDescription": "Odstrániť tlačidlo domov, kým sa nahrávanie nezastaví.",
+    "activeCaptureButtonSwitchSource": "Zmeniť zdroj zvuku",
+    "activeCaptureButtonSwitchSourceDescription": "Vyberte mikrofón telefónu alebo pripojené zariadenie."
 }

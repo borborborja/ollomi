@@ -195,6 +195,8 @@ Cuando el workflow `Publish Ollomi` del fork haya pasado las puertas de validaci
 
 El botón **Conectar dispositivo** de la cabecera abre siempre la búsqueda Bluetooth de un Omi/Friend compatible, incluso si se terminó el asistente inicial sin hardware. Una pulsación larga sobre `+` permite elegir la fuente: micrófono del teléfono, llamada, un dispositivo ya conectado, buscar y asociar un dispositivo, o importar audio. La captura de llamadas depende de las restricciones del fabricante y la versión de Android.
 
+Durante una captura, la app muestra la fuente real —por ejemplo, **Omi CV1** o **Este teléfono**— y distingue preparación, recepción de audio, transcripción, ausencia de voz, retraso y reconexión. Una caída de la transcripción en directo se indica sin detener la escritura del audio definitivo. En Ajustes → Voz y personas → Grabación puede decidir si el botón activo abre la captura (valor inicial), se oculta o permite cambiar de fuente. Un cambio de fuente pide confirmación, termina primero la captura actual y solo entonces inicia la nueva.
+
 La APK de desarrollo se construye así:
 
 ```bash
@@ -307,7 +309,7 @@ Las vistas previas geográficas usan `/v1/static-map` del backend: por defecto d
 
 ## Datos, retención y notificaciones
 
-Los datos se almacenan en volúmenes Docker: PostgreSQL, Redis, Typesense, audio y modelos Ollama. Los modelos de voz están en `selfhost-data/models`. Por defecto los audios se conservan hasta borrarlos. `OLLOMI_AUDIO_RETENTION_DAYS=N` elimina periódicamente el audio de conversaciones terminadas mayores de N días; cero desactiva la caducidad. La transcripción permanece. Si el usuario desactiva guardar grabaciones, el audio se elimina después de procesarlo correctamente.
+Los datos se almacenan en volúmenes Docker: PostgreSQL, Redis, Typesense, audio y modelos Ollama. Los modelos de voz están en `selfhost-data/models`. Cada usuario controla **Guardar el audio en el servidor Ollomi** desde la sincronización SD o desde Ajustes → Voz y personas → Grabación. Es una preferencia global para Omi, micrófono del teléfono, sincronizaciones e importaciones, y empieza desactivada. La elección se fija al admitir cada grabación: si está desactivada, el original se conserva mientras se procesa y se elimina solo después de terminar correctamente; la conversación y la transcripción permanecen. Si el trabajo falla, el original se conserva para reintentar. Activar o desactivar la opción afecta solo a grabaciones nuevas y nunca borra audio anterior de forma retroactiva. Para los audios conservados, `OLLOMI_AUDIO_RETENTION_DAYS=N` elimina periódicamente los de conversaciones terminadas mayores de N días; cero desactiva esa caducidad.
 
 Las notificaciones son locales y se alimentan de un cursor de eventos autenticado. Llegan al consultar el servidor mientras la app está activa. No hay Firebase ni garantía de entrega push con la app terminada o restringida por Android.
 

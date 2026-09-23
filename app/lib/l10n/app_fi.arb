@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "Puheen muuntaminen tekstiksi ei ole juuri nyt käytettävissä. Tarkista internetyhteytesi ja laitteesi puheentunnistusasetukset ja yritä uudelleen.",
     "memoryHistoryPartial": "Osa muistojen historiasta ei ole saatavilla. Näytetään tähän mennessä saatu historia.",
     "tapPlusToStartRecording": "Aloita tallennus napauttamalla +",
-    "processingTakingLonger": "Vielä käynnissä — tämä kestää tavallista kauemmin."
+    "processingTakingLonger": "Vielä käynnissä — tämä kestää tavallista kauemmin.",
+    "captureNoSpeechDetected": "Puhetta ei ole vielä havaittu",
+    "captureTranscriptionUnavailableRecordingContinues": "Suora litterointi ei ole käytettävissä — ääntä tallennetaan edelleen",
+    "captureTranscriptionDelayed": "Ääni vastaanotettu — litterointi viivästyy",
+    "activeCaptureButtonTitle": "Painike tallennuksen aikana",
+    "activeCaptureButtonDescription": "Valitse, mitä aloitusnäytön painike tekee tallennuksen ollessa käynnissä.",
+    "activeCaptureButtonOpen": "Avaa aktiivinen tallennus",
+    "activeCaptureButtonOpenDescription": "Näytä nykyinen lähde, äänen aktiivisuus ja litterointi.",
+    "activeCaptureButtonHide": "Piilota painike",
+    "activeCaptureButtonHideDescription": "Poista aloitusnäytön painike, kunnes tallennus päättyy.",
+    "activeCaptureButtonSwitchSource": "Vaihda äänilähdettä",
+    "activeCaptureButtonSwitchSourceDescription": "Valitse puhelimen mikrofoni tai yhdistetty laite."
 }

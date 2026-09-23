@@ -10023,4 +10023,39 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Még folyamatban — ez tovább tart a szokásosnál.';
+
+  @override
+  String get captureNoSpeechDetected => 'Még nem észlelhető beszéd';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Az élő átírás nem érhető el — a hang rögzítése folytatódik';
+
+  @override
+  String get captureTranscriptionDelayed => 'Hang érkezett — az átírás késik';
+
+  @override
+  String get activeCaptureButtonTitle => 'Gomb felvétel közben';
+
+  @override
+  String get activeCaptureButtonDescription => 'Válaszd ki, mit tegyen a kezdőképernyő gombja aktív felvétel közben.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Aktív felvétel megnyitása';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Az aktuális forrás, hangaktivitás és átirat megjelenítése.';
+
+  @override
+  String get activeCaptureButtonHide => 'Gomb elrejtése';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'A kezdőképernyő gombjának eltávolítása a felvétel leállításáig.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Hangforrás módosítása';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription =>
+      'Válassz a telefon mikrofonja és a csatlakoztatott eszköz között.';
 }

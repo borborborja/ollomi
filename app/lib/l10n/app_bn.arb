@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "এই মুহূর্তে কথাকে লেখায় রূপান্তর করা যাচ্ছে না। আপনার ইন্টারনেট সংযোগ এবং ডিভাইসের কথোপকথন শনাক্তকরণের সেটিংস পরীক্ষা করে আবার চেষ্টা করুন।",
     "memoryHistoryPartial": "স্মৃতির ইতিহাসের কিছু অংশ পাওয়া যাচ্ছে না। এখন পর্যন্ত পাওয়া ইতিহাস দেখানো হচ্ছে।",
     "tapPlusToStartRecording": "রেকর্ডিং শুরু করতে + চাপুন",
-    "processingTakingLonger": "এখনও কাজ চলছে — এটি স্বাভাবিকের চেয়ে বেশি সময় নিচ্ছে।"
+    "processingTakingLonger": "এখনও কাজ চলছে — এটি স্বাভাবিকের চেয়ে বেশি সময় নিচ্ছে।",
+    "captureNoSpeechDetected": "এখনও কোনো কথা শনাক্ত হয়নি",
+    "captureTranscriptionUnavailableRecordingContinues": "লাইভ ট্রান্সক্রিপশন অনুপলব্ধ — অডিও এখনও রেকর্ড হচ্ছে",
+    "captureTranscriptionDelayed": "অডিও পাওয়া গেছে — ট্রান্সক্রিপশন বিলম্বিত",
+    "activeCaptureButtonTitle": "রেকর্ডিংয়ের সময় বোতাম",
+    "activeCaptureButtonDescription": "রেকর্ডিং সক্রিয় থাকলে হোম বোতাম কী করবে তা বেছে নিন।",
+    "activeCaptureButtonOpen": "সক্রিয় রেকর্ডিং খুলুন",
+    "activeCaptureButtonOpenDescription": "বর্তমান উৎস, অডিও কার্যকলাপ ও ট্রান্সক্রিপ্ট দেখুন।",
+    "activeCaptureButtonHide": "বোতাম লুকান",
+    "activeCaptureButtonHideDescription": "রেকর্ডিং বন্ধ না হওয়া পর্যন্ত হোম বোতাম সরিয়ে রাখুন।",
+    "activeCaptureButtonSwitchSource": "অডিও উৎস পরিবর্তন করুন",
+    "activeCaptureButtonSwitchSourceDescription": "ফোনের মাইক্রোফোন বা সংযুক্ত ডিভাইস বেছে নিন।"
 }

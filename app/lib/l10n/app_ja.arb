@@ -3233,5 +3233,16 @@
     "speechToTextUnavailableDesc": "現在、音声をテキストに変換できません。インターネット接続とデバイスの音声認識設定を確認してから、もう一度お試しください。",
     "memoryHistoryPartial": "記憶の履歴の一部を取得できません。これまでに取得した履歴を表示しています。",
     "tapPlusToStartRecording": "＋をタップして録音を開始",
-    "processingTakingLonger": "まだ処理中です。通常より時間がかかっています。"
+    "processingTakingLonger": "まだ処理中です。通常より時間がかかっています。",
+    "captureNoSpeechDetected": "まだ音声が検出されていません",
+    "captureTranscriptionUnavailableRecordingContinues": "ライブ文字起こしは利用できません — 音声の録音は続いています",
+    "captureTranscriptionDelayed": "音声を受信しました — 文字起こしが遅れています",
+    "activeCaptureButtonTitle": "録音中のボタン",
+    "activeCaptureButtonDescription": "録音中にホームボタンが行う操作を選択します。",
+    "activeCaptureButtonOpen": "録音中の画面を開く",
+    "activeCaptureButtonOpenDescription": "現在の入力元、音声の反応、文字起こしを表示します。",
+    "activeCaptureButtonHide": "ボタンを隠す",
+    "activeCaptureButtonHideDescription": "録音が停止するまでホームボタンを非表示にします。",
+    "activeCaptureButtonSwitchSource": "音声入力元を変更",
+    "activeCaptureButtonSwitchSourceDescription": "スマートフォンのマイクまたは接続済みデバイスを選択します。"
 }

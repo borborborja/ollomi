@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "Spraak naar tekst is momenteel niet beschikbaar. Controleer je internetverbinding en de instellingen voor spraakherkenning op je apparaat en probeer het opnieuw.",
     "memoryHistoryPartial": "Een deel van de herinneringsgeschiedenis is niet beschikbaar. De tot nu toe ontvangen geschiedenis wordt getoond.",
     "tapPlusToStartRecording": "Tik op + om de opname te starten",
-    "processingTakingLonger": "Nog bezig — dit duurt langer dan normaal."
+    "processingTakingLonger": "Nog bezig — dit duurt langer dan normaal.",
+    "captureNoSpeechDetected": "Nog geen spraak gedetecteerd",
+    "captureTranscriptionUnavailableRecordingContinues": "Live transcriptie niet beschikbaar — audio wordt nog steeds opgenomen",
+    "captureTranscriptionDelayed": "Audio ontvangen — transcriptie is vertraagd",
+    "activeCaptureButtonTitle": "Knop tijdens opnemen",
+    "activeCaptureButtonDescription": "Kies wat de startknop doet terwijl een opname actief is.",
+    "activeCaptureButtonOpen": "Actieve opname openen",
+    "activeCaptureButtonOpenDescription": "Toon de huidige bron, audioactiviteit en transcriptie.",
+    "activeCaptureButtonHide": "Knop verbergen",
+    "activeCaptureButtonHideDescription": "Verwijder de startknop totdat de opname stopt.",
+    "activeCaptureButtonSwitchSource": "Audiobron wijzigen",
+    "activeCaptureButtonSwitchSourceDescription": "Kies tussen de microfoon van de telefoon en het verbonden apparaat."
 }

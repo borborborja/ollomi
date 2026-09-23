@@ -10003,4 +10003,38 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Ще обробляється — це триває довше, ніж зазвичай.';
+
+  @override
+  String get captureNoSpeechDetected => 'Мовлення ще не виявлено';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Жива транскрипція недоступна — аудіо продовжує записуватися';
+
+  @override
+  String get captureTranscriptionDelayed => 'Аудіо отримано — транскрипція затримується';
+
+  @override
+  String get activeCaptureButtonTitle => 'Кнопка під час запису';
+
+  @override
+  String get activeCaptureButtonDescription => 'Виберіть дію кнопки на головному екрані під час активного запису.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Відкрити активний запис';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Показати поточне джерело, активність аудіо й транскрипцію.';
+
+  @override
+  String get activeCaptureButtonHide => 'Сховати кнопку';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Прибрати кнопку з головного екрана до зупинки запису.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Змінити джерело аудіо';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Виберіть мікрофон телефона або підключений пристрій.';
 }

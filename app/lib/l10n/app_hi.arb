@@ -3258,5 +3258,16 @@
     "speechToTextUnavailableDesc": "अभी बोली को टेक्स्ट में बदलना उपलब्ध नहीं है। अपना इंटरनेट कनेक्शन और डिवाइस की वाक् पहचान सेटिंग जाँचें, फिर दोबारा कोशिश करें।",
     "memoryHistoryPartial": "यादों के इतिहास का कुछ हिस्सा उपलब्ध नहीं है। अब तक प्राप्त इतिहास दिखाया जा रहा है।",
     "tapPlusToStartRecording": "रिकॉर्डिंग शुरू करने के लिए + टैप करें",
-    "processingTakingLonger": "अभी भी काम हो रहा है — इसमें सामान्य से ज़्यादा समय लग रहा है।"
+    "processingTakingLonger": "अभी भी काम हो रहा है — इसमें सामान्य से ज़्यादा समय लग रहा है।",
+    "captureNoSpeechDetected": "अभी तक कोई आवाज़ नहीं मिली",
+    "captureTranscriptionUnavailableRecordingContinues": "लाइव ट्रांसक्रिप्शन उपलब्ध नहीं — ऑडियो अभी भी रिकॉर्ड हो रहा है",
+    "captureTranscriptionDelayed": "ऑडियो मिला — ट्रांसक्रिप्शन में देरी है",
+    "activeCaptureButtonTitle": "रिकॉर्डिंग के दौरान बटन",
+    "activeCaptureButtonDescription": "रिकॉर्डिंग सक्रिय होने पर होम बटन का काम चुनें।",
+    "activeCaptureButtonOpen": "सक्रिय रिकॉर्डिंग खोलें",
+    "activeCaptureButtonOpenDescription": "मौजूदा स्रोत, ऑडियो गतिविधि और ट्रांसक्रिप्ट दिखाएँ।",
+    "activeCaptureButtonHide": "बटन छिपाएँ",
+    "activeCaptureButtonHideDescription": "रिकॉर्डिंग रुकने तक होम बटन हटाएँ।",
+    "activeCaptureButtonSwitchSource": "ऑडियो स्रोत बदलें",
+    "activeCaptureButtonSwitchSourceDescription": "फ़ोन माइक्रोफ़ोन या जुड़े डिवाइस में से चुनें।"
 }

@@ -9983,4 +9983,39 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'Vielä käynnissä — tämä kestää tavallista kauemmin.';
+
+  @override
+  String get captureNoSpeechDetected => 'Puhetta ei ole vielä havaittu';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'Suora litterointi ei ole käytettävissä — ääntä tallennetaan edelleen';
+
+  @override
+  String get captureTranscriptionDelayed => 'Ääni vastaanotettu — litterointi viivästyy';
+
+  @override
+  String get activeCaptureButtonTitle => 'Painike tallennuksen aikana';
+
+  @override
+  String get activeCaptureButtonDescription =>
+      'Valitse, mitä aloitusnäytön painike tekee tallennuksen ollessa käynnissä.';
+
+  @override
+  String get activeCaptureButtonOpen => 'Avaa aktiivinen tallennus';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'Näytä nykyinen lähde, äänen aktiivisuus ja litterointi.';
+
+  @override
+  String get activeCaptureButtonHide => 'Piilota painike';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'Poista aloitusnäytön painike, kunnes tallennus päättyy.';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'Vaihda äänilähdettä';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'Valitse puhelimen mikrofoni tai yhdistetty laite.';
 }

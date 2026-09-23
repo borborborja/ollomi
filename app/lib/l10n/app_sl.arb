@@ -10823,5 +10823,16 @@
     "speechToTextUnavailableDesc": "Pretvorba govora v besedilo trenutno ni na voljo. Preverite internetno povezavo in nastavitve prepoznavanja govora v napravi ter poskusite znova.",
     "memoryHistoryPartial": "Del zgodovine spominov ni na voljo. Prikazana je doslej prejeta zgodovina.",
     "tapPlusToStartRecording": "Tapnite + za začetek snemanja",
-    "processingTakingLonger": "Še poteka — traja dlje kot običajno."
+    "processingTakingLonger": "Še poteka — traja dlje kot običajno.",
+    "captureNoSpeechDetected": "Govor še ni zaznan",
+    "captureTranscriptionUnavailableRecordingContinues": "Prepis v živo ni na voljo — zvok se še vedno snema",
+    "captureTranscriptionDelayed": "Zvok je prejet — prepis zamuja",
+    "activeCaptureButtonTitle": "Gumb med snemanjem",
+    "activeCaptureButtonDescription": "Izberite, kaj naredi začetni gumb med aktivnim snemanjem.",
+    "activeCaptureButtonOpen": "Odpri aktivni posnetek",
+    "activeCaptureButtonOpenDescription": "Prikaži trenutni vir, dejavnost zvoka in prepis.",
+    "activeCaptureButtonHide": "Skrij gumb",
+    "activeCaptureButtonHideDescription": "Odstrani začetni gumb, dokler se snemanje ne ustavi.",
+    "activeCaptureButtonSwitchSource": "Spremeni vir zvoka",
+    "activeCaptureButtonSwitchSourceDescription": "Izberite mikrofon telefona ali povezano napravo."
 }

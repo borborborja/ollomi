@@ -3235,5 +3235,16 @@
     "speechToTextUnavailableDesc": "Преобразуването на реч в текст не е налично в момента. Проверете интернет връзката и настройките за разпознаване на реч на устройството си, след което опитайте отново.",
     "memoryHistoryPartial": "Част от историята на спомените не е налична. Показва се получената досега история.",
     "tapPlusToStartRecording": "Докоснете +, за да започнете запис",
-    "processingTakingLonger": "Все още работи — отнема повече време от обичайното."
+    "processingTakingLonger": "Все още работи — отнема повече време от обичайното.",
+    "captureNoSpeechDetected": "Все още не е открита реч",
+    "captureTranscriptionUnavailableRecordingContinues": "Транскрипцията на живо не е налична — аудиото продължава да се записва",
+    "captureTranscriptionDelayed": "Аудиото е получено — транскрипцията се забавя",
+    "activeCaptureButtonTitle": "Бутон по време на запис",
+    "activeCaptureButtonDescription": "Изберете какво прави началният бутон, докато записът е активен.",
+    "activeCaptureButtonOpen": "Отваряне на активния запис",
+    "activeCaptureButtonOpenDescription": "Показва текущия източник, аудио активността и транскрипцията.",
+    "activeCaptureButtonHide": "Скриване на бутона",
+    "activeCaptureButtonHideDescription": "Премахва началния бутон, докато записът спре.",
+    "activeCaptureButtonSwitchSource": "Промяна на аудио източника",
+    "activeCaptureButtonSwitchSourceDescription": "Изберете между микрофона на телефона и свързаното устройство."
 }

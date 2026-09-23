@@ -3292,5 +3292,16 @@
     "speechToTextUnavailableDesc": "Преобразование речи в текст сейчас недоступно. Проверьте подключение к интернету и настройки распознавания речи на устройстве, затем попробуйте ещё раз.",
     "memoryHistoryPartial": "Часть истории воспоминаний недоступна. Показана история, полученная на данный момент.",
     "tapPlusToStartRecording": "Нажмите +, чтобы начать запись",
-    "processingTakingLonger": "Ещё обрабатывается — это занимает больше обычного."
+    "processingTakingLonger": "Ещё обрабатывается — это занимает больше обычного.",
+    "captureNoSpeechDetected": "Речь пока не обнаружена",
+    "captureTranscriptionUnavailableRecordingContinues": "Расшифровка в реальном времени недоступна — аудио продолжает записываться",
+    "captureTranscriptionDelayed": "Аудио получено — расшифровка задерживается",
+    "activeCaptureButtonTitle": "Кнопка во время записи",
+    "activeCaptureButtonDescription": "Выберите действие кнопки на главном экране во время активной записи.",
+    "activeCaptureButtonOpen": "Открыть активную запись",
+    "activeCaptureButtonOpenDescription": "Показать текущий источник, активность аудио и расшифровку.",
+    "activeCaptureButtonHide": "Скрыть кнопку",
+    "activeCaptureButtonHideDescription": "Убрать кнопку с главного экрана до остановки записи.",
+    "activeCaptureButtonSwitchSource": "Сменить источник аудио",
+    "activeCaptureButtonSwitchSourceDescription": "Выберите микрофон телефона или подключённое устройство."
 }

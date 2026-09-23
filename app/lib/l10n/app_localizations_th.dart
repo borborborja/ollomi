@@ -9924,4 +9924,37 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'ยังทำงานอยู่ — ใช้เวลานานกว่าปกติ';
+
+  @override
+  String get captureNoSpeechDetected => 'ยังไม่พบเสียงพูด';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => 'การถอดเสียงสดไม่พร้อมใช้งาน — เสียงยังคงถูกบันทึก';
+
+  @override
+  String get captureTranscriptionDelayed => 'ได้รับเสียงแล้ว — การถอดเสียงล่าช้า';
+
+  @override
+  String get activeCaptureButtonTitle => 'ปุ่มขณะบันทึก';
+
+  @override
+  String get activeCaptureButtonDescription => 'เลือกการทำงานของปุ่มหน้าหลักขณะกำลังบันทึก';
+
+  @override
+  String get activeCaptureButtonOpen => 'เปิดการบันทึกที่กำลังทำงาน';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'แสดงแหล่งเสียงปัจจุบัน กิจกรรมเสียง และข้อความถอดเสียง';
+
+  @override
+  String get activeCaptureButtonHide => 'ซ่อนปุ่ม';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'นำปุ่มหน้าหลักออกจนกว่าจะหยุดบันทึก';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'เปลี่ยนแหล่งเสียง';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'เลือกระหว่างไมโครโฟนโทรศัพท์กับอุปกรณ์ที่เชื่อมต่อ';
 }

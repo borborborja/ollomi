@@ -64,9 +64,7 @@ def claim(job_id):
         conversation_id = job.payload.get("conversation_id")
         if conversation_id and job.kind in {"audio", "enrich"}:
             # Serialize recording parts, including worker recovery and retries.
-            db.scalar(
-                select(Record).where(Record.id == conversation_id).with_for_update()
-            )
+            db.scalar(select(Record).where(Record.id == conversation_id).with_for_update())
             busy = db.scalar(
                 select(Job.id)
                 .where(
@@ -140,7 +138,9 @@ Esquema: {{
   "memories": [{{"content": string, "category": string, "tags": [string], "source_quote": string}}],
   "goals": [{{"title": string, "description": string, "target_at": string|null, "target_text": string, "priority": "low|normal|high|urgent", "tags": [string], "source_quote": string}}],
   "people": [{{"name": string, "role": string, "organization": string, "relationship": string, "source_quote": string}}]
-}}. Una tarea requiere una acción o compromiso explícito; un evento requiere una cita o fecha explícita. Una preferencia o dato estable puede ser memoria. Devuelve listas vacías cuando no haya evidencia.""".format(reference_time=reference_time, time_zone=time_zone),
+}}. Una tarea requiere una acción o compromiso explícito; un evento requiere una cita o fecha explícita. Una preferencia o dato estable puede ser memoria. Devuelve listas vacías cuando no haya evidencia.""".format(
+                    reference_time=reference_time, time_zone=time_zone
+                ),
             },
             {"role": "user", "content": transcript},
         ],
@@ -198,9 +198,7 @@ def finish_conversation(job, segments):
                 content = value.get(content_key, "")
                 if not isinstance(content, str) or not content.strip():
                     continue
-                record_id = str(
-                    uuid5(NAMESPACE_URL, f"ollomi:{row.id}:{kind}:{content.strip()}")
-                )
+                record_id = str(uuid5(NAMESPACE_URL, f"ollomi:{row.id}:{kind}:{content.strip()}"))
                 existing = db.get(Record, record_id)
                 data = {
                     "conversation_id": row.id,
@@ -214,9 +212,7 @@ def finish_conversation(job, segments):
                 elif kind == "goal":
                     data.update(progress=0, completed=False)
                 if existing is None:
-                    db.add(
-                        Record(id=record_id, user_id=job.user_id, kind=kind, data=data)
-                    )
+                    db.add(Record(id=record_id, user_id=job.user_id, kind=kind, data=data))
                     db.add(
                         Job(
                             user_id=job.user_id,
@@ -249,22 +245,38 @@ def finish_conversation(job, segments):
             )
         )
         user = db.get(User, job.user_id)
-        if user.preferences.get("store_recordings") is False and row.data.get(
-            "file_ids"
-        ):
-            file_ids = row.data["file_ids"]
+        retain_audio = job.payload.get("retain_audio", True)
+        should_purge_audio = user.preferences.get("store_recordings") is False or retain_audio is False
+        if should_purge_audio and row.data.get("file_ids"):
+            # An audio conversation can contain multiple queued parts. Purge
+            # only the part this successful job owns; deleting every file here
+            # would destroy later parts before their workers can process them.
+            current_file_id = job.payload.get("file_id")
+            file_ids = (
+                [current_file_id]
+                if current_file_id in row.data["file_ids"]
+                else list(row.data["file_ids"]) if current_file_id is None else []
+            )
             for file_id in file_ids:
                 file = db.get(Record, file_id)
                 if file:
                     db.delete(file)
-            db.add(
-                Job(
-                    user_id=job.user_id,
-                    kind="purge_files",
-                    payload={"file_ids": file_ids},
+            if file_ids:
+                db.add(
+                    Job(
+                        user_id=job.user_id,
+                        kind="purge_files",
+                        payload={"file_ids": file_ids},
+                    )
                 )
-            )
-            row.data = {**row.data, "file_ids": [], "audio_files": []}
+                purged = set(file_ids)
+                row.data = {
+                    **row.data,
+                    "file_ids": [file_id for file_id in row.data.get("file_ids", []) if file_id not in purged],
+                    "audio_files": [
+                        audio for audio in row.data.get("audio_files", []) if audio.get("id") not in purged
+                    ],
+                }
         live.status, live.progress, live.lease_token = "completed", 100, None
         live.result = {"conversation_id": row.id}
         emit(
@@ -315,14 +327,9 @@ def merge_audio_part(data, file_id, segments, duration):
 def process_audio(job):
     source = storage_path(job.user_id, job.payload["file_id"])
     duration = probe_audio(source)
-    if (
-        shutil.disk_usage(settings().data_dir).free
-        < duration * 32000 + 256 * 1024 * 1024
-    ):
+    if shutil.disk_usage(settings().data_dir).free < duration * 32000 + 256 * 1024 * 1024:
         raise ValueError("Insufficient disk space to decode audio; original retained")
-    with tempfile.TemporaryDirectory(
-        prefix="audio-", dir=settings().data_dir
-    ) as temporary:
+    with tempfile.TemporaryDirectory(prefix="audio-", dir=settings().data_dir) as temporary:
         from pathlib import Path
 
         output = Path(temporary)
@@ -359,37 +366,23 @@ def process_audio(job):
         segments, offset = [], 0.0
         for index, clip in enumerate(clips):
             checkpoint(job, 5 + int(50 * index / max(1, len(clips))))
-            batch = transcribe_file(
-                job.payload["stt"], clip, job.payload.get("language", "auto")
-            )
+            batch = transcribe_file(job.payload["stt"], clip, job.payload.get("language", "auto"))
             batch = enrich_speaker_labels(job.user_id, clip, batch, job.id)
             for segment in batch:
                 segment["start"] += offset
                 segment["end"] += offset
                 # Diarization labels are clip-local until cross-clip embeddings identify them.
                 if segment["speaker"]:
-                    segment["speaker"] = (
-                        f"SPEAKER_{index * 100 + int(str(segment['speaker']).split('_')[-1])}"
-                    )
+                    segment["speaker"] = f"SPEAKER_{index * 100 + int(str(segment['speaker']).split('_')[-1])}"
             segments.extend(batch)
             offset += probe_audio(clip)
         with transaction() as db:
             live = db.scalar(select(Job).where(Job.id == job.id).with_for_update())
-            if (
-                not live
-                or live.status != "running"
-                or live.lease_token != job.lease_token
-            ):
+            if not live or live.status != "running" or live.lease_token != job.lease_token:
                 raise Cancelled()
             row = owned(db, job.user_id, job.payload["conversation_id"], "conversation")
-            segments = merge_audio_part(
-                row.data, job.payload["file_id"], segments, duration
-            )
-            audio_files = [
-                a
-                for a in row.data.get("audio_files", [])
-                if a["id"] != job.payload["file_id"]
-            ]
+            segments = merge_audio_part(row.data, job.payload["file_id"], segments, duration)
+            audio_files = [a for a in row.data.get("audio_files", []) if a["id"] != job.payload["file_id"]]
             audio_files.append(
                 {
                     "id": job.payload["file_id"],
@@ -420,15 +413,13 @@ def run_job(job_id):
             return
         if job.kind == "enrich":
             with transaction() as db:
-                segments = owned(
-                    db, job.user_id, job.payload["conversation_id"], "conversation"
-                ).data["transcript_segments"]
+                segments = owned(db, job.user_id, job.payload["conversation_id"], "conversation").data[
+                    "transcript_segments"
+                ]
             finish_conversation(job, segments)
             return
         if job.kind == "index":
-            index_record(
-                job.user_id, job.payload["record_id"], job.payload["embedding"]
-            )
+            index_record(job.user_id, job.payload["record_id"], job.payload["embedding"])
         elif job.kind == "reindex":
             with transaction() as db:
                 ids = list(
@@ -451,11 +442,7 @@ def run_job(job_id):
             raise ValueError("Unknown job kind")
         with transaction() as db:
             live = db.scalar(select(Job).where(Job.id == job.id).with_for_update())
-            if (
-                live
-                and live.status == "running"
-                and live.lease_token == job.lease_token
-            ):
+            if live and live.status == "running" and live.lease_token == job.lease_token:
                 live.status, live.progress, live.lease_token = "completed", 100, None
     except Cancelled:
         return
@@ -463,17 +450,9 @@ def run_job(job_id):
         logger.error("Job %s failed (%s)", job.id, type(error).__name__)
         with transaction() as db:
             live = db.get(Job, job.id)
-            if (
-                live
-                and live.status == "running"
-                and live.lease_token == job.lease_token
-            ):
+            if live and live.status == "running" and live.lease_token == job.lease_token:
                 live.status, live.lease_token = "failed", None
-                live.error = (
-                    "Processing failed: "
-                    + type(error).__name__
-                    + ". Check provider availability and retry."
-                )
+                live.error = "Processing failed: " + type(error).__name__ + ". Check provider availability and retry."
                 emit(db, job.user_id, "job_failed", {"job_id": job.id})
 
 
@@ -494,21 +473,12 @@ def recover():
             job.status, job.error = "queued", None
         expired = list(
             db.scalars(
-                select(Job)
-                .where(Job.status == "running", Job.lease_until < now())
-                .with_for_update(skip_locked=True)
+                select(Job).where(Job.status == "running", Job.lease_until < now()).with_for_update(skip_locked=True)
             )
         )
         for job in expired:
             job.status, job.lease_token = "queued", None
-        ids = list(
-            db.scalars(
-                select(Job.id)
-                .where(Job.status == "queued")
-                .order_by(Job.created_at)
-                .limit(100)
-            )
-        )
+        ids = list(db.scalars(select(Job.id).where(Job.status == "queued").order_by(Job.created_at).limit(100)))
     for job_id in ids:
         run_job.delay(job_id)
 
@@ -519,11 +489,7 @@ def reminders():
     from selfhost.security import aware
 
     with transaction() as db:
-        rows = db.scalars(
-            select(Record)
-            .where(Record.kind == "task")
-            .with_for_update(skip_locked=True)
-        )
+        rows = db.scalars(select(Record).where(Record.kind == "task").with_for_update(skip_locked=True))
         for row in rows:
             due = row.data.get("due_at")
             if (

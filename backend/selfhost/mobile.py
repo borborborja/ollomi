@@ -38,9 +38,7 @@ def control(user=Depends(current_user)):
 
 def usage_for(uid, since=None):
     with transaction() as db:
-        query = select(Record).where(
-            Record.user_id == uid, Record.kind.in_(["conversation", "memory"])
-        )
+        query = select(Record).where(Record.user_id == uid, Record.kind.in_(["conversation", "memory"]))
         if since:
             query = query.where(Record.created_at >= since)
         rows = list(db.scalars(query))
@@ -54,9 +52,7 @@ def usage_for(uid, since=None):
         "speech_seconds": int(seconds),
         "transcription_seconds": int(seconds),
         "words_transcribed": sum(
-            len(s.get("text", "").split())
-            for r in conversations
-            for s in r.data.get("transcript_segments", [])
+            len(s.get("text", "").split()) for r in conversations for s in r.data.get("transcript_segments", [])
         ),
         "insights_gained": sum(r.kind == "memory" for r in rows),
         "memories_created": len(conversations),
@@ -84,14 +80,8 @@ def subscription(user=Depends(current_user)):
         "available_plans": [],
         "chat_quota_allowed": True,
         "transcription_allowance": {"mode": "managed", "reason": "self_hosted"},
-        **{
-            key + "_used": used[key]
-            for key in ["transcription_seconds", "words_transcribed", "insights_gained"]
-        },
-        **{
-            key + "_limit": 0
-            for key in ["transcription_seconds", "words_transcribed", "insights_gained"]
-        },
+        **{key + "_used": used[key] for key in ["transcription_seconds", "words_transcribed", "insights_gained"]},
+        **{key + "_limit": 0 for key in ["transcription_seconds", "words_transcribed", "insights_gained"]},
     }
 
 
@@ -103,14 +93,8 @@ def fair_use(user=Depends(current_user)):
         "message": "",
         "stage": "none",
         "speech_hours_today": usage_for(user.id, today)["speech_seconds"] / 3600,
-        "speech_hours_3day": usage_for(user.id, today - timedelta(days=2))[
-            "speech_seconds"
-        ]
-        / 3600,
-        "speech_hours_weekly": usage_for(user.id, today - timedelta(days=6))[
-            "speech_seconds"
-        ]
-        / 3600,
+        "speech_hours_3day": usage_for(user.id, today - timedelta(days=2))["speech_seconds"] / 3600,
+        "speech_hours_weekly": usage_for(user.id, today - timedelta(days=6))["speech_seconds"] / 3600,
         "limits": {"daily_hours": 0, "three_day_hours": 0, "weekly_hours": 0},
         "usage_pct": {"daily": 0, "three_day": 0, "weekly": 0},
         "dg_budget": {
@@ -125,11 +109,7 @@ def fair_use(user=Depends(current_user)):
 
 @router.get("/v1/users/store-recording-permission")
 def recording_permission(user=Depends(current_user)):
-    return {
-        "store_recording_permission": bool(
-            user.preferences.get("store_recordings", True)
-        )
-    }
+    return {"store_recording_permission": bool(user.preferences.get("store_recordings", True))}
 
 
 @router.post("/v1/users/store-recording-permission")
@@ -150,18 +130,12 @@ def location(body: dict, user=Depends(current_user)):
 
 @router.get("/v1/conversations/search")
 @router.post("/v1/conversations/search")
-def search_conversations(
-    query: str = "", body: dict = Body(default={}), user=Depends(current_user)
-):
+def search_conversations(query: str = "", body: dict = Body(default={}), user=Depends(current_user)):
     from selfhost.search import semantic_search
 
     phrase = body.get("query", query)
     hits = semantic_search(user.id, phrase, 50) if phrase.strip() else []
-    return {
-        "conversations": [
-            hit["record"] for hit in hits if hit["kind"] == "conversation"
-        ]
-    }
+    return {"conversations": [hit["record"] for hit in hits if hit["kind"] == "conversation"]}
 
 
 @router.patch("/v1/conversations/{record_id}/folder")
@@ -173,10 +147,7 @@ def move(record_id: str, body: dict, user=Depends(current_user)):
 def bulk_move(folder_id: str, body: dict, user=Depends(current_user)):
     with transaction() as db:
         owned(db, user.id, folder_id, "folder")
-        rows = [
-            owned(db, user.id, rid, "conversation")
-            for rid in body.get("conversation_ids", [])
-        ]
+        rows = [owned(db, user.id, rid, "conversation") for rid in body.get("conversation_ids", [])]
         for row in rows:
             row.data = {**row.data, "folder_id": folder_id}
     return {"status": "ok"}
@@ -200,13 +171,7 @@ def review(record_id: str, value: bool, user=Depends(current_user)):
 @router.delete("/v3/memories")
 def clear_memories(user=Depends(current_user)):
     with transaction() as db:
-        ids = list(
-            db.scalars(
-                select(Record.id).where(
-                    Record.user_id == user.id, Record.kind == "memory"
-                )
-            )
-        )
+        ids = list(db.scalars(select(Record.id).where(Record.user_id == user.id, Record.kind == "memory")))
     for record_id in ids:
         delete_record(user.id, record_id, "memory")
     return {"status": "ok"}
@@ -226,23 +191,15 @@ def conversation_export(
     if format == "json":
         text, mime = json.dumps(data, ensure_ascii=False), "application/json"
     else:
-        text = (
-            data["structured"]["title"]
-            + "\n\n"
-            + data["structured"]["overview"]
-            + "\n\n"
-        )
+        text = data["structured"]["title"] + "\n\n" + data["structured"]["overview"] + "\n\n"
         text += "\n".join(
-            f"[{s['start']:.1f}] {s.get('speaker') or '?'}: {s['text']}"
-            for s in data["transcript_segments"]
+            f"[{s['start']:.1f}] {s.get('speaker') or '?'}: {s['text']}" for s in data["transcript_segments"]
         )
         mime = "text/plain; charset=utf-8"
     return Response(
         text,
         media_type=mime,
-        headers={
-            "Content-Disposition": f'attachment; filename="conversation.{format}"'
-        },
+        headers={"Content-Disposition": f'attachment; filename="conversation.{format}"'},
     )
 
 
@@ -256,13 +213,7 @@ def delete_account(user=Depends(current_user)):
     from selfhost.audio import storage_path
 
     with transaction() as db:
-        files = list(
-            db.scalars(
-                select(Record.id).where(
-                    Record.user_id == user.id, Record.kind == "file"
-                )
-            )
-        )
+        files = list(db.scalars(select(Record.id).where(Record.user_id == user.id, Record.kind == "file")))
         from selfhost.search import purge_owner_index
         import httpx
 
@@ -271,9 +222,7 @@ def delete_account(user=Depends(current_user)):
         try:
             purge_owner_index(user.id)
         except httpx.HTTPError:
-            raise HTTPException(
-                503, "Search cleanup unavailable; account retained, retry deletion"
-            ) from None
+            raise HTTPException(503, "Search cleanup unavailable; account retained, retry deletion") from None
         for file_id in files:
             storage_path(user.id, file_id).unlink(missing_ok=True)
     return {"status": "ok"}
@@ -286,11 +235,7 @@ def delete_recordings(user=Depends(current_user)):
     with transaction() as db:
         row = db.get(User, user.id)
         row.preferences = {**row.preferences, "store_recordings": False}
-        files = list(
-            db.scalars(
-                select(Record).where(Record.user_id == user.id, Record.kind == "file")
-            )
-        )
+        files = list(db.scalars(select(Record).where(Record.user_id == user.id, Record.kind == "file")))
         for file in files:
             db.delete(file)
         for job in db.scalars(
@@ -303,11 +248,7 @@ def delete_recordings(user=Depends(current_user)):
             .with_for_update()
         ):
             job.status, job.lease_token = "cancelled", None
-        for conversation in db.scalars(
-            select(Record).where(
-                Record.user_id == user.id, Record.kind == "conversation"
-            )
-        ):
+        for conversation in db.scalars(select(Record).where(Record.user_id == user.id, Record.kind == "conversation")):
             conversation.data = {**conversation.data, "file_ids": [], "audio_files": []}
         db.add(
             Job(
@@ -360,9 +301,7 @@ def available_languages(user=Depends(current_user)):
         "Türkçe": "tr",
         "Svenska": "sv",
     }
-    return {
-        "languages": [{"name": name, "code": code} for name, code in languages.items()]
-    }
+    return {"languages": [{"name": name, "code": code} for name, code in languages.items()]}
 
 
 @router.patch("/v1/users/language")
@@ -370,9 +309,7 @@ def set_language(body: dict, user=Depends(current_user)):
     import re
 
     language = body.get("language")
-    if not isinstance(language, str) or not re.fullmatch(
-        r"[a-z]{2,3}(?:-[A-Za-z]{2,4})?", language
-    ):
+    if not isinstance(language, str) or not re.fullmatch(r"[a-z]{2,3}(?:-[A-Za-z]{2,4})?", language):
         raise HTTPException(422, "Invalid language code")
     with transaction() as db:
         row = db.get(User, user.id)
@@ -387,9 +324,7 @@ def set_language(body: dict, user=Depends(current_user)):
 def onboarding(user=Depends(current_user)):
     return {
         "completed": user.preferences.get("onboarding_completed", False),
-        "device_onboarding_completed": user.preferences.get(
-            "device_onboarding_completed", False
-        ),
+        "device_onboarding_completed": user.preferences.get("device_onboarding_completed", False),
     }
 
 
@@ -413,7 +348,18 @@ def set_onboarding(body: dict, user=Depends(current_user)):
 
 @router.get("/v1/users/private-cloud-sync")
 def private_cloud_sync(user=Depends(current_user)):
-    return {"private_cloud_sync_enabled": False}
+    return {"private_cloud_sync_enabled": bool(user.preferences.get("private_cloud_sync_enabled", False))}
+
+
+@router.post("/v1/users/private-cloud-sync")
+def save_private_cloud_sync(value: bool, user=Depends(current_user)):
+    with transaction() as db:
+        row = db.get(User, user.id)
+        row.preferences = {
+            **row.preferences,
+            "private_cloud_sync_enabled": value,
+        }
+    return {"status": "ok"}
 
 
 @router.get("/v1/users/training-data-opt-in")

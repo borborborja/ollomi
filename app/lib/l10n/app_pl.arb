@@ -3292,5 +3292,16 @@
     "speechToTextUnavailableDesc": "Zamiana mowy na tekst jest teraz niedostępna. Sprawdź połączenie internetowe i ustawienia rozpoznawania mowy na urządzeniu, a następnie spróbuj ponownie.",
     "memoryHistoryPartial": "Część historii wspomnień jest niedostępna. Wyświetlana jest dotychczas otrzymana historia.",
     "tapPlusToStartRecording": "Dotknij +, aby rozpocząć nagrywanie",
-    "processingTakingLonger": "Nadal działa — trwa to dłużej niż zwykle."
+    "processingTakingLonger": "Nadal działa — trwa to dłużej niż zwykle.",
+    "captureNoSpeechDetected": "Nie wykryto jeszcze mowy",
+    "captureTranscriptionUnavailableRecordingContinues": "Transkrypcja na żywo jest niedostępna — dźwięk nadal jest nagrywany",
+    "captureTranscriptionDelayed": "Odebrano dźwięk — transkrypcja jest opóźniona",
+    "activeCaptureButtonTitle": "Przycisk podczas nagrywania",
+    "activeCaptureButtonDescription": "Wybierz działanie przycisku głównego podczas aktywnego nagrywania.",
+    "activeCaptureButtonOpen": "Otwórz aktywne nagranie",
+    "activeCaptureButtonOpenDescription": "Pokaż bieżące źródło, aktywność dźwięku i transkrypcję.",
+    "activeCaptureButtonHide": "Ukryj przycisk",
+    "activeCaptureButtonHideDescription": "Usuń przycisk główny do czasu zatrzymania nagrywania.",
+    "activeCaptureButtonSwitchSource": "Zmień źródło dźwięku",
+    "activeCaptureButtonSwitchSourceDescription": "Wybierz mikrofon telefonu lub połączone urządzenie."
 }

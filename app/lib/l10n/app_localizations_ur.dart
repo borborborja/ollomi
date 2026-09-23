@@ -9994,4 +9994,38 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get processingTakingLonger => 'ابھی کام جاری ہے — اس میں معمول سے زیادہ وقت لگ رہا ہے۔';
+
+  @override
+  String get captureNoSpeechDetected => 'ابھی تک گفتگو کا پتہ نہیں چلا';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues =>
+      'لائیو ٹرانسکرپشن دستیاب نہیں — آڈیو اب بھی ریکارڈ ہو رہی ہے';
+
+  @override
+  String get captureTranscriptionDelayed => 'آڈیو موصول ہوئی — ٹرانسکرپشن میں تاخیر ہے';
+
+  @override
+  String get activeCaptureButtonTitle => 'ریکارڈنگ کے دوران بٹن';
+
+  @override
+  String get activeCaptureButtonDescription => 'ریکارڈنگ فعال ہونے پر ہوم بٹن کا عمل منتخب کریں۔';
+
+  @override
+  String get activeCaptureButtonOpen => 'فعال ریکارڈنگ کھولیں';
+
+  @override
+  String get activeCaptureButtonOpenDescription => 'موجودہ ماخذ، آڈیو سرگرمی اور ٹرانسکرپٹ دکھائیں۔';
+
+  @override
+  String get activeCaptureButtonHide => 'بٹن چھپائیں';
+
+  @override
+  String get activeCaptureButtonHideDescription => 'ریکارڈنگ رکنے تک ہوم بٹن ہٹا دیں۔';
+
+  @override
+  String get activeCaptureButtonSwitchSource => 'آڈیو ماخذ تبدیل کریں';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => 'فون مائیکروفون یا منسلک ڈیوائس منتخب کریں۔';
 }

@@ -3257,5 +3257,16 @@
     "speechToTextUnavailableDesc": "Kõne tekstiks teisendamine pole praegu saadaval. Kontrolli internetiühendust ja seadme kõnetuvastuse seadeid ning proovi uuesti.",
     "memoryHistoryPartial": "Osa mälestuste ajaloost pole saadaval. Kuvatakse seni saadud ajalugu.",
     "tapPlusToStartRecording": "Salvestamise alustamiseks puuduta +",
-    "processingTakingLonger": "Ikka käimas — see võtab kauem aega kui tavaliselt."
+    "processingTakingLonger": "Ikka käimas — see võtab kauem aega kui tavaliselt.",
+    "captureNoSpeechDetected": "Kõnet pole veel tuvastatud",
+    "captureTranscriptionUnavailableRecordingContinues": "Reaalajas transkriptsioon pole saadaval — heli salvestamine jätkub",
+    "captureTranscriptionDelayed": "Heli vastu võetud — transkriptsioon viibib",
+    "activeCaptureButtonTitle": "Nupp salvestamise ajal",
+    "activeCaptureButtonDescription": "Vali, mida avalehe nupp aktiivse salvestamise ajal teeb.",
+    "activeCaptureButtonOpen": "Ava aktiivne salvestus",
+    "activeCaptureButtonOpenDescription": "Kuva praegune allikas, heli aktiivsus ja transkriptsioon.",
+    "activeCaptureButtonHide": "Peida nupp",
+    "activeCaptureButtonHideDescription": "Eemalda avalehe nupp kuni salvestamise lõpuni.",
+    "activeCaptureButtonSwitchSource": "Muuda heliallikat",
+    "activeCaptureButtonSwitchSourceDescription": "Vali telefoni mikrofoni ja ühendatud seadme vahel."
 }

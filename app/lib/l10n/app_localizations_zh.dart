@@ -9792,4 +9792,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get processingTakingLonger => '仍在处理中——比平时耗时更长。';
+
+  @override
+  String get captureNoSpeechDetected => '尚未检测到语音';
+
+  @override
+  String get captureTranscriptionUnavailableRecordingContinues => '实时转写不可用 — 音频仍在录制';
+
+  @override
+  String get captureTranscriptionDelayed => '已收到音频 — 转写延迟';
+
+  @override
+  String get activeCaptureButtonTitle => '录音时的按钮';
+
+  @override
+  String get activeCaptureButtonDescription => '选择录音进行时主页按钮的功能。';
+
+  @override
+  String get activeCaptureButtonOpen => '打开当前录音';
+
+  @override
+  String get activeCaptureButtonOpenDescription => '显示当前来源、音频活动和转写内容。';
+
+  @override
+  String get activeCaptureButtonHide => '隐藏按钮';
+
+  @override
+  String get activeCaptureButtonHideDescription => '在录音停止前隐藏主页按钮。';
+
+  @override
+  String get activeCaptureButtonSwitchSource => '更改音频来源';
+
+  @override
+  String get activeCaptureButtonSwitchSourceDescription => '在手机麦克风和已连接设备之间选择。';
 }
