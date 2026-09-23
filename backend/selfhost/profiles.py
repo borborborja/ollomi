@@ -265,7 +265,9 @@ def selected_profile(db, user_id, purpose):
             else None
         )
         preferred = next((row for row in env_rows if row.id == preferred_id), env_rows[0])
-        profiles = [snapshot(preferred), *[snapshot(row) for row in env_rows if row.id != preferred.id]]
+        profiles = _prefer_healthy(
+            [snapshot(preferred), *[snapshot(row) for row in env_rows if row.id != preferred.id]]
+        )
         return {**profiles[0], "fallbacks": profiles[1:]}
     rows = list(db.scalars(select(AIProfile).where(AIProfile.purpose == purpose, AIProfile.enabled.is_(True))))
     rows = [row for row in rows if (row.capabilities or {}).get("managed_by") != "env"]
@@ -283,13 +285,30 @@ def selected_profile(db, user_id, purpose):
     ordered = [candidate for candidate in ordered if not candidate.external or not settings().local_only]
     if not ordered:
         raise HTTPException(503, "External AI is disabled")
-    profiles = [snapshot(candidate) for candidate in ordered]
+    profiles = _prefer_healthy([snapshot(candidate) for candidate in ordered])
     return {**profiles[0], "fallbacks": profiles[1:]}
 
 
 def profile_chain(profile):
     primary = {key: value for key, value in profile.items() if key != "fallbacks"}
     return [primary, *profile.get("fallbacks", [])]
+
+
+def _prefer_healthy(profiles):
+    """Keep priority order but try providers not marked unhealthy first.
+
+    A provider that recently returned 5xx stays in the chain as a fallback, but
+    it must not be attempted ahead of a healthy alternative: that first failure
+    is what turned a still-recoverable live transcription into "transcribe
+    later". The sort is stable, so the administrator's priority order is kept
+    inside each group.
+    """
+    return sorted(
+        profiles,
+        key=lambda profile: 1
+        if ((profile.get("capabilities") or {}).get("runtime") or {}).get("status") == "unhealthy"
+        else 0,
+    )
 
 
 def _failure_reason(error):
