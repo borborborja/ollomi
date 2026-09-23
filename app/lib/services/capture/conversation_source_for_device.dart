@@ -13,7 +13,7 @@ import 'package:omi/backend/schema/bt_device/bt_device.dart';
 /// Kept as a pure, exhaustive switch so a newly added [DeviceType] fails the
 /// compile here (no `default`) and is caught by the unit test, rather than
 /// silently streaming with a null/wrong source.
-String? conversationSourceForDeviceType(DeviceType? type) {
+String? conversationSourceForDeviceType(DeviceType? type, {String? deviceName}) {
   if (type == null) {
     return null;
   }
@@ -21,7 +21,9 @@ String? conversationSourceForDeviceType(DeviceType? type) {
     case DeviceType.friendPendant:
       return 'friend_com';
     case DeviceType.omi:
-      return 'omi';
+      // The original Friend advertises "Friend" but uses the Omi BLE/audio
+      // protocol, so its DeviceType remains omi for transport selection.
+      return deviceName?.trim().toLowerCase() == 'friend' ? 'friend_com' : 'omi';
     case DeviceType.openglass:
       return 'openglass';
     case DeviceType.fieldy:

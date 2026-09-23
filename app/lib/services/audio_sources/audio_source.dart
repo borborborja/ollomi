@@ -54,7 +54,7 @@ class FrameSyncKey {
 abstract class AudioSource {
   /// Process raw bytes from the hardware and return WAL-ready frames.
   ///
-  /// For BLE: each call produces one frame (strips 3-byte firmware header).
+  /// For BLE: Opus frames may require several firmware notifications.
   /// For phone mic: buffers incoming bytes and produces 320-byte PCM frames.
   /// Returns empty list if buffering (not enough data for a complete frame yet).
   List<WalFrame> processBytes(List<int> rawBytes);

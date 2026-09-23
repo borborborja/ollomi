@@ -529,7 +529,7 @@ class OmiBleForegroundService : Service() {
 
         // Finalize the in-progress batch recording so it's saved + ingestable right away
         // (a plain BLE disconnect never delivers another packet to trigger the gap finalize).
-        batchAudioWriter.stop("ble_disconnected")
+        batchAudioWriter.stopCapture("ble_disconnected")
         limitlessDrainEngine.onDeviceDisconnected(address)
 
         val addr = address.uppercase()
@@ -768,7 +768,7 @@ class OmiBleForegroundService : Service() {
         Log.d(TAG, "Service destroying")
         isDestroying = true
         backgroundAudioStreamer.stop("service_destroyed")
-        batchAudioWriter.stop("service_destroyed")
+        batchAudioWriter.stopCapture("service_destroyed")
         limitlessDrainEngine.stop("service_destroyed")
 
         for ((addr, managed) in managedDevices) {

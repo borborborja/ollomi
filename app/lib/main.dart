@@ -24,6 +24,7 @@ import 'package:omi/backend/http/shared.dart';
 import 'package:omi/backend/preferences.dart';
 import 'package:omi/coordinators/provider_capture_external_actions.dart';
 import 'package:omi/core/app_shell.dart';
+import 'package:omi/mobile/authenticated_product_scope.dart';
 import 'package:omi/env/env.dart';
 
 import 'package:omi/flavors.dart';
@@ -306,7 +307,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(lazy: true, create: (context) => PhoneCallProvider()),
       ],
       builder: (context, child) {
-        return WithForegroundTask(
+        final app = WithForegroundTask(
           child: MaterialApp(
             debugShowCheckedModeBanner: F.env == Environment.dev,
             title: F.title,
@@ -368,6 +369,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
           ),
         );
+        final auth = context.watch<AuthenticationProvider>();
+        // The scope must sit above MaterialApp's Navigator. ConnectedDevice
+        // opens on a new route, which cannot inherit providers inside home.
+        return auth.isSignedIn() ? AuthenticatedProductScope(child: app) : app;
       },
     );
   }

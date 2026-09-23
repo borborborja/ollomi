@@ -9,7 +9,7 @@ Use the root `compose.yaml`. See [installation and operation](../../docs/OLLomi_
 - `main.py`, `config.py`: startup, capability discovery, configuration.
 - `db.py`, `migrations/`: PostgreSQL records, sessions, durable jobs/events, pgvector. Migrations are required before startup.
 - `security.py`, `accounts.py`, `admin.py`, `profiles.py`: local Argon2 passwords, idempotent administrator bootstrap, short-lived access JWTs, rotating refresh tokens, administrator-managed inference profiles and encrypted credentials.
-- `audio.py`, `sync.py`, `worker.py`: bounded uploads, framed Omi WAL/Opus decoding, live WebSocket capture, durable processing and lease fencing. Audio retries retain originals. Recording parts are serialized per conversation.
+- `audio.py`, `sync.py`, `worker.py`: bounded uploads, framed Omi WAL/Opus decoding, live WebSocket capture, durable processing and lease fencing. The original `Friend` uses Omi's PCM8/Opus BLE path; `Friend_…` uses 30-byte, 10 ms, 16 kHz LC3 frames decoded by `lc3_audio.py` and Debian's `liblc3-0`, both live and from batch WAL. Audio retries retain originals. Recording parts are serialized per conversation. A failed live STT preview does not close the audio stream; the final durable job still handles the full recording.
 - `extraction.py`: conservative validation of model-produced summaries, commitments, dated events, decisions, goals, people and memories. Dates without a timezone remain text and never become automatic reminders.
 - `records.py`, `mobile.py`, `playback.py`: owner-scoped Omi mobile contracts, signed playback URLs bound to a live session, export and deletion.
 

@@ -6,6 +6,17 @@ import 'package:omi/utils/batch_recording.dart';
 
 void main() {
   group('BatchRecordingInfo.fromFileName', () {
+    test('parses Friend Pendant LC3 batch capture', () {
+      final info = BatchRecordingInfo.fromFileName(
+        'audio_omibatch_lc3_fs1030_16000_1_fs160_1735689600.bin',
+      )!;
+      expect(info.codec, BleAudioCodec.lc3FS1030);
+      expect(info.sampleRate, 16000);
+      expect(info.frameSize, 160);
+      expect(info.secondsFromFrameCount(100), 1);
+      expect(info.estimateSeconds(3400), 1);
+    });
+
     test('parses opus fs160', () {
       final info = BatchRecordingInfo.fromFileName('audio_omi_opus_16000_1_fs160_1735689600.bin');
       expect(info, isNotNull);

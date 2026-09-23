@@ -24,7 +24,7 @@ router = APIRouter()
 
 
 def decode_bin(source, destination, filename):
-    match = re.search(r"_(pcm16|pcm8|opus_fs320|opus)_(\d+)_(\d+)_fs(\d+)_", filename)
+    match = re.search(r"_(lc3_fs1030|pcm16|pcm8|opus_fs320|opus)_(\d+)_(\d+)_fs(\d+)_", filename)
     if not match:
         raise HTTPException(422, "Unsupported WAL codec or filename")
     codec, rate, channels, frame_size = match.groups()
@@ -35,12 +35,18 @@ def decode_bin(source, destination, filename):
         or frame_size > rate * 120 // 1000
     ):
         raise HTTPException(422, "Invalid WAL audio parameters")
+    if codec == "lc3_fs1030" and (rate, channels, frame_size) != (16000, 1, 160):
+        raise HTTPException(422, "Invalid Friend Pendant WAL audio parameters")
     width = 1 if codec == "pcm8" else 2
     decoder = None
     if codec in {"opus", "opus_fs320"}:
         import opuslib
 
         decoder = opuslib.Decoder(rate, channels)
+    elif codec == "lc3_fs1030":
+        from selfhost.lc3_audio import Lc3Decoder
+
+        decoder = Lc3Decoder()
     samples = 0
     with source.open("rb") as input_file, wave.open(str(destination), "wb") as output:
         output.setnchannels(channels)
@@ -58,7 +64,10 @@ def decode_bin(source, destination, filename):
             if len(frame) != length:
                 raise HTTPException(422, "Truncated WAL frame; original must be kept")
             if decoder:
-                frame = decoder.decode(frame, frame_size)
+                try:
+                    frame = decoder.decode(frame) if codec == "lc3_fs1030" else decoder.decode(frame, frame_size)
+                except ValueError as error:
+                    raise HTTPException(422, str(error)) from error
             if len(frame) % (width * channels):
                 raise HTTPException(422, "Misaligned PCM frame")
             samples += len(frame) // (width * channels)

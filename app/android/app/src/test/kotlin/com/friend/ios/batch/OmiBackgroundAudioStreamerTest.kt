@@ -58,6 +58,35 @@ class OmiBackgroundAudioStreamerTest {
         fun frame(value: Int = 1) = streamer.handleCharacteristic("device", "service", "audio", byteArrayOf(0, 0, 0, value.toByte()))
     }
 
+    @Test fun `CV1 Opus websocket receives reassembled frames, never fragments`() {
+        val h = Harness()
+        val config = h.prefs.values["nativeBleStreamConfig"] as String
+        h.prefs.values["nativeBleStreamConfig"] = config.dropLast(1) + ",\"codec\":\"opus_fs320\"}"
+        fun packet(id: Int, index: Int, value: Int) =
+            byteArrayOf(id.toByte(), 0, index.toByte(), value.toByte())
+        h.streamer.handleCharacteristic("device", "service", "audio", packet(10, 0, 1))
+        h.streamer.handleCharacteristic("device", "service", "audio", packet(11, 1, 2))
+        assertTrue(h.sockets.isEmpty())
+        h.streamer.handleCharacteristic("device", "service", "audio", packet(12, 0, 3))
+        h.sockets.single().open()
+        assertArrayEquals(byteArrayOf(1, 2), h.sockets.single().frames.single().toByteArray())
+    }
+
+    @Test fun `disabling after a partial CV1 frame discards that frame`() {
+        val h = Harness()
+        val config = h.prefs.values["nativeBleStreamConfig"] as String
+        h.prefs.values["nativeBleStreamConfig"] = config.dropLast(1) + ",\"codec\":\"opus_fs320\"}"
+        fun packet(id: Int, value: Int) = byteArrayOf(id.toByte(), 0, 0, value.toByte())
+        h.streamer.handleCharacteristic("device", "service", "audio", packet(1, 1))
+        h.prefs.values["nativeBleStreamingEnabled"] = false
+        h.streamer.handleCharacteristic("device", "service", "audio", packet(2, 2))
+        h.prefs.values["nativeBleStreamingEnabled"] = true
+        h.streamer.handleCharacteristic("device", "service", "audio", packet(3, 3))
+        h.streamer.handleCharacteristic("device", "service", "audio", packet(4, 4))
+        h.sockets.single().open()
+        assertArrayEquals(byteArrayOf(3), h.sockets.single().frames.single().toByteArray())
+    }
+
     @Test fun `unchanged frames reuse parsed config and socket`() {
         val h = Harness()
         val reader = NativeBleStreamSettingsReader(h.prefs)

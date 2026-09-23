@@ -49,9 +49,16 @@ class OmiBatchAudioWriter(context: Context) : BaseBatchAudioWriter(context, TAG,
     )
 
     private var lastFrameMs: Long = 0
+    private val omiFrameAssembler = OmiBleFrameAssembler()
+    private var assemblerConfig: Config? = null
 
     @Volatile
     private var wasEnabled = false
+
+    fun stopCapture(reason: String) {
+        synchronized(lock) { omiFrameAssembler.reset(); assemblerConfig = null }
+        stop(reason)
+    }
 
     override fun onOpenedLocked(partFile: File) {
         val rawGeolocation = runCatching {
@@ -78,7 +85,7 @@ class OmiBatchAudioWriter(context: Context) : BaseBatchAudioWriter(context, TAG,
             // enabled->disabled edge — don't take the lock on every packet when batch mode is off.
             if (wasEnabled) {
                 wasEnabled = false
-                stop("disabled")
+                stopCapture("disabled")
             }
             return
         }
@@ -90,26 +97,33 @@ class OmiBatchAudioWriter(context: Context) : BaseBatchAudioWriter(context, TAG,
         // Muted: drop the packet but keep the open file's gap timer alive so unmute
         // resumes the same recording instead of starting a new one.
         if (boolPref("batchMuted", false)) {
-            synchronized(lock) { if (isOpenLocked) lastFrameMs = System.currentTimeMillis() }
+            synchronized(lock) {
+                omiFrameAssembler.reset()
+                if (isOpenLocked) lastFrameMs = System.currentTimeMillis()
+            }
             return
         }
         // Manual "New recording": finalize the current file now; this packet opens a fresh one.
         if (boolPref("batchCutRequested", false)) {
             prefs().edit().putBoolean("flutter.batchCutRequested", false).apply()
-            stop("manual")
+            stopCapture("manual")
         }
-
-        val frames = transformFrames(config.deviceType, value)
-        if (frames.isEmpty()) return
 
         synchronized(lock) {
             val now = System.currentTimeMillis()
+            if (assemblerConfig != config) {
+                omiFrameAssembler.reset()
+                assemblerConfig = config
+            }
 
             // Gap finalize: a pause longer than GAP_MS starts a new file (so the
             // backend places resumed audio as a separate conversation).
             if (isOpenLocked && lastFrameMs > 0 && now - lastFrameMs > GAP_MS) {
                 closeCurrentLocked("gap")
+                omiFrameAssembler.reset()
             }
+            val frames = transformFrames(config, value)
+            if (frames.isEmpty()) return
             // Rotation: bound file size/duration (between packets, never mid-packet).
             if (isOpenLocked && (currentBytes >= MAX_FILE_BYTES || (now / 1000 - currentStartSec) >= MAX_FILE_SECONDS)) {
                 closeCurrentLocked("rotate")
@@ -139,9 +153,11 @@ class OmiBatchAudioWriter(context: Context) : BaseBatchAudioWriter(context, TAG,
 
     // ── Frame extraction (mirrors OmiBackgroundAudioStreamer.transformFrames) ──
 
-    private fun transformFrames(deviceType: String, value: ByteArray): List<ByteArray> =
-        when (deviceType) {
-            "omi", "openglass" -> if (value.size <= 3) emptyList() else listOf(value.copyOfRange(3, value.size))
+    private fun transformFrames(config: Config, value: ByteArray): List<ByteArray> =
+        when (config.deviceType) {
+            "omi", "openglass" -> if (config.codec == "opus" || config.codec == "opus_fs320") {
+                omiFrameAssembler.accept(value)
+            } else if (value.size <= 3) emptyList() else listOf(value.copyOfRange(3, value.size))
             "friendPendant" -> {
                 if (value.size <= 5) {
                     emptyList()
@@ -157,7 +173,7 @@ class OmiBatchAudioWriter(context: Context) : BaseBatchAudioWriter(context, TAG,
                 }
             }
             else -> {
-                Log.w(TAG, "unsupported batch device type: $deviceType")
+                Log.w(TAG, "unsupported batch device type: ${config.deviceType}")
                 emptyList()
             }
         }
