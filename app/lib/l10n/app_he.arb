@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "שם מותאם אישית",
     "deviceAliasDescription": "מוצג באפליקציה במקום שם ברירת המחדל של המכשיר.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "שם המכשיר עודכן"
+    "deviceAliasSaved": "שם המכשיר עודכן",
+    "continuousRecording": "הקלטה רציפה",
+    "continuousRecordingSource": "בחר את מקור ההקלטה הרציפה",
+    "recommended": "מומלץ",
+    "newConversation": "שיחה חדשה",
+    "newConversationDescription": "ממשיך להקליט ושומר את החלק הזה כשיחה נפרדת",
+    "stopContinuousRecording": "עצור הקלטה רציפה"
 }

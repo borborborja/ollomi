@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "Ime po meri",
     "deviceAliasDescription": "Prikazano v aplikaciji namesto privzetega imena naprave.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Ime naprave posodobljeno"
+    "deviceAliasSaved": "Ime naprave posodobljeno",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

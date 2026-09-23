@@ -10065,4 +10065,22 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Имя устройства обновлено';
+
+  @override
+  String get continuousRecording => 'Непрерывная запись';
+
+  @override
+  String get continuousRecordingSource => 'Выберите источник непрерывной записи';
+
+  @override
+  String get recommended => 'Рекомендуется';
+
+  @override
+  String get newConversation => 'Новый разговор';
+
+  @override
+  String get newConversationDescription => 'Продолжает запись и сохраняет эту часть как отдельный разговор';
+
+  @override
+  String get stopContinuousRecording => 'Остановить непрерывную запись';
 }

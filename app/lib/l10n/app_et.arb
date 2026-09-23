@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Kohandatud nimi",
     "deviceAliasDescription": "Kuvatakse rakenduses seadme vaikenime asemel.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Seadme nimi värskendatud"
+    "deviceAliasSaved": "Seadme nimi värskendatud",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

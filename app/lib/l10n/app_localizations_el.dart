@@ -10101,4 +10101,22 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Το όνομα της συσκευής ενημερώθηκε';
+
+  @override
+  String get continuousRecording => 'Συνεχής εγγραφή';
+
+  @override
+  String get continuousRecordingSource => 'Επιλέξτε πηγή συνεχούς εγγραφής';
+
+  @override
+  String get recommended => 'Προτείνεται';
+
+  @override
+  String get newConversation => 'Νέα συνομιλία';
+
+  @override
+  String get newConversationDescription => 'Συνεχίζει την εγγραφή και αποθηκεύει αυτό το μέρος ως ξεχωριστή συνομιλία';
+
+  @override
+  String get stopContinuousRecording => 'Διακοπή συνεχούς εγγραφής';
 }

@@ -9856,4 +9856,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'デバイス名を更新しました';
+
+  @override
+  String get continuousRecording => '連続録音';
+
+  @override
+  String get continuousRecordingSource => '連続録音のソースを選択';
+
+  @override
+  String get recommended => 'おすすめ';
+
+  @override
+  String get newConversation => '新しい会話';
+
+  @override
+  String get newConversationDescription => '録音を続けながら、この部分を別の会話として保存します';
+
+  @override
+  String get stopContinuousRecording => '連続録音を停止';
 }

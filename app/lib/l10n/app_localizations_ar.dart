@@ -9968,4 +9968,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'تم تحديث اسم الجهاز';
+
+  @override
+  String get continuousRecording => 'تسجيل مستمر';
+
+  @override
+  String get continuousRecordingSource => 'اختر مصدر التسجيل المستمر';
+
+  @override
+  String get recommended => 'موصى به';
+
+  @override
+  String get newConversation => 'محادثة جديدة';
+
+  @override
+  String get newConversationDescription => 'يواصل التسجيل ويحفظ هذا الجزء كمحادثة مستقلة';
+
+  @override
+  String get stopContinuousRecording => 'إيقاف التسجيل المستمر';
 }

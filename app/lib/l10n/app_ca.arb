@@ -3250,5 +3250,11 @@
     "deviceAliasTitle": "Nom personalitzat",
     "deviceAliasDescription": "Es mostra a l'aplicació en lloc del nom predeterminat del dispositiu.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Nom del dispositiu actualitzat"
+    "deviceAliasSaved": "Nom del dispositiu actualitzat",
+    "continuousRecording": "Gravació contínua",
+    "continuousRecordingSource": "Tria la font de la gravació contínua",
+    "recommended": "Recomanat",
+    "newConversation": "Conversa nova",
+    "newConversationDescription": "Continua gravant i desa aquesta part com una conversa pròpia",
+    "stopContinuousRecording": "Atura la gravació contínua"
 }

@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Власна назва",
     "deviceAliasDescription": "Показується в застосунку замість назви пристрою за замовчуванням.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Назву пристрою оновлено"
+    "deviceAliasSaved": "Назву пристрою оновлено",
+    "continuousRecording": "Безперервний запис",
+    "continuousRecordingSource": "Виберіть джерело безперервного запису",
+    "recommended": "Рекомендовано",
+    "newConversation": "Нова розмова",
+    "newConversationDescription": "Продовжує запис і зберігає цю частину як окрему розмову",
+    "stopContinuousRecording": "Зупинити безперервний запис"
 }

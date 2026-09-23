@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "ಕಸ್ಟಮ್ ಹೆಸರು",
     "deviceAliasDescription": "ಸಾಧನದ ಡೀಫಾಲ್ಟ್ ಹೆಸರಿನ ಬದಲಾಗಿ ಅಪ್‌ನಲ್ಲಿ ತೋರಿಸಲಾಗುತ್ತದೆ.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "ಸಾಧನದ ಹೆಸರು ನವೀಕರಿಸಲಾಗಿದೆ"
+    "deviceAliasSaved": "ಸಾಧನದ ಹೆಸರು ನವೀಕರಿಸಲಾಗಿದೆ",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

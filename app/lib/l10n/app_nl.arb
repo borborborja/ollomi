@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Aangepaste naam",
     "deviceAliasDescription": "Wordt in de app weergegeven in plaats van de standaardnaam van het apparaat.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Apparaatnaam bijgewerkt"
+    "deviceAliasSaved": "Apparaatnaam bijgewerkt",
+    "continuousRecording": "Doorlopende opname",
+    "continuousRecordingSource": "Kies de bron van de doorlopende opname",
+    "recommended": "Aanbevolen",
+    "newConversation": "Nieuw gesprek",
+    "newConversationDescription": "Neemt door op en slaat dit deel op als een eigen gesprek",
+    "stopContinuousRecording": "Doorlopende opname stoppen"
 }

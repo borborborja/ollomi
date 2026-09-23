@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Προσαρμοσμένο όνομα",
     "deviceAliasDescription": "Εμφανίζεται στην εφαρμογή αντί για το προεπιλεγμένο όνομα της συσκευής.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Το όνομα της συσκευής ενημερώθηκε"
+    "deviceAliasSaved": "Το όνομα της συσκευής ενημερώθηκε",
+    "continuousRecording": "Συνεχής εγγραφή",
+    "continuousRecordingSource": "Επιλέξτε πηγή συνεχούς εγγραφής",
+    "recommended": "Προτείνεται",
+    "newConversation": "Νέα συνομιλία",
+    "newConversationDescription": "Συνεχίζει την εγγραφή και αποθηκεύει αυτό το μέρος ως ξεχωριστή συνομιλία",
+    "stopContinuousRecording": "Διακοπή συνεχούς εγγραφής"
 }

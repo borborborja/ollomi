@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Anpassat namn",
     "deviceAliasDescription": "Visas i appen i stället för enhetens standardnamn.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Enhetsnamn uppdaterat"
+    "deviceAliasSaved": "Enhetsnamn uppdaterat",
+    "continuousRecording": "Kontinuerlig inspelning",
+    "continuousRecordingSource": "Välj källa för kontinuerlig inspelning",
+    "recommended": "Rekommenderas",
+    "newConversation": "Ny konversation",
+    "newConversationDescription": "Fortsätter spela in och sparar denna del som en egen konversation",
+    "stopContinuousRecording": "Stoppa kontinuerlig inspelning"
 }

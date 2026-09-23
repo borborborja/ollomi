@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "Уласная назва",
     "deviceAliasDescription": "Паказваецца ў праграме замест назвы прылады па змаўчанні.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Назва прылады абноўлена"
+    "deviceAliasSaved": "Назва прылады абноўлена",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

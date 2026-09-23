@@ -10028,4 +10028,22 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Název zařízení aktualizován';
+
+  @override
+  String get continuousRecording => 'Nepřetržité nahrávání';
+
+  @override
+  String get continuousRecordingSource => 'Vyberte zdroj nepřetržitého nahrávání';
+
+  @override
+  String get recommended => 'Doporučeno';
+
+  @override
+  String get newConversation => 'Nová konverzace';
+
+  @override
+  String get newConversationDescription => 'Pokračuje v nahrávání a uloží tuto část jako samostatnou konverzaci';
+
+  @override
+  String get stopContinuousRecording => 'Zastavit nepřetržité nahrávání';
 }

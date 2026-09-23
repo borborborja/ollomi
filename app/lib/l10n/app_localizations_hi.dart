@@ -10007,4 +10007,22 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'डिवाइस का नाम अपडेट किया गया';
+
+  @override
+  String get continuousRecording => 'निरंतर रिकॉर्डिंग';
+
+  @override
+  String get continuousRecordingSource => 'निरंतर रिकॉर्डिंग का स्रोत चुनें';
+
+  @override
+  String get recommended => 'अनुशंसित';
+
+  @override
+  String get newConversation => 'नई बातचीत';
+
+  @override
+  String get newConversationDescription => 'रिकॉर्डिंग जारी रखता है और इस हिस्से को अलग बातचीत के रूप में सहेजता है';
+
+  @override
+  String get stopContinuousRecording => 'निरंतर रिकॉर्डिंग रोकें';
 }

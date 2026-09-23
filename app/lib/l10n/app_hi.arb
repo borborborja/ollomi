@@ -3273,5 +3273,11 @@
     "deviceAliasTitle": "कस्टम नाम",
     "deviceAliasDescription": "डिवाइस के डिफ़ॉल्ट नाम के बजाय ऐप में दिखाया जाता है।",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "डिवाइस का नाम अपडेट किया गया"
+    "deviceAliasSaved": "डिवाइस का नाम अपडेट किया गया",
+    "continuousRecording": "निरंतर रिकॉर्डिंग",
+    "continuousRecordingSource": "निरंतर रिकॉर्डिंग का स्रोत चुनें",
+    "recommended": "अनुशंसित",
+    "newConversation": "नई बातचीत",
+    "newConversationDescription": "रिकॉर्डिंग जारी रखता है और इस हिस्से को अलग बातचीत के रूप में सहेजता है",
+    "stopContinuousRecording": "निरंतर रिकॉर्डिंग रोकें"
 }

@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "사용자 지정 이름",
     "deviceAliasDescription": "기기 기본 이름 대신 앱 전체에 표시됩니다.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "기기 이름이 업데이트되었습니다"
+    "deviceAliasSaved": "기기 이름이 업데이트되었습니다",
+    "continuousRecording": "연속 녹음",
+    "continuousRecordingSource": "연속 녹음 소스를 선택하세요",
+    "recommended": "권장",
+    "newConversation": "새 대화",
+    "newConversationDescription": "계속 녹음하면서 이 부분을 별도의 대화로 저장합니다",
+    "stopContinuousRecording": "연속 녹음 중지"
 }

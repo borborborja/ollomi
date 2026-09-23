@@ -10049,4 +10049,22 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Назву пристрою оновлено';
+
+  @override
+  String get continuousRecording => 'Безперервний запис';
+
+  @override
+  String get continuousRecordingSource => 'Виберіть джерело безперервного запису';
+
+  @override
+  String get recommended => 'Рекомендовано';
+
+  @override
+  String get newConversation => 'Нова розмова';
+
+  @override
+  String get newConversationDescription => 'Продовжує запис і зберігає цю частину як окрему розмову';
+
+  @override
+  String get stopContinuousRecording => 'Зупинити безперервний запис';
 }

@@ -21,6 +21,7 @@ import 'package:omi/services/wals/wal.dart';
 import 'package:omi/widgets/confirmation_dialog.dart';
 import 'package:omi/widgets/conversation_photo_image.dart';
 import 'package:omi/widgets/media_viewer_page.dart';
+import 'package:omi/widgets/omi_confirm_dialog.dart';
 import 'package:omi/widgets/transcript.dart';
 
 class ConversationCapturingPage extends StatefulWidget {
@@ -114,6 +115,23 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
     String twoDigits(int n) => n.toString().padLeft(2, '0');
 
     return '${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(remainingSeconds)}';
+  }
+
+  Future<void> _splitConversation(CaptureProvider provider) async {
+    final confirmed = await OmiConfirmDialog.show(
+      context,
+      title: context.l10n.newConversation,
+      message: context.l10n.newConversationDescription,
+      confirmLabel: context.l10n.newConversation,
+      confirmColor: const Color(0xFFFE5D50),
+    );
+    if (confirmed != true || !mounted) return;
+    await provider.splitCurrentConversation();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.newConversation)),
+      );
+    }
   }
 
   Future<void> _stopConversation(CaptureProvider provider) async {
@@ -398,6 +416,33 @@ class _ConversationCapturingPageState extends State<ConversationCapturingPage> w
                             ],
                           ),
                           child: const Icon(Icons.mic_off, color: Colors.white, size: 24),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // New conversation: keep recording, close the current one.
+                      Semantics(
+                        button: true,
+                        label: context.l10n.newConversationDescription,
+                        child: GestureDetector(
+                          key: const Key('new_conversation_button'),
+                          onTap: () => _splitConversation(provider),
+                          child: Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF35343B),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                  spreadRadius: 2,
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.call_split_rounded, color: Colors.white, size: 22),
+                          ),
                         ),
                       ),
                     ],

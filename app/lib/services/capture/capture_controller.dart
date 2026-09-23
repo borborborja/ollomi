@@ -2043,6 +2043,49 @@ class CaptureController extends ChangeNotifier
     }
   }
 
+  bool get continuousCaptureEnabled => SharedPreferencesUtil().continuousCaptureEnabled;
+
+  /// Starts (or resumes) the long-running capture behind continuous mode.
+  /// `device == null` records from the phone microphone.
+  Future<void> startContinuousCapture({BtDevice? device}) async {
+    if (device == null) {
+      SharedPreferencesUtil().continuousCaptureSource = 'phone';
+      if (!isPhoneCaptureActive) {
+        await streamRecording();
+      }
+    } else {
+      SharedPreferencesUtil().continuousCaptureSource = 'device';
+      if (_recordingDevice?.id != device.id || recordingState != RecordingState.deviceRecord) {
+        await streamDeviceRecording(device: device);
+      }
+    }
+    SharedPreferencesUtil().continuousCaptureEnabled = true;
+    notifyListeners();
+  }
+
+  Future<void> stopContinuousCapture() async {
+    SharedPreferencesUtil().continuousCaptureEnabled = false;
+    if (_recordingDevice != null && isCaptureActive) {
+      await stopStreamDeviceRecording();
+    } else if (isCaptureActive) {
+      await stopStreamRecording(reason: 'continuous_disabled');
+    }
+    notifyListeners();
+  }
+
+  /// Ends the current conversation but keeps capturing. Batch capture cuts the
+  /// native file (seamless); the live socket asks the server to roll the
+  /// segment over while audio keeps streaming.
+  Future<void> splitCurrentConversation() async {
+    if (isPhoneMicBatchRecording ||
+        (_recordingDevice != null && SharedPreferencesUtil().batchModeEnabled)) {
+      startNewOfflineRecording();
+      return;
+    }
+    await _socket?.sendText(jsonEncode({'type': 'split'}));
+    await _resetStateVariables();
+  }
+
   @override
   void onClosed([int? closeCode]) {
     _transcriptionServiceStatuses = [];

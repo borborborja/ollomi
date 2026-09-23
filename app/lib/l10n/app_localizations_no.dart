@@ -10026,4 +10026,22 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Enhetsnavn oppdatert';
+
+  @override
+  String get continuousRecording => 'Kontinuerlig opptak';
+
+  @override
+  String get continuousRecordingSource => 'Velg kilde for kontinuerlig opptak';
+
+  @override
+  String get recommended => 'Anbefalt';
+
+  @override
+  String get newConversation => 'Ny samtale';
+
+  @override
+  String get newConversationDescription => 'Fortsetter opptaket og lagrer denne delen som en egen samtale';
+
+  @override
+  String get stopContinuousRecording => 'Stopp kontinuerlig opptak';
 }

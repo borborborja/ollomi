@@ -3250,5 +3250,11 @@
     "deviceAliasTitle": "Vlastní název",
     "deviceAliasDescription": "Zobrazí se v aplikaci místo výchozího názvu zařízení.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Název zařízení aktualizován"
+    "deviceAliasSaved": "Název zařízení aktualizován",
+    "continuousRecording": "Nepřetržité nahrávání",
+    "continuousRecordingSource": "Vyberte zdroj nepřetržitého nahrávání",
+    "recommended": "Doporučeno",
+    "newConversation": "Nová konverzace",
+    "newConversationDescription": "Pokračuje v nahrávání a uloží tuto část jako samostatnou konverzaci",
+    "stopContinuousRecording": "Zastavit nepřetržité nahrávání"
 }

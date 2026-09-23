@@ -11856,5 +11856,17 @@
     },
     "@deviceAliasSaved": {
         "description": "Confirmation shown after saving a custom device name."
-    }
+    },
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording",
+    "@continuousRecording": {"description": "Label for the continuous recording switch on the home screen."},
+    "@continuousRecordingSource": {"description": "Title of the sheet that asks which source records continuously."},
+    "@recommended": {"description": "Badge marking the recommended continuous recording source."},
+    "@newConversation": {"description": "Label of the button that starts a new conversation while continuing to record."},
+    "@newConversationDescription": {"description": "Explains that splitting keeps recording and saves the previous part."},
+    "@stopContinuousRecording": {"description": "Action to turn continuous recording off."}
 }

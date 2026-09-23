@@ -18658,6 +18658,18 @@ abstract class AppLocalizations {
   String get deviceAliasHint;
 
   String get deviceAliasSaved;
+
+  String get continuousRecording;
+
+  String get continuousRecordingSource;
+
+  String get recommended;
+
+  String get newConversation;
+
+  String get newConversationDescription;
+
+  String get stopContinuousRecording;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

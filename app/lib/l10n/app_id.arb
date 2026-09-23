@@ -3314,5 +3314,11 @@
     "deviceAliasTitle": "Nama khusus",
     "deviceAliasDescription": "Ditampilkan di aplikasi sebagai ganti nama bawaan perangkat.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Nama perangkat diperbarui"
+    "deviceAliasSaved": "Nama perangkat diperbarui",
+    "continuousRecording": "Perekaman berkelanjutan",
+    "continuousRecordingSource": "Pilih sumber perekaman berkelanjutan",
+    "recommended": "Direkomendasikan",
+    "newConversation": "Percakapan baru",
+    "newConversationDescription": "Terus merekam dan menyimpan bagian ini sebagai percakapan tersendiri",
+    "stopContinuousRecording": "Hentikan perekaman berkelanjutan"
 }

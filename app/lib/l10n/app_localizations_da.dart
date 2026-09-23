@@ -10012,4 +10012,22 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Enhedsnavn opdateret';
+
+  @override
+  String get continuousRecording => 'Kontinuerlig optagelse';
+
+  @override
+  String get continuousRecordingSource => 'Vælg kilde til kontinuerlig optagelse';
+
+  @override
+  String get recommended => 'Anbefalet';
+
+  @override
+  String get newConversation => 'Ny samtale';
+
+  @override
+  String get newConversationDescription => 'Fortsætter optagelsen og gemmer denne del som sin egen samtale';
+
+  @override
+  String get stopContinuousRecording => 'Stop kontinuerlig optagelse';
 }

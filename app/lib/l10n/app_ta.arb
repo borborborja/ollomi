@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "தனிப்பயன் பெயர்",
     "deviceAliasDescription": "சாதனத்தின் இயல்புநிலை பெயருக்கு பதிலாக ஆப்பில் காட்டப்படும்.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "சாதனத்தின் பெயர் புதுப்பிக்கப்பட்டது"
+    "deviceAliasSaved": "சாதனத்தின் பெயர் புதுப்பிக்கப்பட்டது",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }
