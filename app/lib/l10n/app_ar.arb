@@ -3248,5 +3248,11 @@
     "deviceAliasTitle": "اسم مخصص",
     "deviceAliasDescription": "يظهر في التطبيق بدلاً من الاسم الافتراضي للجهاز.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "تم تحديث اسم الجهاز"
+    "deviceAliasSaved": "تم تحديث اسم الجهاز",
+    "continuousRecording": "تسجيل مستمر",
+    "continuousRecordingSource": "اختر مصدر التسجيل المستمر",
+    "recommended": "موصى به",
+    "newConversation": "محادثة جديدة",
+    "newConversationDescription": "يواصل التسجيل ويحفظ هذا الجزء كمحادثة مستقلة",
+    "stopContinuousRecording": "إيقاف التسجيل المستمر"
 }

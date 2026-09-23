@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Nume personalizat",
     "deviceAliasDescription": "Afișat în aplicație în locul numelui implicit al dispozitivului.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Numele dispozitivului a fost actualizat"
+    "deviceAliasSaved": "Numele dispozitivului a fost actualizat",
+    "continuousRecording": "Înregistrare continuă",
+    "continuousRecordingSource": "Alege sursa înregistrării continue",
+    "recommended": "Recomandat",
+    "newConversation": "Conversație nouă",
+    "newConversationDescription": "Continuă înregistrarea și salvează această parte ca o conversație separată",
+    "stopContinuousRecording": "Oprește înregistrarea continuă"
 }

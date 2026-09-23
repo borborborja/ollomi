@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Pasirinktinis pavadinimas",
     "deviceAliasDescription": "Rodomas programoje vietoje numatytojo įrenginio pavadinimo.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Įrenginio pavadinimas atnaujintas"
+    "deviceAliasSaved": "Įrenginio pavadinimas atnaujintas",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

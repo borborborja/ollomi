@@ -3307,5 +3307,11 @@
     "deviceAliasTitle": "Nom personnalisé",
     "deviceAliasDescription": "Affiché dans l'application à la place du nom par défaut de l'appareil.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Nom de l'appareil mis à jour"
+    "deviceAliasSaved": "Nom de l'appareil mis à jour",
+    "continuousRecording": "Enregistrement continu",
+    "continuousRecordingSource": "Choisissez la source de l'enregistrement continu",
+    "recommended": "Recommandé",
+    "newConversation": "Nouvelle conversation",
+    "newConversationDescription": "Continue l'enregistrement et enregistre cette partie comme sa propre conversation",
+    "stopContinuousRecording": "Arrêter l'enregistrement continu"
 }

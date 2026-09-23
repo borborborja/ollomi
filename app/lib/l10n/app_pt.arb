@@ -3308,5 +3308,11 @@
     "deviceAliasTitle": "Nome personalizado",
     "deviceAliasDescription": "Mostrado no app em vez do nome padrão do dispositivo.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Nome do dispositivo atualizado"
+    "deviceAliasSaved": "Nome do dispositivo atualizado",
+    "continuousRecording": "Gravação contínua",
+    "continuousRecordingSource": "Escolha a fonte da gravação contínua",
+    "recommended": "Recomendado",
+    "newConversation": "Nova conversa",
+    "newConversationDescription": "Continua a gravar e guarda esta parte como uma conversa própria",
+    "stopContinuousRecording": "Parar a gravação contínua"
 }

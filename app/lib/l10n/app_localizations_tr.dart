@@ -10040,4 +10040,22 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Cihaz adı güncellendi';
+
+  @override
+  String get continuousRecording => 'Sürekli kayıt';
+
+  @override
+  String get continuousRecordingSource => 'Sürekli kayıt kaynağını seçin';
+
+  @override
+  String get recommended => 'Önerilen';
+
+  @override
+  String get newConversation => 'Yeni konuşma';
+
+  @override
+  String get newConversationDescription => 'Kaydı sürdürür ve bu bölümü ayrı bir konuşma olarak kaydeder';
+
+  @override
+  String get stopContinuousRecording => 'Sürekli kaydı durdur';
 }

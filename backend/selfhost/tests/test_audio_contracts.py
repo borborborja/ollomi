@@ -577,3 +577,41 @@ def test_friend_pendant_batch_wal_rejects_bad_frame(tmp_path, monkeypatch):
     with pytest.raises(HTTPException) as error:
         decode_bin(source, tmp_path / "bad.wav", source.name)
     assert error.value.status_code == 422
+
+
+def test_manual_split_finishes_first_conversation_and_continues(client, admin, monkeypatch):
+    from selfhost import audio
+
+    monkeypatch.setattr(audio, "transcribe_file", lambda *args, **kwargs: [])
+    with client.websocket_connect("/v4/listen?codec=pcm16&sample_rate=16000&source=omi", headers=admin) as socket:
+        first_conversation = socket.receive_json()["memory_id"]
+        _receive_live_ready(socket)
+        socket.send_bytes(struct.pack("<16000h", *([100] * 16000)))
+        assert socket.receive_json()["status"] == "audio_received"
+
+        socket.send_json({"type": "split"})
+        new_conversation = None
+        first_job = None
+        while new_conversation is None:
+            event = socket.receive_json()
+            if event["type"] == "processing_started":
+                first_job = event
+            elif event["type"] == "conversation_split":
+                new_conversation = event["conversation_id"]
+        assert new_conversation != first_conversation
+
+        socket.send_bytes(struct.pack("<16000h", *([100] * 16000)))
+        socket.send_json({"type": "stop"})
+        second_job = _receive_processing_started(socket)
+
+    from selfhost.db import Job, Record, transaction
+
+    with transaction() as db:
+        assert first_job is not None
+        assert db.get(Job, first_job["job_id"]).payload["conversation_id"] == first_conversation
+        assert db.get(Job, second_job["job_id"]).payload["conversation_id"] == new_conversation
+        first = db.get(Record, first_conversation)
+        second = db.get(Record, new_conversation)
+        assert first is not None and second is not None
+        assert first.data["status"] == "processing"
+

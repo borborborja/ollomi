@@ -9859,4 +9859,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => '기기 이름이 업데이트되었습니다';
+
+  @override
+  String get continuousRecording => '연속 녹음';
+
+  @override
+  String get continuousRecordingSource => '연속 녹음 소스를 선택하세요';
+
+  @override
+  String get recommended => '권장';
+
+  @override
+  String get newConversation => '새 대화';
+
+  @override
+  String get newConversationDescription => '계속 녹음하면서 이 부분을 별도의 대화로 저장합니다';
+
+  @override
+  String get stopContinuousRecording => '연속 녹음 중지';
 }

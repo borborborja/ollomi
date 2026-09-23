@@ -10076,4 +10076,22 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Numele dispozitivului a fost actualizat';
+
+  @override
+  String get continuousRecording => 'Înregistrare continuă';
+
+  @override
+  String get continuousRecordingSource => 'Alege sursa înregistrării continue';
+
+  @override
+  String get recommended => 'Recomandat';
+
+  @override
+  String get newConversation => 'Conversație nouă';
+
+  @override
+  String get newConversationDescription => 'Continuă înregistrarea și salvează această parte ca o conversație separată';
+
+  @override
+  String get stopContinuousRecording => 'Oprește înregistrarea continuă';
 }

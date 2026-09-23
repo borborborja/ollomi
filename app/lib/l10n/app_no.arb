@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Egendefinert navn",
     "deviceAliasDescription": "Vises i appen i stedet for enhetens standardnavn.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Enhetsnavn oppdatert"
+    "deviceAliasSaved": "Enhetsnavn oppdatert",
+    "continuousRecording": "Kontinuerlig opptak",
+    "continuousRecordingSource": "Velg kilde for kontinuerlig opptak",
+    "recommended": "Anbefalt",
+    "newConversation": "Ny samtale",
+    "newConversationDescription": "Fortsetter opptaket og lagrer denne delen som en egen samtale",
+    "stopContinuousRecording": "Stopp kontinuerlig opptak"
 }

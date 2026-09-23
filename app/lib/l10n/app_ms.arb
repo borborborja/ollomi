@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Nama tersuai",
     "deviceAliasDescription": "Ditunjukkan dalam apl dan bukan nama lalai peranti.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Nama peranti dikemas kini"
+    "deviceAliasSaved": "Nama peranti dikemas kini",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

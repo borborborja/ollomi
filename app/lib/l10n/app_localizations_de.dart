@@ -10112,4 +10112,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Gerätename aktualisiert';
+
+  @override
+  String get continuousRecording => 'Kontinuierliche Aufnahme';
+
+  @override
+  String get continuousRecordingSource => 'Wähle die Quelle der kontinuierlichen Aufnahme';
+
+  @override
+  String get recommended => 'Empfohlen';
+
+  @override
+  String get newConversation => 'Neues Gespräch';
+
+  @override
+  String get newConversationDescription => 'Nimmt weiter auf und speichert diesen Teil als eigenes Gespräch';
+
+  @override
+  String get stopContinuousRecording => 'Kontinuierliche Aufnahme beenden';
 }

@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "ชื่อที่กำหนดเอง",
     "deviceAliasDescription": "แสดงในแอปแทนชื่อเริ่มต้นของอุปกรณ์",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "อัปเดตชื่ออุปกรณ์แล้ว"
+    "deviceAliasSaved": "อัปเดตชื่ออุปกรณ์แล้ว",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

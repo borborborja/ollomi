@@ -3307,5 +3307,11 @@
     "deviceAliasTitle": "Nazwa niestandardowa",
     "deviceAliasDescription": "Wyświetlana w aplikacji zamiast domyślnej nazwy urządzenia.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Nazwa urządzenia zaktualizowana"
+    "deviceAliasSaved": "Nazwa urządzenia zaktualizowana",
+    "continuousRecording": "Nagrywanie ciągłe",
+    "continuousRecordingSource": "Wybierz źródło nagrywania ciągłego",
+    "recommended": "Zalecane",
+    "newConversation": "Nowa rozmowa",
+    "newConversationDescription": "Kontynuuje nagrywanie i zapisuje tę część jako osobną rozmowę",
+    "stopContinuousRecording": "Zatrzymaj nagrywanie ciągłe"
 }

@@ -10038,4 +10038,22 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Nama perangkat diperbarui';
+
+  @override
+  String get continuousRecording => 'Perekaman berkelanjutan';
+
+  @override
+  String get continuousRecordingSource => 'Pilih sumber perekaman berkelanjutan';
+
+  @override
+  String get recommended => 'Direkomendasikan';
+
+  @override
+  String get newConversation => 'Percakapan baru';
+
+  @override
+  String get newConversationDescription => 'Terus merekam dan menyimpan bagian ini sebagai percakapan tersendiri';
+
+  @override
+  String get stopContinuousRecording => 'Hentikan perekaman berkelanjutan';
 }

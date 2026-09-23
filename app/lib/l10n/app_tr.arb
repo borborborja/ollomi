@@ -3307,5 +3307,11 @@
     "deviceAliasTitle": "Özel ad",
     "deviceAliasDescription": "Cihazın varsayılan adı yerine uygulamada gösterilir.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Cihaz adı güncellendi"
+    "deviceAliasSaved": "Cihaz adı güncellendi",
+    "continuousRecording": "Sürekli kayıt",
+    "continuousRecordingSource": "Sürekli kayıt kaynağını seçin",
+    "recommended": "Önerilen",
+    "newConversation": "Yeni konuşma",
+    "newConversationDescription": "Kaydı sürdürür ve bu bölümü ayrı bir konuşma olarak kaydeder",
+    "stopContinuousRecording": "Sürekli kaydı durdur"
 }

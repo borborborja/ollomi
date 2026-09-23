@@ -10037,4 +10037,22 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'डिव्हाइसचे नाव अद्ययावत केले';
+
+  @override
+  String get continuousRecording => 'Continuous recording';
+
+  @override
+  String get continuousRecordingSource => 'Choose the continuous recording source';
+
+  @override
+  String get recommended => 'Recommended';
+
+  @override
+  String get newConversation => 'New conversation';
+
+  @override
+  String get newConversationDescription => 'Keeps recording and saves this part as its own conversation';
+
+  @override
+  String get stopContinuousRecording => 'Stop continuous recording';
 }

@@ -10088,4 +10088,22 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Nom del dispositiu actualitzat';
+
+  @override
+  String get continuousRecording => 'Gravació contínua';
+
+  @override
+  String get continuousRecordingSource => 'Tria la font de la gravació contínua';
+
+  @override
+  String get recommended => 'Recomanat';
+
+  @override
+  String get newConversation => 'Conversa nova';
+
+  @override
+  String get newConversationDescription => 'Continua gravant i desa aquesta part com una conversa pròpia';
+
+  @override
+  String get stopContinuousRecording => 'Atura la gravació contínua';
 }

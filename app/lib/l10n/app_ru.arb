@@ -3307,5 +3307,11 @@
     "deviceAliasTitle": "Пользовательское имя",
     "deviceAliasDescription": "Отображается в приложении вместо имени устройства по умолчанию.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Имя устройства обновлено"
+    "deviceAliasSaved": "Имя устройства обновлено",
+    "continuousRecording": "Непрерывная запись",
+    "continuousRecordingSource": "Выберите источник непрерывной записи",
+    "recommended": "Рекомендуется",
+    "newConversation": "Новый разговор",
+    "newConversationDescription": "Продолжает запись и сохраняет эту часть как отдельный разговор",
+    "stopContinuousRecording": "Остановить непрерывную запись"
 }

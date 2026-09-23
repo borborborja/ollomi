@@ -3294,5 +3294,11 @@
     "deviceAliasTitle": "自定义名称",
     "deviceAliasDescription": "在应用中显示以替代设备的默认名称。",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "设备名称已更新"
+    "deviceAliasSaved": "设备名称已更新",
+    "continuousRecording": "连续录音",
+    "continuousRecordingSource": "选择连续录音的音源",
+    "recommended": "推荐",
+    "newConversation": "新对话",
+    "newConversationDescription": "继续录音并将此部分保存为独立对话",
+    "stopContinuousRecording": "停止连续录音"
 }

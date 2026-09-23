@@ -9947,4 +9947,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'שם המכשיר עודכן';
+
+  @override
+  String get continuousRecording => 'הקלטה רציפה';
+
+  @override
+  String get continuousRecordingSource => 'בחר את מקור ההקלטה הרציפה';
+
+  @override
+  String get recommended => 'מומלץ';
+
+  @override
+  String get newConversation => 'שיחה חדשה';
+
+  @override
+  String get newConversationDescription => 'ממשיך להקליט ושומר את החלק הזה כשיחה נפרדת';
+
+  @override
+  String get stopContinuousRecording => 'עצור הקלטה רציפה';
 }

@@ -3277,5 +3277,11 @@
     "deviceAliasTitle": "Tên tùy chỉnh",
     "deviceAliasDescription": "Hiển thị trong ứng dụng thay cho tên mặc định của thiết bị.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Đã cập nhật tên thiết bị"
+    "deviceAliasSaved": "Đã cập nhật tên thiết bị",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

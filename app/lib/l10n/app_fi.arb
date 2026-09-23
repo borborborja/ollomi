@@ -3272,5 +3272,11 @@
     "deviceAliasTitle": "Mukautettu nimi",
     "deviceAliasDescription": "Näytetään sovelluksessa laitteen oletusnimen sijaan.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Laitteen nimi päivitetty"
+    "deviceAliasSaved": "Laitteen nimi päivitetty",
+    "continuousRecording": "Jatkuva tallennus",
+    "continuousRecordingSource": "Valitse jatkuvan tallennuksen lähde",
+    "recommended": "Suositeltu",
+    "newConversation": "Uusi keskustelu",
+    "newConversationDescription": "Jatkaa tallennusta ja tallentaa tämän osan omana keskusteluna",
+    "stopContinuousRecording": "Lopeta jatkuva tallennus"
 }

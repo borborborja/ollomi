@@ -3368,5 +3368,11 @@
     "deviceAliasTitle": "Egyéni név",
     "deviceAliasDescription": "Az alkalmazásban az eszköz alapértelmezett neve helyett jelenik meg.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "Eszköznév frissítve"
+    "deviceAliasSaved": "Eszköznév frissítve",
+    "continuousRecording": "Folyamatos felvétel",
+    "continuousRecordingSource": "Válaszd ki a folyamatos felvétel forrását",
+    "recommended": "Ajánlott",
+    "newConversation": "Új beszélgetés",
+    "newConversationDescription": "Folytatja a felvételt, és ezt a részt külön beszélgetésként menti",
+    "stopContinuousRecording": "Folyamatos felvétel leállítása"
 }

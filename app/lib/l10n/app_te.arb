@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "కస్టమ్ పేరు",
     "deviceAliasDescription": "పరికరం యొక్క డిఫాల్ట్ పేరుకు బదులుగా యాప్‌లో చూపబడుతుంది.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "పరికరం పేరు నవీకరించబడింది"
+    "deviceAliasSaved": "పరికరం పేరు నవీకరించబడింది",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

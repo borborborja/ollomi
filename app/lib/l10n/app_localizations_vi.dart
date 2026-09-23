@@ -10023,4 +10023,22 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Đã cập nhật tên thiết bị';
+
+  @override
+  String get continuousRecording => 'Continuous recording';
+
+  @override
+  String get continuousRecordingSource => 'Choose the continuous recording source';
+
+  @override
+  String get recommended => 'Recommended';
+
+  @override
+  String get newConversation => 'New conversation';
+
+  @override
+  String get newConversationDescription => 'Keeps recording and saves this part as its own conversation';
+
+  @override
+  String get stopContinuousRecording => 'Stop continuous recording';
 }

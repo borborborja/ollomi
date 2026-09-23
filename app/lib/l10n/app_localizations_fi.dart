@@ -10030,4 +10030,22 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Laitteen nimi päivitetty';
+
+  @override
+  String get continuousRecording => 'Jatkuva tallennus';
+
+  @override
+  String get continuousRecordingSource => 'Valitse jatkuvan tallennuksen lähde';
+
+  @override
+  String get recommended => 'Suositeltu';
+
+  @override
+  String get newConversation => 'Uusi keskustelu';
+
+  @override
+  String get newConversationDescription => 'Jatkaa tallennusta ja tallentaa tämän osan omana keskusteluna';
+
+  @override
+  String get stopContinuousRecording => 'Lopeta jatkuva tallennus';
 }

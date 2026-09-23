@@ -9837,4 +9837,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => '设备名称已更新';
+
+  @override
+  String get continuousRecording => '连续录音';
+
+  @override
+  String get continuousRecordingSource => '选择连续录音的音源';
+
+  @override
+  String get recommended => '推荐';
+
+  @override
+  String get newConversation => '新对话';
+
+  @override
+  String get newConversationDescription => '继续录音并将此部分保存为独立对话';
+
+  @override
+  String get stopContinuousRecording => '停止连续录音';
 }

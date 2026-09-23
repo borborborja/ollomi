@@ -10058,4 +10058,22 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Nazwa urządzenia zaktualizowana';
+
+  @override
+  String get continuousRecording => 'Nagrywanie ciągłe';
+
+  @override
+  String get continuousRecordingSource => 'Wybierz źródło nagrywania ciągłego';
+
+  @override
+  String get recommended => 'Zalecane';
+
+  @override
+  String get newConversation => 'Nowa rozmowa';
+
+  @override
+  String get newConversationDescription => 'Kontynuuje nagrywanie i zapisuje tę część jako osobną rozmowę';
+
+  @override
+  String get stopContinuousRecording => 'Zatrzymaj nagrywanie ciągłe';
 }

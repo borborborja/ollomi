@@ -10056,4 +10056,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Apparaatnaam bijgewerkt';
+
+  @override
+  String get continuousRecording => 'Doorlopende opname';
+
+  @override
+  String get continuousRecordingSource => 'Kies de bron van de doorlopende opname';
+
+  @override
+  String get recommended => 'Aanbevolen';
+
+  @override
+  String get newConversation => 'Nieuw gesprek';
+
+  @override
+  String get newConversationDescription => 'Neemt door op en slaat dit deel op als een eigen gesprek';
+
+  @override
+  String get stopContinuousRecording => 'Doorlopende opname stoppen';
 }

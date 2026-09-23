@@ -10032,4 +10032,22 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Enhetsnamn uppdaterat';
+
+  @override
+  String get continuousRecording => 'Kontinuerlig inspelning';
+
+  @override
+  String get continuousRecordingSource => 'Välj källa för kontinuerlig inspelning';
+
+  @override
+  String get recommended => 'Rekommenderas';
+
+  @override
+  String get newConversation => 'Ny konversation';
+
+  @override
+  String get newConversationDescription => 'Fortsätter spela in och sparar denna del som en egen konversation';
+
+  @override
+  String get stopContinuousRecording => 'Stoppa kontinuerlig inspelning';
 }

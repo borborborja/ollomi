@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "कस्टम नाव",
     "deviceAliasDescription": "डिव्हाइसच्या डीफॉल्ट नावाऐवजी ॲपमध्ये दर्शविले जाते.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "डिव्हाइसचे नाव अद्ययावत केले"
+    "deviceAliasSaved": "डिव्हाइसचे नाव अद्ययावत केले",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

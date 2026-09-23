@@ -391,6 +391,11 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
         if (isRecording && behavior == ActiveCaptureButtonBehavior.hide) {
           return const SizedBox.shrink();
         }
+        // In continuous mode the top switch owns the capture lifecycle, so the
+        // "+" record options button is not shown; the active card replaces it.
+        if (SharedPreferencesUtil().continuousCaptureEnabled && !isRecording) {
+          return const SizedBox.shrink();
+        }
         final captureState = captureProvider.captureUiState;
         final source = captureSourceLabel(context, captureState);
         final activeIcon =

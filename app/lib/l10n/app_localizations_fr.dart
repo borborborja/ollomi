@@ -10117,4 +10117,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Nom de l\'appareil mis à jour';
+
+  @override
+  String get continuousRecording => 'Enregistrement continu';
+
+  @override
+  String get continuousRecordingSource => 'Choisissez la source de l\'enregistrement continu';
+
+  @override
+  String get recommended => 'Recommandé';
+
+  @override
+  String get newConversation => 'Nouvelle conversation';
+
+  @override
+  String get newConversationDescription => 'Continue l\'enregistrement et enregistre cette partie comme sa propre conversation';
+
+  @override
+  String get stopContinuousRecording => 'Arrêter l\'enregistrement continu';
 }

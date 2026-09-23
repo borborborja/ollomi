@@ -10070,4 +10070,22 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Eszköznév frissítve';
+
+  @override
+  String get continuousRecording => 'Folyamatos felvétel';
+
+  @override
+  String get continuousRecordingSource => 'Válaszd ki a folyamatos felvétel forrását';
+
+  @override
+  String get recommended => 'Ajánlott';
+
+  @override
+  String get newConversation => 'Új beszélgetés';
+
+  @override
+  String get newConversationDescription => 'Folytatja a felvételt, és ezt a részt külön beszélgetésként menti';
+
+  @override
+  String get stopContinuousRecording => 'Folyamatos felvétel leállítása';
 }

@@ -346,6 +346,20 @@ class SharedPreferencesUtil {
   set activeCaptureButtonBehavior(ActiveCaptureButtonBehavior value) =>
       saveString('activeCaptureButtonBehavior', value.storageValue);
 
+  // Continuous recording mode: a single long-running capture that keeps
+  // recording in the background and splits conversations on a manual action or
+  // after the conversation silence timeout. When off, recording is one-off and
+  // started from the "+" record options.
+  bool get continuousCaptureEnabled => getBool('continuousCaptureEnabled');
+
+  set continuousCaptureEnabled(bool value) => saveBool('continuousCaptureEnabled', value);
+
+  // 'phone' or 'device'. The device id is resolved from the paired device at
+  // start time so a re-pair or alias change does not strand a stale id.
+  String get continuousCaptureSource => getString('continuousCaptureSource');
+
+  set continuousCaptureSource(String value) => saveString('continuousCaptureSource', value);
+
   // Phone-mic batch capture marker. false = explicit Transcribe Later (files
   // named audio_omibatchphone_...), true = automatic offline fallback (files
   // named audio_omibatchphoneauto_...). Read natively as flutter.phoneBatchAuto.

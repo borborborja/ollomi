@@ -10838,5 +10838,11 @@
     "deviceAliasTitle": "نام سفارشی",
     "deviceAliasDescription": "در برنامه به‌جای نام پیش‌فرض دستگاه نمایش داده می‌شود.",
     "deviceAliasHint": "Omi CV1",
-    "deviceAliasSaved": "نام دستگاه به‌روزرسانی شد"
+    "deviceAliasSaved": "نام دستگاه به‌روزرسانی شد",
+    "continuousRecording": "Continuous recording",
+    "continuousRecordingSource": "Choose the continuous recording source",
+    "recommended": "Recommended",
+    "newConversation": "New conversation",
+    "newConversationDescription": "Keeps recording and saves this part as its own conversation",
+    "stopContinuousRecording": "Stop continuous recording"
 }

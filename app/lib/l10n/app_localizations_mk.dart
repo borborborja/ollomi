@@ -10081,4 +10081,22 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get deviceAliasSaved => 'Името на уредот е ажурирано';
+
+  @override
+  String get continuousRecording => 'Continuous recording';
+
+  @override
+  String get continuousRecordingSource => 'Choose the continuous recording source';
+
+  @override
+  String get recommended => 'Recommended';
+
+  @override
+  String get newConversation => 'New conversation';
+
+  @override
+  String get newConversationDescription => 'Keeps recording and saves this part as its own conversation';
+
+  @override
+  String get stopContinuousRecording => 'Stop continuous recording';
 }
