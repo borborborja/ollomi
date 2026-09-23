@@ -309,9 +309,15 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           flutter pub get
-          build_number=$((100000 + GITHUB_RUN_NUMBER))
+          # The release tag is the app version: Obtainium and Android both read
+          # the APK versionName, so it must equal the tag instead of a CI run
+          # number. versionCode is derived from the same semver so it stays
+          # monotonic (major*1000000 + minor*1000 + patch).
+          version="${GITHUB_REF_NAME#v}"
+          IFS='.' read -r major minor patch <<< "$version"
+          build_number=$(( major * 1000000 + minor * 1000 + patch ))
           flutter build apk --release --flavor prod --target-platform android-arm64,android-x64 \
-            --build-name="1.0.${GITHUB_RUN_NUMBER}" --build-number="$build_number"
+            --build-name="$version" --build-number="$build_number"
           mkdir -p release-artifacts
           cp build/app/outputs/flutter-apk/app-prod-release.apk release-artifacts/ollomi.apk
           cd release-artifacts
