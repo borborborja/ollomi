@@ -139,6 +139,73 @@ class LocalSegmentStore {
     }
   }
 
+  static const draftFolderName = 'drafts';
+
+  /// Persist the live transcript of a conversation the server is still
+  /// processing, keyed by conversation id, so the draft survives an app restart.
+  Future<void> replaceDraft(
+    String conversationId,
+    int sessionStartSeconds,
+    List<TranscriptSegment> segments,
+  ) async {
+    if (!enabled) return;
+    final drafts = await _resolveDraftDirectory();
+    final file = _fileFor(drafts, conversationId);
+    final tmp = File('${file.path}.tmp');
+    final payload = <String, Object?>{
+      'encoding_version': transcriptHashEncodingVersion,
+      'conversation_id': conversationId,
+      'session_start_seconds': sessionStartSeconds,
+      'saved_at_millis': _nextSavedAtMillis(),
+      'segments': segments.map(_segmentToJson).toList(),
+    };
+    await tmp.writeAsString(jsonEncode(payload));
+    if (await file.exists()) {
+      await file.delete();
+    }
+    await tmp.rename(file.path);
+  }
+
+  Future<List<LocalDraftRecord>> loadDrafts() async {
+    if (!enabled) return const [];
+    final drafts = await _resolveDraftDirectory();
+    final records = <LocalDraftRecord>[];
+    for (final file in (await drafts.list().toList()).whereType<File>().where((f) => f.path.endsWith('.json'))) {
+      try {
+        final decoded = jsonDecode(await file.readAsString());
+        if (decoded is! Map<String, dynamic>) continue;
+        final conversationId = decoded['conversation_id'];
+        if (conversationId is! String || conversationId.isEmpty) continue;
+        records.add(
+          LocalDraftRecord(
+            conversationId: conversationId,
+            sessionStartSeconds: decoded['session_start_seconds'] is int ? decoded['session_start_seconds'] as int : 0,
+            segments: _segmentsFromPayload(decoded),
+          ),
+        );
+      } catch (_) {
+        continue;
+      }
+    }
+    return records;
+  }
+
+  Future<void> releaseDraft(String conversationId) async {
+    if (!enabled) return;
+    final drafts = await _resolveDraftDirectory();
+    final file = _fileFor(drafts, conversationId);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
+  Future<Directory> _resolveDraftDirectory() async {
+    final dir = await resolveDirectory();
+    final drafts = Directory('${dir.path}/$draftFolderName');
+    await drafts.create(recursive: true);
+    return drafts;
+  }
+
   static Map<String, Object?> _segmentToJson(TranscriptSegment segment) {
     final kept = canonicalizeTranscriptSegment(segment);
     return {
@@ -176,4 +243,18 @@ class LocalSegmentStore {
     segment.speakerId = kept.speakerId;
     return segment;
   }
+}
+
+/// A persisted pending-conversation draft: the live transcript of a recording
+/// whose server-side processing has not finished yet.
+class LocalDraftRecord {
+  const LocalDraftRecord({
+    required this.conversationId,
+    required this.sessionStartSeconds,
+    required this.segments,
+  });
+
+  final String conversationId;
+  final int sessionStartSeconds;
+  final List<TranscriptSegment> segments;
 }

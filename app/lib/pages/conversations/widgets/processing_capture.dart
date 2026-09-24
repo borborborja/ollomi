@@ -12,7 +12,9 @@ import 'package:omi/backend/http/api/conversations.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/backend/schema/conversation.dart';
+import 'package:omi/models/pending_conversation_draft.dart';
 import 'package:omi/pages/conversation_capturing/page.dart';
+import 'package:omi/pages/conversations/widgets/draft_audio_playback.dart';
 import 'package:omi/pages/capture/widgets/widgets.dart';
 import 'package:omi/pages/capture/capture_status_view.dart';
 import 'package:omi/services/capture/capture_controller.dart';
@@ -851,13 +853,22 @@ getPhoneMicRecordingButton(
   );
 }
 
-Widget getProcessingConversationsWidget(List<ServerConversation> conversations) {
+Widget getProcessingConversationsWidget(
+  List<ServerConversation> conversations, {
+  PendingConversationDraft? Function(String conversationId)? draftFor,
+}) {
   // Only show at most 1 processing widget on homepage
   if (conversations.isEmpty) {
     return const SliverToBoxAdapter(child: SizedBox.shrink());
   }
   // Show only the first (most recent) processing conversation
-  return SliverToBoxAdapter(child: ProcessingConversationWidget(conversation: conversations.first));
+  final conversation = conversations.first;
+  return SliverToBoxAdapter(
+    child: ProcessingConversationWidget(
+      conversation: conversation,
+      draft: draftFor?.call(conversation.id),
+    ),
+  );
 }
 
 // PROCESSING CONVERSATION
@@ -865,13 +876,23 @@ Widget getProcessingConversationsWidget(List<ServerConversation> conversations) 
 class ProcessingConversationWidget extends StatefulWidget {
   final ServerConversation conversation;
 
+  /// The live transcript kept for this conversation while the server finishes
+  /// its processing; shown as a draft so the recording never looks lost.
+  final PendingConversationDraft? draft;
+
   /// Optional clock override for tests.
   final DateTime Function()? now;
 
   /// Optional reprocess override for tests.
   final Future<ServerConversation?> Function(String conversationId)? reprocess;
 
-  const ProcessingConversationWidget({super.key, required this.conversation, this.now, this.reprocess});
+  const ProcessingConversationWidget({
+    super.key,
+    required this.conversation,
+    this.draft,
+    this.now,
+    this.reprocess,
+  });
 
   @override
   State<ProcessingConversationWidget> createState() => _ProcessingConversationWidgetState();
@@ -993,11 +1014,25 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
     }
   }
 
+  /// The conversation to open: the server row plus the live transcript kept in
+  /// the draft, so the detail page shows what the user just watched.
+  ServerConversation get _displayConversation {
+    final draft = widget.draft;
+    if (draft == null || draft.segments.isEmpty) return widget.conversation;
+    final json = widget.conversation.toJson();
+    json['transcript_segments'] = draft.segments.map((segment) => segment.toJson()).toList();
+    if (draft.photos.isNotEmpty) {
+      json['photos'] = draft.photos.map((photo) => photo.toJson()).toList();
+    }
+    return ServerConversation.fromJson(json);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final draft = widget.draft;
     return GestureDetector(
       onTap: () async {
-        routeToPage(context, ProcessingConversationPage(conversation: widget.conversation));
+        routeToPage(context, ProcessingConversationPage(conversation: _displayConversation));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -1046,12 +1081,30 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Title placeholder
-                Container(
-                  width: double.maxFinite,
-                  height: 16,
-                  decoration: BoxDecoration(color: const Color(0xFF2A2A32), borderRadius: BorderRadius.circular(4)),
-                ),
+                if (draft != null && draft.segments.isNotEmpty)
+                  // Draft preview: what the user just watched on the live screen,
+                  // so processing never looks like the recording was lost.
+                  Text(
+                    draft.previewText,
+                    key: const Key('processing_conversation_draft_preview'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.grey.shade300, fontSize: 14, height: 1.3),
+                  )
+                else
+                  // Title placeholder
+                  Container(
+                    width: double.maxFinite,
+                    height: 16,
+                    decoration: BoxDecoration(color: const Color(0xFF2A2A32), borderRadius: BorderRadius.circular(4)),
+                  ),
+                if (draft != null) ...[
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: () {}, // absorb so the card's open-on-tap does not fire
+                    child: DraftAudioPlayback(conversationId: widget.conversation.id, compact: true),
+                  ),
+                ],
                 if (_timedOut) ...[
                   const SizedBox(height: 12),
                   if (!_failed)

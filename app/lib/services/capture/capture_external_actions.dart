@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/person.dart';
+import 'package:omi/models/pending_conversation_draft.dart';
 
 abstract interface class CaptureExternalActions {
   bool? get isOutOfCredits;
@@ -19,6 +20,9 @@ abstract interface class CaptureExternalActions {
   void addProcessingConversation(ServerConversation conversation);
 
   void removeProcessingConversation(String conversationId);
+
+  /// Keep the live transcript visible while the server processes a recording.
+  void savePendingDraft(PendingConversationDraft draft);
 
   void upsertConversation(ServerConversation conversation);
 
@@ -57,6 +61,9 @@ class NoopCaptureExternalActions implements CaptureExternalActions {
 
   @override
   void removeProcessingConversation(String conversationId) {}
+
+  @override
+  void savePendingDraft(PendingConversationDraft draft) {}
 
   @override
   void upsertConversation(ServerConversation conversation) {}

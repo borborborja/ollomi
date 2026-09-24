@@ -218,3 +218,26 @@ def test_recover_requeues_failed_media_jobs_and_terminates_exhausted(client, adm
         assert db.get(Job, "job-retry").status == "queued"
         assert db.get(Job, "job-exhausted").status == "failed"
         assert db.get(Record, exhausted_id).data["status"] == "failed"
+
+
+def test_capture_publishes_playable_audio_before_processing(client, admin):
+    """The app shows a draft right after capture stops; its audio must be
+    playable before the transcript/summary job finishes."""
+    conversation_id = "00000000-0000-0000-0000-0000000000ff"
+    with client.websocket_connect(
+        f"/v4/listen?codec=pcm16&sample_rate=16000&source=omi&client_conversation_id={conversation_id}",
+        headers=admin,
+    ) as socket:
+        assert socket.receive_json() == {"type": "last_memory", "memory_id": conversation_id}
+        _live_ready(socket)
+        socket.send_bytes(struct.pack("<1600h", *([100] * 1600)))
+        assert socket.receive_json()["status"] == "audio_received"
+        socket.send_json({"type": "stop"})
+        _processing_started(socket)
+
+    urls = client.get(f"/v1/sync/audio/{conversation_id}/urls", headers=admin)
+    assert urls.status_code == 200
+    files = urls.json()["audio_files"]
+    assert len(files) == 1
+    assert files[0]["status"] == "cached"
+    assert files[0]["signed_url"]

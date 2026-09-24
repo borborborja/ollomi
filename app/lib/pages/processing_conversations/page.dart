@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/pages/capture/widgets/widgets.dart';
+import 'package:omi/pages/conversations/widgets/draft_audio_playback.dart';
 import 'package:omi/providers/conversation_provider.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 
@@ -97,6 +98,14 @@ class _ProcessingConversationPageState extends State<ProcessingConversationPage>
                         ListView(
                           shrinkWrap: true,
                           children: [
+                            if (widget.conversation.status == ConversationStatus.processing ||
+                                widget.conversation.status == ConversationStatus.merging)
+                              // The recording is already safe on the server: let
+                              // the user play it while the summary is built.
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                                child: DraftAudioPlayback(conversationId: widget.conversation.id),
+                              ),
                             if (widget.conversation.transcriptSegments.isNotEmpty ||
                                 widget.conversation.photos.isNotEmpty)
                               getTranscriptWidget(
