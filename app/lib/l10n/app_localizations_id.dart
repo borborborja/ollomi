@@ -10089,4 +10089,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Seret untuk mengatur prioritas.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Izinkan Ollomi berjalan di latar belakang agar rekaman tetap berjalan saat layar mati.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Perekaman latar belakang tidak tersedia. Biarkan Ollomi terbuka saat merekam.';
 }

@@ -10083,4 +10083,10 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Dra för att ange prioritetsordning.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Tillåt att Ollomi körs i bakgrunden så att inspelningen fortsätter med skärmen avstängd.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Bakgrundsinspelning är inte tillgänglig. Håll Ollomi öppet under inspelningen.';
 }

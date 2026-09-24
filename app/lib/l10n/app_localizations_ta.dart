@@ -10151,4 +10151,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'திரை அணைந்திருந்தாலும் பதிவு தொடர Ollomi பின்னணியில் இயங்க அனுமதிக்கவும்.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'பின்னணி பதிவு கிடைக்கவில்லை. பதிவின் போது Ollomi-ஐ திறந்து வைக்கவும்.';
 }

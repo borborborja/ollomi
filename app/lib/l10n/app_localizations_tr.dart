@@ -10091,4 +10091,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Bağlantı önceliğini sıralamak için sürükleyin.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Ekran kapalıyken kaydın devam etmesi için Ollomi\'nin arka planda çalışmasına izin ver.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Arka plan kaydı kullanılamıyor. Kayıt sırasında Ollomi\'yi açık tut.';
 }

@@ -3265,5 +3265,7 @@
     "forgetDevice": "انسَ الجهاز",
     "forgetDeviceConfirm": "إزالة هذا الجهاز من القائمة؟ سيُفقد الاسم المخصص والإعدادات.",
     "backgroundModeRequired": "وضع الخلفية معطّل. إعادة الاتصال التلقائي أثناء إغلاق التطبيق تعتمد عليه.",
-    "priorityOrderHint": "اسحب لترتيب أولوية الاتصال."
+    "priorityOrderHint": "اسحب لترتيب أولوية الاتصال.",
+    "backgroundCaptureBatteryWarning": "اسمح لـ Ollomi بالعمل في الخلفية حتى يستمر التسجيل مع إطفاء الشاشة.",
+    "phoneMicBackgroundUnavailable": "التسجيل في الخلفية غير متاح. أبقِ Ollomi مفتوحًا أثناء التسجيل."
 }

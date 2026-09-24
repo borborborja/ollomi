@@ -10089,4 +10089,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Arrasta para definir a ordem de prioridade.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Permite que o Ollomi seja executado em segundo plano para que a gravação continue com o ecrã desligado.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'A gravação em segundo plano não está disponível. Mantém o Ollomi aberto durante a gravação.';
 }

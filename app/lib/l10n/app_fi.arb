@@ -3289,5 +3289,7 @@
     "forgetDevice": "Unohda laite",
     "forgetDeviceConfirm": "Poistetaanko laite luettelosta? Nimi ja asetukset unohdetaan.",
     "backgroundModeRequired": "Taustatila on pois päältä. Automaattinen uudelleenyhdistäminen suljetulla sovelluksella riippuu siitä.",
-    "priorityOrderHint": "Järjestä prioriteetti vetämällä."
+    "priorityOrderHint": "Järjestä prioriteetti vetämällä.",
+    "backgroundCaptureBatteryWarning": "Salli Ollomin toimia taustalla, jotta tallennus jatkuu näytön ollessa suljettuna.",
+    "phoneMicBackgroundUnavailable": "Taustatallennus ei ole käytettävissä. Pidä Ollomi avoinna tallennuksen ajan."
 }

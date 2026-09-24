@@ -10137,4 +10137,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Trascina per impostare l\'ordine di priorità.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Consenti a Ollomi di funzionare in background così la registrazione continua a schermo spento.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'La registrazione in background non è disponibile. Tieni Ollomi aperto durante la registrazione.';
 }

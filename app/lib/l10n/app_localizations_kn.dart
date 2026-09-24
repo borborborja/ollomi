@@ -10111,4 +10111,10 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'ಸ್ಕ್ರೀನ್ ಆಫ್ ಇದ್ದಾಗಲೂ ರೆಕಾರ್ಡಿಂಗ್ ಮುಂದುವರಿಯಲು Ollomi ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಚಲಿಸಲು ಅನುಮತಿಸಿ.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'ಹಿನ್ನೆಲೆ ರೆಕಾರ್ಡಿಂಗ್ ಲಭ್ಯವಿಲ್ಲ. ರೆಕಾರ್ಡ್ ಮಾಡುವಾಗ Ollomi ತೆರೆದಿಡಿ.';
 }

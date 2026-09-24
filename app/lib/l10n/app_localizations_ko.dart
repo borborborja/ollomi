@@ -9910,4 +9910,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => '화면이 꺼져도 녹음이 계속되도록 Ollomi가 백그라운드에서 실행되도록 허용하세요.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => '백그라운드 녹음을 사용할 수 없습니다. 녹음하는 동안 Ollomi를 열어 두세요.';
 }

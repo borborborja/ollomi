@@ -10081,4 +10081,10 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Järjestä prioriteetti vetämällä.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Salli Ollomin toimia taustalla, jotta tallennus jatkuu näytön ollessa suljettuna.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Taustatallennus ei ole käytettävissä. Pidä Ollomi avoinna tallennuksen ajan.';
 }

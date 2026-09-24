@@ -3267,5 +3267,7 @@
     "forgetDevice": "Oblida el dispositiu",
     "forgetDeviceConfirm": "Vols treure aquest dispositiu de la llista? Es perdrà el nom personalitzat i la seva configuració.",
     "backgroundModeRequired": "El mode en segon pla està desactivat. La reconnexió automàtica amb l'app tancada en depèn.",
-    "priorityOrderHint": "Arrossega per ordenar la prioritat de connexió."
+    "priorityOrderHint": "Arrossega per ordenar la prioritat de connexió.",
+    "backgroundCaptureBatteryWarning": "Permet que l'Ollomi s'executi en segon pla perquè la gravació segueixi funcionant amb la pantalla apagada.",
+    "phoneMicBackgroundUnavailable": "La gravació en segon pla no està disponible. Mantén l'Ollomi obert mentre graves."
 }

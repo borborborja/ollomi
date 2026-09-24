@@ -20,6 +20,7 @@ class FakeMic implements IMicRecorderService {
     Function()? onInitializing,
     Function()? onStalled,
     Function(bool began)? onInterruption,
+    Function(String code, String message)? onError,
   }) async {
     startCalls++;
     if (failNextStart) {

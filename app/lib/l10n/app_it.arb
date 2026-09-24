@@ -3289,5 +3289,7 @@
     "forgetDevice": "Dimentica dispositivo",
     "forgetDeviceConfirm": "Rimuovere questo dispositivo dall'elenco? Nome personalizzato e impostazioni andranno persi.",
     "backgroundModeRequired": "La modalità in background è disattivata. La riconnessione automatica a app chiusa dipende da essa.",
-    "priorityOrderHint": "Trascina per impostare l'ordine di priorità."
+    "priorityOrderHint": "Trascina per impostare l'ordine di priorità.",
+    "backgroundCaptureBatteryWarning": "Consenti a Ollomi di funzionare in background così la registrazione continua a schermo spento.",
+    "phoneMicBackgroundUnavailable": "La registrazione in background non è disponibile. Tieni Ollomi aperto durante la registrazione."
 }

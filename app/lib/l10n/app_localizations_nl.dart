@@ -10107,4 +10107,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Sleep om de prioriteitsorde te wijzigen.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Sta Ollomi toe om op de achtergrond te draaien zodat opnemen blijft werken met het scherm uit.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Achtergrondopname is niet beschikbaar. Houd Ollomi open tijdens het opnemen.';
 }

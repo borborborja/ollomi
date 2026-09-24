@@ -46,6 +46,7 @@ import 'package:omi/services/devices/models.dart';
 import 'package:omi/services/audio_sources/phone_mic_source.dart';
 import 'package:omi/services/wals.dart';
 import 'package:omi/utils/alerts/app_snackbar.dart';
+import 'package:omi/utils/background/background_capture_guard.dart';
 import 'package:omi/utils/batch_recording.dart';
 import 'package:omi/utils/enums.dart';
 import 'package:omi/utils/image/image_utils.dart';
@@ -1667,7 +1668,42 @@ class CaptureController extends ChangeNotifier
 
   void updateRecordingState(RecordingState state) {
     recordingState = state;
+    if (state == RecordingState.record) {
+      unawaited(_warnAboutBatteryOptimizationsOnce());
+    }
     notifyListeners();
+  }
+
+  /// Android kills background capture for battery-optimized apps. Nudge once,
+  /// when a recording actually starts, so the screen-off promise can hold.
+  Future<void> _warnAboutBatteryOptimizationsOnce() async {
+    if (!Platform.isAndroid) return;
+    if (SharedPreferencesUtil().backgroundCaptureBatteryPromptShown) return;
+    if (await ForegroundUtil().isIgnoringBatteryOptimizations) return;
+    final context = globalNavigatorKey.currentState?.context;
+    if (context == null) return;
+    SharedPreferencesUtil().backgroundCaptureBatteryPromptShown = true;
+    AppSnackbar.showActionSnackbar(
+      context.l10n.backgroundCaptureBatteryWarning,
+      actionLabel: context.l10n.enable,
+      duration: const Duration(seconds: 8),
+      onAction: ForegroundUtil.requestPermissions,
+    );
+  }
+
+  /// Native background-capability warnings (e.g. the foreground service was
+  /// rejected) are non-fatal: the session records, but the caller must know the
+  /// screen-off guarantee is gone.
+  void _warnAboutBackgroundCapability(String code) {
+    if (!BackgroundCaptureGuard.isBackgroundCapabilityWarning(code)) return;
+    final context = globalNavigatorKey.currentState?.context;
+    if (context == null) return;
+    AppSnackbar.showSnackbarError(context.l10n.phoneMicBackgroundUnavailable, duration: const Duration(seconds: 4));
+  }
+
+  void _onLiveCaptureError(String code, String message) {
+    Logger.error('[CaptureProvider] live capture error $code: $message');
+    _warnAboutBackgroundCapability(code);
   }
 
   Future<Geolocation?> _captureSessionLocation({bool uploadCompatibility = true, bool promptIfDenied = true}) async {
@@ -1804,6 +1840,7 @@ class CaptureController extends ChangeNotifier
             },
             onStalled: _onMicStalled,
             onInterruption: _onMicInterruption,
+            onError: _onLiveCaptureError,
           );
       // Product: recording is the tap; location is metadata. Do not hold
       // RecordingState.initialising for the OS location dialog, and do not
@@ -1953,6 +1990,7 @@ class CaptureController extends ChangeNotifier
 
   Future<void> _onBatchCaptureError(String code, String message) async {
     Logger.error('[CaptureProvider] batch capture error $code: $message');
+    _warnAboutBackgroundCapability(code);
     if (code == 'batch_storage_full') {
       // The flag is written natively; reload so the Dart prefs cache sees it
       // before the UI re-reads it on notify.

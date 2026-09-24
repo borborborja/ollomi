@@ -190,6 +190,8 @@ jobs:
             test/unit/device_alias_test.dart \
             test/unit/continuous_capture_test.dart \
             test/unit/known_device_policy_test.dart \
+            test/unit/background_capture_guard_test.dart \
+            test/unit/native_mic_recorder_service_test.dart \
             test/widgets/connect_device_get_omi_test.dart \
             test/widgets/authenticated_product_scope_test.dart \
             test/widgets/record_options_sheet_icon_test.dart \
@@ -211,6 +213,7 @@ jobs:
             --tests 'com.friend.ios.widgets.WidgetStateTest' \
             --tests 'com.friend.ios.widgets.WidgetActionsTest' \
             --tests 'com.friend.ios.widgets.WidgetTextTest' \
+            --tests 'com.friend.ios.background.CaptureWakeLockTest' \
             --no-daemon
       - name: Compile the complete debug APK
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}

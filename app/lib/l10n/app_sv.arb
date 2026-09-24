@@ -3289,5 +3289,7 @@
     "forgetDevice": "Glöm enheten",
     "forgetDeviceConfirm": "Ta bort enheten från listan? Namn och inställningar glöms bort.",
     "backgroundModeRequired": "Bakgrundsläget är av. Automatisk återanslutning med stängd app beror på det.",
-    "priorityOrderHint": "Dra för att ange prioritetsordning."
+    "priorityOrderHint": "Dra för att ange prioritetsordning.",
+    "backgroundCaptureBatteryWarning": "Tillåt att Ollomi körs i bakgrunden så att inspelningen fortsätter med skärmen avstängd.",
+    "phoneMicBackgroundUnavailable": "Bakgrundsinspelning är inte tillgänglig. Håll Ollomi öppet under inspelningen."
 }

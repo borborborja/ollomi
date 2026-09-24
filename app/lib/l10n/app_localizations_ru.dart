@@ -10116,4 +10116,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Перетащите, чтобы задать приоритет.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Разрешите Ollomi работать в фоне, чтобы запись продолжалась при выключенном экране.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Фоновая запись недоступна. Держите Ollomi открытым во время записи.';
 }

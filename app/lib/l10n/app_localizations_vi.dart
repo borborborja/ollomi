@@ -10074,4 +10074,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Cho phép Ollomi chạy nền để ghi âm tiếp tục khi màn hình tắt.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Ghi âm nền không khả dụng. Giữ Ollomi mở trong khi ghi âm.';
 }

@@ -107,6 +107,26 @@ void main() {
     service.stop();
   });
 
+  test('live capture surfaces background-capability warnings but not batch-only codes', () async {
+    await service.start(
+      onByteReceived: cb.bytes.add,
+      onError: (code, message) => cb.errors.add(code),
+    );
+    final id = host.lastStartSessionId;
+    service.onStateChanged(PhoneMicCaptureState.starting, id);
+    service.onStateChanged(PhoneMicCaptureState.running, id);
+
+    // Batch-only failures stay internal in live mode: native self-heals.
+    service.onCaptureError('batch_storage_full', 'disk full', id);
+    expect(cb.errors, isEmpty);
+
+    // Losing the foreground service silently removes the screen-off guarantee.
+    service.onCaptureError('foreground_service_failed', 'promotion rejected', id);
+    expect(cb.errors, ['foreground_service_failed']);
+
+    service.stop();
+  });
+
   test('host start failure rethrows and clears callbacks', () async {
     host.startError = PlatformException(code: 'permission_denied');
     await expectLater(

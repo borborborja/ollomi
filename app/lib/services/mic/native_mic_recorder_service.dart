@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:omi/gen/phone_mic_pigeon.g.dart';
 import 'package:omi/services/services.dart';
+import 'package:omi/utils/background/background_capture_guard.dart';
 import 'package:omi/utils/logger.dart';
 
 /// iOS/Android [IMicRecorderService] backed by the native PhoneMic module — an
@@ -76,6 +77,7 @@ class NativeMicRecorderService implements IMicRecorderService, PhoneMicFlutterAp
     Function()? onInitializing,
     Function()? onStalled,
     Function(bool began)? onInterruption,
+    Function(String code, String message)? onError,
   }) async {
     _onByteReceived = onByteReceived;
     _onRecording = onRecording;
@@ -83,6 +85,7 @@ class NativeMicRecorderService implements IMicRecorderService, PhoneMicFlutterAp
     _onInitializing = onInitializing;
     _onStalled = onStalled;
     _onInterruption = onInterruption;
+    _onError = onError;
     _interrupted = false;
     _batchMode = false;
     _sessionActive = true;
@@ -234,7 +237,11 @@ class NativeMicRecorderService implements IMicRecorderService, PhoneMicFlutterAp
     Logger.error('[NativeMic] capture error $code: $message');
     // In batch there is no socket/UI listening for frames, so surface the code
     // (e.g. batch_storage_full) to the session so CaptureController can react.
-    if (_batchMode) _onError?.call(code, message);
+    // Background-capability warnings matter in live mode too: the socket works,
+    // but the session silently loses its screen-off guarantee.
+    if (_batchMode || BackgroundCaptureGuard.isBackgroundCapabilityWarning(code)) {
+      _onError?.call(code, message);
+    }
   }
 
   @override

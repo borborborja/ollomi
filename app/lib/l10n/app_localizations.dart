@@ -18692,6 +18692,18 @@ abstract class AppLocalizations {
   String get backgroundModeRequired;
 
   String get priorityOrderHint;
+
+  /// Android battery-optimization nudge shown once when a recording starts.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Ollomi to run in the background so recording keeps working with the screen off.'**
+  String get backgroundCaptureBatteryWarning;
+
+  /// Warning shown when the phone-mic foreground service could not start, so background recording is not guaranteed.
+  ///
+  /// In en, this message translates to:
+  /// **'Background recording is unavailable. Keep Ollomi open while recording.'**
+  String get phoneMicBackgroundUnavailable;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

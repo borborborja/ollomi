@@ -10079,4 +10079,10 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Přetažením nastavíte prioritu připojení.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Povol Ollomi běžet na pozadí, aby nahrávání fungovalo i s vypnutou obrazovkou.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Nahrávání na pozadí není dostupné. Během nahrávání nech Ollomi otevřené.';
 }
