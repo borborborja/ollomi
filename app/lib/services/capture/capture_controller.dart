@@ -2505,7 +2505,12 @@ class CaptureController extends ChangeNotifier
   void onMessageEventReceived(MessageEvent event) {
     if (event is ConversationProcessingStartedEvent) {
       final finishedSessionId = activeCaptureSessionId;
-      _savePendingDraft(event.memory.id, _sessionStartSeconds);
+      _savePendingDraft(
+        event.memory.id,
+        _sessionStartSeconds,
+        List<TranscriptSegment>.of(segments),
+        List<ConversationPhoto>.of(photos),
+      );
       externalActions.addProcessingConversation(event.memory);
       _pendingAutoSyncSessionStart = _sessionStartSeconds;
       _pendingAutoSyncConversationId = event.memory.id;
@@ -2633,8 +2638,11 @@ class CaptureController extends ChangeNotifier
     final conversationId = _conversation?.id ?? activeRecordingId;
     final finishedSessionId = activeCaptureSessionId;
     // Keep what the user just watched on screen before the reset below clears
-    // it: the processing card shows this draft until the server finishes.
-    _savePendingDraft(conversationId, sessionStart);
+    // it. The draft is attached to the conversation id the server returns, so a
+    // batch/offline capture — which has no conversation yet — is never left
+    // with a draft pointing at an id that will never exist.
+    final draftSegments = List<TranscriptSegment>.of(segments);
+    final draftPhotos = List<ConversationPhoto>.of(photos);
 
     // Force-drain tail buffer before clearing state
     final phoneSync = _wal.getSyncs().phone;
@@ -2658,6 +2666,7 @@ class CaptureController extends ChangeNotifier
       externalActions.removeProcessingConversation('0');
       result.conversation!.isNew = true;
       _processConversationCreated(result.conversation, result.messages);
+      _savePendingDraft(result.conversation!.id, sessionStart, draftSegments, draftPhotos);
       if (finishedSessionId != null) {
         unawaited(releaseLocalSegments(finishedSessionId));
       }
@@ -2713,15 +2722,20 @@ class CaptureController extends ChangeNotifier
 
   /// Keep the live transcript attached to the conversation while the server
   /// processes it, so the list shows a draft instead of an empty skeleton.
-  void _savePendingDraft(String? conversationId, int sessionStartSeconds) {
+  void _savePendingDraft(
+    String? conversationId,
+    int sessionStartSeconds,
+    List<TranscriptSegment> draftSegments,
+    List<ConversationPhoto> draftPhotos,
+  ) {
     if (conversationId == null || conversationId.isEmpty) return;
-    if (segments.isEmpty && photos.isEmpty) return;
+    if (draftSegments.isEmpty && draftPhotos.isEmpty) return;
     externalActions.savePendingDraft(
       PendingConversationDraft(
         conversationId: conversationId,
         sessionStartSeconds: sessionStartSeconds,
-        segments: List<TranscriptSegment>.of(segments),
-        photos: List<ConversationPhoto>.of(photos),
+        segments: draftSegments,
+        photos: draftPhotos,
       ),
     );
   }
