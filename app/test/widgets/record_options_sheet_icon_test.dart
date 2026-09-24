@@ -33,6 +33,15 @@ class _DisconnectedDeviceProvider extends ChangeNotifier implements DeviceProvid
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+class _RecordingCaptureProvider extends CaptureProvider {
+  int stopCalls = 0;
+
+  @override
+  Future<void> stopCurrentCapture() async {
+    stopCalls++;
+  }
+}
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +72,6 @@ void main() {
   }
 
   testWidgets('idle one-off capture shows the add button', (tester) async {
-    SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.openActive;
     SharedPreferencesUtil().continuousCaptureEnabled = false;
     final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.stop);
     addTearDown(captureProvider.dispose);
@@ -71,36 +79,72 @@ void main() {
 
     expect(find.byKey(const Key('home-record-button-surface')), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.byIcon(Icons.stop_rounded), findsNothing);
   });
 
-  testWidgets('recording hides the old record button for every behavior', (tester) async {
-    // The top capture bar owns the active state (mute, change source, finish),
-    // so the previous red record button must not render while recording.
+  testWidgets('recording turns the button into a finish action for every legacy behavior', (tester) async {
+    // The button's active state no longer depends on the retired
+    // ActiveCaptureButtonBehavior setting: it is always finish.
     for (final behavior in [ActiveCaptureButtonBehavior.openActive, ActiveCaptureButtonBehavior.switchSource]) {
       SharedPreferencesUtil().activeCaptureButtonBehavior = behavior;
-      final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.record);
+      SharedPreferencesUtil().continuousCaptureEnabled = false;
+      final captureProvider = _RecordingCaptureProvider()..updateRecordingState(RecordingState.record);
       addTearDown(captureProvider.dispose);
       await pumpActiveButton(tester, captureProvider);
 
-      expect(
-        find.byKey(const Key('home-record-button-surface')),
-        findsNothing,
-        reason: 'active recording is owned by the top capture bar',
-      );
+      expect(find.byKey(const Key('home-record-button-surface')), findsOneWidget);
+      expect(find.byIcon(Icons.stop_rounded), findsOneWidget, reason: 'active one-off capture must offer finish');
+      expect(find.byIcon(Icons.add), findsNothing);
+
+      await tester.tap(find.byKey(const Key('home-record-button-surface')));
+      await tester.pump();
+      expect(captureProvider.stopCalls, 1, reason: 'tap while recording finishes the capture');
     }
   });
 
-  testWidgets('source-switch behavior opens the exclusive source picker while idle', (tester) async {
-    SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.switchSource;
+  testWidgets('continuous mode keeps the one-off button hidden, idle or recording', (tester) async {
+    SharedPreferencesUtil().activeCaptureButtonBehavior = ActiveCaptureButtonBehavior.openActive;
+    SharedPreferencesUtil().continuousCaptureEnabled = true;
+
+    final idleProvider = CaptureProvider()..updateRecordingState(RecordingState.stop);
+    addTearDown(idleProvider.dispose);
+    await pumpActiveButton(tester, idleProvider);
+    expect(find.byKey(const Key('home-record-button-surface')), findsNothing);
+
+    final recordingProvider = _RecordingCaptureProvider()..updateRecordingState(RecordingState.record);
+    addTearDown(recordingProvider.dispose);
+    await pumpActiveButton(tester, recordingProvider);
+    expect(
+      find.byKey(const Key('home-record-button-surface')),
+      findsNothing,
+      reason: 'the top-bar switch owns continuous mode',
+    );
+  });
+
+  testWidgets('initialising shows progress instead of a tappable action', (tester) async {
+    SharedPreferencesUtil().continuousCaptureEnabled = false;
+    final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.initialising);
+    addTearDown(captureProvider.dispose);
+    await pumpActiveButton(tester, captureProvider);
+
+    expect(find.byKey(const Key('home-record-button-surface')), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byIcon(Icons.stop_rounded), findsNothing);
+    expect(find.byIcon(Icons.add), findsNothing);
+  });
+
+  testWidgets('long-press opens the record options sheet with import audio', (tester) async {
     SharedPreferencesUtil().continuousCaptureEnabled = false;
     final captureProvider = CaptureProvider()..updateRecordingState(RecordingState.stop);
     addTearDown(captureProvider.dispose);
     await pumpActiveButton(tester, captureProvider);
 
-    // Idle: the add button starts a one-off capture; the source picker is not
-    // part of the idle contract.
-    expect(find.byKey(const Key('home-record-button-surface')), findsOneWidget);
-    expect(captureProvider.recordingState, RecordingState.stop);
+    await tester.longPress(find.byKey(const Key('home-record-button-surface')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('record-source-phone-mic')), findsOneWidget);
+    expect(find.byKey(const Key('record-source-connect-device')), findsOneWidget);
+    expect(find.byKey(const Key('record-source-import-audio')), findsOneWidget);
   });
 
   // Regression test: FaIcon (unlike material Icon) has no internal Center, so

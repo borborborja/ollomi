@@ -22,7 +22,6 @@ import 'package:omi/utils/device.dart';
 import 'package:omi/utils/enums.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 import 'package:omi/utils/other/temp.dart';
-import 'package:omi/widgets/omi_confirm_dialog.dart';
 
 class BatteryInfoWidget extends StatefulWidget {
   const BatteryInfoWidget({super.key});
@@ -214,7 +213,8 @@ class _BatteryInfoWidgetState extends State<BatteryInfoWidget> {
 }
 
 /// Circular phone-mic record button shown to the right of the home chat bar.
-/// Tap starts/stops recording; long-press opens the record options sheet.
+/// Tap starts a one-off capture; while one is running it turns into a red
+/// finish button, and long-press (idle) opens the record options sheet.
 class HomeRecordButton extends StatefulWidget {
   const HomeRecordButton({super.key});
 
@@ -223,64 +223,6 @@ class HomeRecordButton extends StatefulWidget {
 }
 
 class _HomeRecordButtonState extends State<HomeRecordButton> {
-  void _openActiveCapture(BuildContext context) {
-    final captureProvider = context.read<CaptureProvider>();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        settings: const RouteSettings(name: '/capture/active'),
-        builder: (_) => ConversationCapturingPage(topConversationId: captureProvider.topConversationId),
-      ),
-    );
-  }
-
-  Future<void> _confirmSourceSwitch(BuildContext context, {BtDevice? device}) async {
-    final captureProvider = context.read<CaptureProvider>();
-    final sameSource = device == null
-        ? captureProvider.isPhoneCaptureActive
-        : captureProvider.recordingDevice?.id == device.id &&
-            (captureProvider.recordingState == RecordingState.deviceRecord ||
-                captureProvider.recordingState == RecordingState.pause);
-    if (sameSource) {
-      _openActiveCapture(context);
-      return;
-    }
-
-    final target = DeviceUtils.displayName(device, fallback: context.l10n.memoryThisDevice);
-    final confirmed = await OmiConfirmDialog.show(
-      context,
-      title: context.l10n.activeCaptureButtonSwitchSource,
-      message: '${context.l10n.stopRecordingConfirmation}\n\n${context.l10n.audioInputSetTo(target)}',
-      confirmLabel: context.l10n.switchAndRestart,
-      confirmColor: const Color(0xFFFE5D50),
-    );
-    if (confirmed != true || !context.mounted) return;
-    await captureProvider.switchCaptureSource(device: device);
-    if (context.mounted && captureProvider.isCaptureActive) _openActiveCapture(context);
-  }
-
-  void _showActiveSourcePicker(BuildContext context) {
-    HapticFeedback.lightImpact();
-    final connectedDevice = context.read<DeviceProvider>().connectedDevice;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _ActiveCaptureSourceSheet(
-        connectedDevice: connectedDevice,
-        onPickPhone: () {
-          Navigator.pop(sheetContext);
-          _confirmSourceSwitch(context);
-        },
-        onPickDevice: connectedDevice == null
-            ? null
-            : () {
-                Navigator.pop(sheetContext);
-                _confirmSourceSwitch(context, device: connectedDevice);
-              },
-      ),
-    );
-  }
-
   void _showRecordOptions(BuildContext context) {
     HapticFeedback.lightImpact();
     final connectedDevice = context.read<DeviceProvider>().connectedDevice;
@@ -385,30 +327,23 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
   Widget build(BuildContext context) {
     return Consumer<CaptureProvider>(
       builder: (context, captureProvider, _) {
-        final isRecording = captureProvider.isCaptureActive;
-        final isInitialising = captureProvider.recordingState == RecordingState.initialising;
-        final behavior = SharedPreferencesUtil().activeCaptureButtonBehavior;
-        // The home capture bar owns the active recording state (mute, change
-        // source, finish), so this button only exposes the idle one-off "+".
-        if (isRecording) {
-          return const SizedBox.shrink();
-        }
+        // Continuous mode is owned by the top-bar switch: the one-off button
+        // stays hidden whether or not it is currently capturing.
         if (SharedPreferencesUtil().continuousCaptureEnabled) {
           return const SizedBox.shrink();
         }
-        final captureState = captureProvider.captureUiState;
-        final source = captureSourceLabel(context, captureState);
-        final activeIcon =
-            behavior == ActiveCaptureButtonBehavior.switchSource ? Icons.swap_horiz_rounded : Icons.graphic_eq_rounded;
+        final isInitialising = captureProvider.recordingState == RecordingState.initialising;
+        final isRecording = captureProvider.isCaptureActive && !isInitialising;
+        final source = captureSourceLabel(context, captureProvider.captureUiState);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            if (!isRecording) {
-              _startRecording(context);
-            } else if (behavior == ActiveCaptureButtonBehavior.switchSource) {
-              _showActiveSourcePicker(context);
+            if (isRecording) {
+              // Same contract as the capture bar's finish action.
+              HapticFeedback.mediumImpact();
+              captureProvider.stopCurrentCapture();
             } else {
-              _openActiveCapture(context);
+              _startRecording(context);
             }
           },
           onLongPress: isRecording || isInitialising ? null : () => _showRecordOptions(context),
@@ -426,7 +361,7 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
                 ? Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(activeIcon, size: 21, color: Colors.white),
+                      const Icon(Icons.stop_rounded, size: 22, color: Colors.white),
                       const SizedBox(height: 2),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -484,66 +419,6 @@ class SlashLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _ActiveCaptureSourceSheet extends StatelessWidget {
-  const _ActiveCaptureSourceSheet({
-    required this.connectedDevice,
-    required this.onPickPhone,
-    required this.onPickDevice,
-  });
-
-  final BtDevice? connectedDevice;
-  final VoidCallback onPickPhone;
-  final VoidCallback? onPickDevice;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 16),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1F1F25),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            context.l10n.activeCaptureButtonSwitchSource,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 16),
-          _RecordOption(
-            key: const Key('active-capture-source-phone'),
-            icon: FontAwesomeIcons.microphone,
-            title: context.l10n.memoryThisDevice,
-            subtitle: context.l10n.recordWithPhoneMicSubtitle,
-            onTap: onPickPhone,
-          ),
-          if (connectedDevice != null && onPickDevice != null) ...[
-            const SizedBox(height: 10),
-            _RecordOption(
-              key: const Key('active-capture-source-device'),
-              icon: FontAwesomeIcons.bluetooth,
-              title: connectedDevice!.name,
-              subtitle: context.l10n.connected,
-              onTap: onPickDevice!,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 }
 
 class RecordOptionsSheet extends StatelessWidget {
