@@ -241,3 +241,69 @@ def test_capture_publishes_playable_audio_before_processing(client, admin):
     assert len(files) == 1
     assert files[0]["status"] == "cached"
     assert files[0]["signed_url"]
+
+
+def test_listen_uses_the_language_the_app_requests(client, admin):
+    conversation_id = "00000000-0000-0000-0000-0000000000ab"
+    with client.websocket_connect(
+        f"/v4/listen?codec=pcm16&sample_rate=16000&source=omi&language=ca-ES"
+        f"&client_conversation_id={conversation_id}",
+        headers=admin,
+    ) as socket:
+        assert socket.receive_json() == {"type": "last_memory", "memory_id": conversation_id}
+        _live_ready(socket)
+        socket.send_bytes(struct.pack("<160h", *([100] * 160)))
+        assert socket.receive_json()["status"] == "audio_received"
+        socket.send_json({"type": "stop"})
+        event = _processing_started(socket)
+
+    with transaction() as db:
+        conversation = db.get(Record, conversation_id)
+        assert conversation.data["language"] == "ca"
+        assert db.get(Job, event["job_id"]).payload["language"] == "ca"
+
+
+def test_listen_falls_back_to_the_profile_language(client, admin):
+    assert client.patch("/v1/users/language", headers=admin, json={"language": "es-ES"}).status_code == 200
+    conversation_id = "00000000-0000-0000-0000-0000000000ac"
+    with client.websocket_connect(
+        f"/v4/listen?codec=pcm16&sample_rate=16000&source=omi&language=multi"
+        f"&client_conversation_id={conversation_id}",
+        headers=admin,
+    ) as socket:
+        assert socket.receive_json() == {"type": "last_memory", "memory_id": conversation_id}
+        _live_ready(socket)
+        socket.send_bytes(struct.pack("<160h", *([100] * 160)))
+        assert socket.receive_json()["status"] == "audio_received"
+        socket.send_json({"type": "stop"})
+        event = _processing_started(socket)
+
+    with transaction() as db:
+        assert db.get(Record, conversation_id).data["language"] == "es"
+        assert db.get(Job, event["job_id"]).payload["language"] == "es"
+
+
+def _pcm16_wal(seconds=1, rate=16000):
+    payload = bytearray()
+    for _ in range(seconds * rate // 160):
+        frame = struct.pack("<160h", *([100] * 160))
+        payload += struct.pack("<I", len(frame)) + frame
+    return bytes(payload)
+
+
+def test_batch_upload_uses_the_profile_language(client, admin):
+    assert client.patch("/v1/users/language", headers=admin, json={"language": "ca"}).status_code == 200
+    response = client.post(
+        "/v2/sync-local-files",
+        headers=admin,
+        files={
+            "files": (
+                "audio_omibatchphoneauto_pcm16_16000_1_fs160_1737000000.bin",
+                _pcm16_wal(),
+                "application/octet-stream",
+            )
+        },
+    )
+    assert response.status_code == 202
+    with transaction() as db:
+        assert db.get(Job, response.json()["job_id"]).payload["language"] == "ca"

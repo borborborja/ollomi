@@ -567,6 +567,16 @@ async def listen(socket: WebSocket):
     initial_conversation_id = (
         socket.query_params.get("conversation_id") or socket.query_params.get("client_conversation_id") or ident()
     )
+    # The user's preferred language determines STT language instead of always
+    # auto-detecting: the app sends it per capture, and the profile setting
+    # stored on the account is the fallback. "multi"/"auto" mean "let the
+    # provider detect it".
+    requested_language = (socket.query_params.get("language") or "").strip()
+    if not requested_language or requested_language.lower() in {"multi", "auto"}:
+        requested_language = ((user.preferences or {}).get("language") or "").strip()
+    # Providers take the base code (Whisper ignores/refuses regions); the
+    # account language is stored the same way.
+    language = requested_language.split("-")[0] or "auto"
 
     def prepare_conversation(conversation_id):
         with transaction() as db:
@@ -579,7 +589,7 @@ async def listen(socket: WebSocket):
                         id=conversation_id,
                         user_id=user.id,
                         kind="conversation",
-                        data=conversation_data({"status": "in_progress", "source": source}),
+                        data=conversation_data({"status": "in_progress", "source": source, "language": language}),
                     )
                 )
             return selected_profile(db, user.id, "stt")
@@ -665,7 +675,7 @@ async def listen(socket: WebSocket):
                     clip.setsampwidth(2)
                     clip.setframerate(rate)
                     clip.writeframes(pcm)
-                return transcribe_file(profile, preview, diarize=False, vocabulary=vocabulary)
+                return transcribe_file(profile, preview, language=language, diarize=False, vocabulary=vocabulary)
 
             try:
                 await send_status("transcribing")
@@ -695,7 +705,7 @@ async def listen(socket: WebSocket):
                 user.id,
                 segment.file_id,
                 "recording.wav",
-                "auto",
+                language,
                 segment.conversation_id,
             )
             try:
