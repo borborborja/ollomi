@@ -29,7 +29,7 @@ data class WidgetState(
     val labelContinuous: String = "Continuous",
     val labelStop: String = "Stop",
     val labelConnect: String = "Connect",
-    val labelIdle: String = "Idle",
+    val labelIdle: String = "Ollomi",
     val labelOpenApp: String = "Open the app",
     val updatedAt: Long = 0L,
 ) {
