@@ -196,6 +196,8 @@ jobs:
             test/widgets/device_alias_editor_test.dart \
             test/widgets/settings_drawer_device_test.dart \
             test/widgets/devices_page_test.dart \
+            test/unit/widget_state_test.dart \
+            test/services/widgets/widget_bridge_test.dart \
             test/services/capture/stt_mode_capture_entry_test.dart \
             test/providers/speech_profile_provider_test.dart
       - name: Run native BLE endpoint tests
@@ -206,6 +208,9 @@ jobs:
             --tests 'com.friend.ios.batch.OmiBackgroundAudioStreamerTest' \
             --tests 'com.friend.ios.batch.OmiBleFrameAssemblerTest' \
             --tests 'com.friend.ios.batch.NativeBleGeolocationHeaderTest' \
+            --tests 'com.friend.ios.widgets.WidgetStateTest' \
+            --tests 'com.friend.ios.widgets.WidgetActionsTest' \
+            --tests 'com.friend.ios.widgets.WidgetTextTest' \
             --no-daemon
       - name: Compile the complete debug APK
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}

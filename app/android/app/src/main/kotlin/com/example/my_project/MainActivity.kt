@@ -6,6 +6,9 @@ import com.friend.ios.ble.BleHostApiImpl
 import com.friend.ios.ble.OmiBleForegroundService
 import com.friend.ios.ble.OmiBleManager
 import com.friend.ios.phonemic.*
+import com.friend.ios.widgets.EXTRA_WIDGET_ACTION
+import com.friend.ios.widgets.WidgetBridge
+import com.friend.ios.widgets.WidgetPendingAction
 import android.os.Bundle
 import androidx.annotation.NonNull
 import android.Manifest
@@ -21,10 +24,22 @@ class MainActivity: FlutterActivity() {
     private var localAudioImport: LocalAudioImport? = null
     private val nativeBleTranscriptChannel = "com.friend.ios/native_ble_transcript"
     private var bleHostApiImpl: BleHostApiImpl? = null
+    private var widgetBridge: WidgetBridge? = null
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         localAudioImport?.accept(intent)
+        handleWidgetIntent(intent)
+    }
+
+    /** A widget tap that reached the activity: persist the action for a cold Dart
+     *  start and notify Dart when the engine is already alive. */
+    private fun handleWidgetIntent(intent: Intent?) {
+        val action = intent?.getStringExtra(EXTRA_WIDGET_ACTION) ?: return
+        intent.removeExtra(EXTRA_WIDGET_ACTION)
+        WidgetPendingAction.set(this, action)
+        widgetBridge?.notifyAction(action)
     }
 
     private val CHANNEL = "com.friend.ios/notifyOnKill"
@@ -79,6 +94,10 @@ class MainActivity: FlutterActivity() {
                 result.notImplemented()
             }
         }
+
+        // Home-screen widgets: state in, actions out.
+        widgetBridge = WidgetBridge(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        handleWidgetIntent(intent)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

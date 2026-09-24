@@ -43,6 +43,11 @@ class OmiBackgroundAudioStreamer internal constructor(
         @Volatile
         private var cachedTranscriptUid: String? = null
 
+        /** Set by OmiBleForegroundService so the home-screen transcript widget
+         *  updates while the app (and its Flutter engine) is closed. */
+        @Volatile
+        var onTranscriptLines: ((List<String>) -> Unit)? = null
+
         fun drainCachedTranscriptMessages(): List<String> =
             synchronized(transcriptCacheLock) {
                 if (cachedTranscriptMessages.isEmpty()) {
@@ -336,6 +341,12 @@ class OmiBackgroundAudioStreamer internal constructor(
                 cachedTranscriptMessages.removeFirst()
             }
             cachedTranscriptMessages.addLast(text)
+        }
+
+        // Mirror the latest lines into the home-screen widget without Dart.
+        val lines = com.friend.ios.widgets.extractTranscriptLines(text)
+        if (lines.isNotEmpty()) {
+            onTranscriptLines?.invoke(lines)
         }
     }
 

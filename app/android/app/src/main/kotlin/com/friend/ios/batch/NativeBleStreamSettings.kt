@@ -41,6 +41,8 @@ internal class NativeBleStreamSettingsReader(private val prefs: NativeBlePrefere
     @Synchronized
     fun config(): NativeBleStreamConfig? {
         if (!prefs.boolean("nativeBleStreamingEnabled")) return null
+        // A widget "Stop" pauses native capture without dropping the link.
+        if (prefs.boolean("widgetCapturePaused")) return null
         val raw = prefs.string("nativeBleStreamConfig")
         val server = prefs.string("ollomi.server")
         if (raw != configRaw || server != serverRaw) {

@@ -140,6 +140,27 @@ class OmiBleForegroundService : Service() {
                 Log.e(TAG, "Failed to stop service", e)
             }
         }
+
+        /**
+         * Stops capture while keeping the GATT link and the service alive, for the
+         * home-screen widget's "Stop": the device stays connected. Sets the widget
+         * pause pref so neither writer reopens until a start clears it.
+         */
+        fun stopCapture(context: Context) {
+            context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("flutter.widgetCapturePaused", true)
+                .putBoolean("flutter.nativeBleStreamingEnabled", false)
+                .putBoolean("flutter.nativeBleForegroundReady", false)
+                .apply()
+            instance?.stopCapture("widget_stop")
+        }
+    }
+
+    /** Stops the background streamer and the batch writer; the link is untouched. */
+    fun stopCapture(reason: String) {
+        backgroundAudioStreamer.stop(reason)
+        batchAudioWriter.stopCapture(reason)
     }
 
     // ── Per-device state ──
@@ -697,6 +718,16 @@ class OmiBleForegroundService : Service() {
             RECEIVER_NOT_EXPORTED
         )
         bleManager.connectionListener = connectionListener
+        OmiBackgroundAudioStreamer.onTranscriptLines = { lines ->
+            val state = com.friend.ios.widgets.WidgetStateStore.read(applicationContext)
+            if (state.transcriptLines != lines) {
+                com.friend.ios.widgets.WidgetStateStore.write(
+                    applicationContext,
+                    state.copy(transcriptLines = lines, updatedAt = System.currentTimeMillis()),
+                )
+                com.friend.ios.widgets.WidgetProviders.refreshAll(applicationContext)
+            }
+        }
         bleManager.characteristicValueListener = object : OmiBleManager.CharacteristicValueListener {
             override fun onCharacteristicValue(
                 address: String,

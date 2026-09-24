@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_record_description">Inicia i atura gravacions</string>
+    <string name="widget_transcript_description">Últimes línies de transcripció</string>
+    <string name="widget_device_description">Dispositiu connectat i connectar</string>
+    <string name="widget_combined_description">Gravació, transcripció i dispositiu</string>
+</resources>
