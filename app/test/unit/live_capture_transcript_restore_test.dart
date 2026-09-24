@@ -86,7 +86,6 @@ void main() {
     final provider = CaptureProvider(localSegmentStore: store);
 
     await store.replaceSession('live-100', [_segment('s1', 'primera')]);
-    await Future<void>.delayed(const Duration(milliseconds: 20));
     await store.replaceSession('live-200', [_segment('s2', 'segona')]);
 
     final latest = await provider.loadLatestLocalSegments();

@@ -27,6 +27,14 @@ class LocalSegmentStore {
   final bool enabled;
   Directory? _directory;
 
+  static int _lastSavedAtMillis = 0;
+
+  static int _nextSavedAtMillis() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _lastSavedAtMillis = now > _lastSavedAtMillis ? now : _lastSavedAtMillis + 1;
+    return _lastSavedAtMillis;
+  }
+
   Future<Directory> resolveDirectory() async {
     if (_directory != null) return _directory!;
     final root = await getApplicationSupportDirectory();
@@ -50,6 +58,9 @@ class LocalSegmentStore {
     final payload = <String, Object?>{
       'encoding_version': transcriptHashEncodingVersion,
       'session_id': sessionId,
+      // Monotonic write stamp so "latest session" never depends on filesystem
+      // mtime granularity.
+      'saved_at_millis': _nextSavedAtMillis(),
       'transcript_sha256': transcriptSha256(segments),
       'segments': segments.map(_segmentToJson).toList(),
     };
@@ -77,22 +88,32 @@ class LocalSegmentStore {
     if (!enabled) return const [];
     final dir = await resolveDirectory();
     if (!await dir.exists()) return const [];
-    final files = (await dir.list().toList()).whereType<File>().where((file) => file.path.endsWith('.json')).toList()
-      ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+    final files = (await dir.list().toList()).whereType<File>().where((file) => file.path.endsWith('.json'));
+    List<TranscriptSegment> latest = const [];
+    var latestStamp = -1;
     for (final file in files) {
       try {
-        final segments = _decodeSegments(await file.readAsString());
-        if (segments.isNotEmpty) return segments;
+        final decoded = jsonDecode(await file.readAsString());
+        if (decoded is! Map<String, dynamic>) continue;
+        final stamp = decoded['saved_at_millis'];
+        final savedAt = stamp is int ? stamp : 0;
+        if (savedAt < latestStamp) continue;
+        latestStamp = savedAt;
+        latest = _segmentsFromPayload(decoded);
       } catch (_) {
         continue;
       }
     }
-    return const [];
+    return latest;
   }
 
   static List<TranscriptSegment> _decodeSegments(String content) {
     final decoded = jsonDecode(content);
     if (decoded is! Map<String, dynamic>) return const [];
+    return _segmentsFromPayload(decoded);
+  }
+
+  static List<TranscriptSegment> _segmentsFromPayload(Map<String, dynamic> decoded) {
     final raw = decoded['segments'];
     if (raw is! List) return const [];
     return raw.whereType<Map<String, dynamic>>().map(_segmentFromJson).toList();
