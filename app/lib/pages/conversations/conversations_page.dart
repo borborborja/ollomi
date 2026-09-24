@@ -676,7 +676,10 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
                 },
               ),
               const SliverToBoxAdapter(child: SearchResultHeaderWidget()),
-              getProcessingConversationsWidget(convoProvider.processingConversations),
+              getProcessingConversationsWidget(
+                convoProvider.processingConversations,
+                draftFor: convoProvider.draftFor,
+              ),
 
               // Today's Tasks and Goals widgets - hide when showing daily recaps, search bar is active, or calendar filter is active
               Selector<HomeProvider, bool>(

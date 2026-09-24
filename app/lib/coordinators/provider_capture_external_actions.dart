@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/person.dart';
+import 'package:omi/models/pending_conversation_draft.dart';
 import 'package:omi/providers/conversation_provider.dart';
 import 'package:omi/providers/message_provider.dart';
 import 'package:omi/providers/people_provider.dart';
@@ -54,6 +57,11 @@ class ProviderCaptureExternalActions implements CaptureExternalActions {
   @override
   void removeProcessingConversation(String conversationId) {
     conversationProvider.removeProcessingConversation(conversationId);
+  }
+
+  @override
+  void savePendingDraft(PendingConversationDraft draft) {
+    unawaited(conversationProvider.savePendingDraft(draft));
   }
 
   @override

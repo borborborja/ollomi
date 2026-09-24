@@ -25,6 +25,7 @@ import 'package:omi/backend/schema/structured.dart';
 import 'package:omi/backend/schema/transcript_segment.dart';
 import 'package:omi/env/env.dart';
 import 'package:omi/models/custom_stt_config.dart';
+import 'package:omi/models/pending_conversation_draft.dart';
 import 'package:omi/providers/device_onboarding_provider.dart';
 import 'package:omi/services/capture/capture_external_actions.dart';
 import 'package:omi/services/capture/capture_metrics_tracker.dart';
@@ -2504,6 +2505,7 @@ class CaptureController extends ChangeNotifier
   void onMessageEventReceived(MessageEvent event) {
     if (event is ConversationProcessingStartedEvent) {
       final finishedSessionId = activeCaptureSessionId;
+      _savePendingDraft(event.memory.id, _sessionStartSeconds);
       externalActions.addProcessingConversation(event.memory);
       _pendingAutoSyncSessionStart = _sessionStartSeconds;
       _pendingAutoSyncConversationId = event.memory.id;
@@ -2630,6 +2632,9 @@ class CaptureController extends ChangeNotifier
     // to finalize this exact conversation instead of creating an empty one.
     final conversationId = _conversation?.id ?? activeRecordingId;
     final finishedSessionId = activeCaptureSessionId;
+    // Keep what the user just watched on screen before the reset below clears
+    // it: the processing card shows this draft until the server finishes.
+    _savePendingDraft(conversationId, sessionStart);
 
     // Force-drain tail buffer before clearing state
     final phoneSync = _wal.getSyncs().phone;
@@ -2704,6 +2709,21 @@ class CaptureController extends ChangeNotifier
   bool shouldSurfaceConversation(ServerConversation conversation) {
     if (conversation.status != ConversationStatus.in_progress) return true;
     return conversation.transcriptSegments.isNotEmpty || conversation.photos.isNotEmpty;
+  }
+
+  /// Keep the live transcript attached to the conversation while the server
+  /// processes it, so the list shows a draft instead of an empty skeleton.
+  void _savePendingDraft(String? conversationId, int sessionStartSeconds) {
+    if (conversationId == null || conversationId.isEmpty) return;
+    if (segments.isEmpty && photos.isEmpty) return;
+    externalActions.savePendingDraft(
+      PendingConversationDraft(
+        conversationId: conversationId,
+        sessionStartSeconds: sessionStartSeconds,
+        segments: List<TranscriptSegment>.of(segments),
+        photos: List<ConversationPhoto>.of(photos),
+      ),
+    );
   }
 
   Future<void> _processConversationCreated(ServerConversation? conversation, List<ServerMessage> messages) async {

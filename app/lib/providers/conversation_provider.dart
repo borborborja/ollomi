@@ -8,8 +8,10 @@ import 'package:omi/backend/http/api/users.dart';
 import 'package:omi/backend/preferences.dart';
 import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/structured.dart';
+import 'package:omi/models/pending_conversation_draft.dart';
 import 'package:omi/services/app_review_service.dart';
 import 'package:omi/services/auth_service.dart';
+import 'package:omi/services/capture/local_segment_store.dart';
 import 'package:omi/services/notifications/merge_notification_handler.dart';
 import 'package:omi/utils/logger.dart';
 
@@ -160,13 +162,66 @@ class ConversationProvider extends ChangeNotifier {
     DailySummariesChecker? dailySummariesChecker,
     ConversationSearchFetcher? conversationSearchFetcher,
     bool Function()? isSignedIn,
+    LocalSegmentStore? localSegmentStore,
   })  : _conversationListFetcher = conversationListFetcher,
         _conversationLifecycleFetcher = conversationLifecycleFetcher ?? getConversationByIdResult,
         _dailySummariesChecker = dailySummariesChecker,
         _conversationSearchFetcher = conversationSearchFetcher ?? searchConversationsServer,
+        localSegmentStore = localSegmentStore ?? LocalSegmentStore.disabled(),
         _isSignedIn = isSignedIn ?? AuthService.instance.isSignedIn {
     _setupMergeListener();
     _loadSettings();
+  }
+
+  /// Durable storage for pending-conversation drafts.
+  final LocalSegmentStore localSegmentStore;
+
+  final Map<String, PendingConversationDraft> _pendingDrafts = {};
+  bool _draftsHydrated = false;
+  Future<void> _draftIo = Future<void>.value();
+
+  /// Completes when the last draft write/delete reached disk.
+  Future<void> get pendingDraftIo => _draftIo;
+
+  /// The live transcript kept for a conversation the server is still
+  /// processing, or null when there is no draft.
+  PendingConversationDraft? draftFor(String conversationId) => _pendingDrafts[conversationId];
+
+  bool get hasPendingDrafts => _pendingDrafts.isNotEmpty;
+
+  Future<void> savePendingDraft(PendingConversationDraft draft) async {
+    if (!draft.hasContent) return;
+    _pendingDrafts[draft.conversationId] = draft;
+    notifyListeners();
+    if (localSegmentStore.enabled) {
+      await localSegmentStore.replaceDraft(draft.conversationId, draft.sessionStartSeconds, draft.segments);
+    }
+  }
+
+  /// Restore drafts persisted before an app restart.
+  Future<void> hydratePendingDrafts() async {
+    if (_draftsHydrated) return;
+    _draftsHydrated = true;
+    if (!localSegmentStore.enabled) return;
+    final records = await localSegmentStore.loadDrafts();
+    for (final record in records) {
+      if (_pendingDrafts.containsKey(record.conversationId)) continue;
+      _pendingDrafts[record.conversationId] = PendingConversationDraft(
+        conversationId: record.conversationId,
+        sessionStartSeconds: record.sessionStartSeconds,
+        segments: record.segments,
+      );
+    }
+    if (records.isNotEmpty) notifyListeners();
+  }
+
+  void _clearPendingDraft(String conversationId) {
+    if (_pendingDrafts.remove(conversationId) == null) return;
+    if (localSegmentStore.enabled) {
+      _draftIo = _draftIo.then((_) => localSegmentStore.releaseDraft(conversationId));
+      unawaited(_draftIo);
+    }
+    notifyListeners();
   }
 
   void _loadSettings() {
@@ -194,6 +249,13 @@ class ConversationProvider extends ChangeNotifier {
     groupedConversations = {};
     processingConversations = [];
     _processingStateRevisionById.clear();
+    final draftIds = _pendingDrafts.keys.toList();
+    _pendingDrafts.clear();
+    if (localSegmentStore.enabled) {
+      for (final conversationId in draftIds) {
+        unawaited(localSegmentStore.releaseDraft(conversationId));
+      }
+    }
     _conversationServerOffset = 0;
     _conversationServerHasMore = false;
     _conversationServerLoadedIds.clear();
@@ -1081,6 +1143,9 @@ class ConversationProvider extends ChangeNotifier {
         continue;
       }
       final current = result.item;
+      if (current != null && current.status == ConversationStatus.completed) {
+        _clearPendingDraft(existing.id);
+      }
       if (current != null && _isCardStatus(current.status) && _matchesActiveConversationFilters(current)) {
         reconciled.add(current);
       }
@@ -1178,6 +1243,11 @@ class ConversationProvider extends ChangeNotifier {
   }
 
   void upsertConversation(ServerConversation conversation) {
+    // The final conversation replaces its draft: the live transcript is now
+    // durable server-side and the local copy can go.
+    if (conversation.status == ConversationStatus.completed) {
+      _clearPendingDraft(conversation.id);
+    }
     int idx = conversations.indexWhere((m) => m.id == conversation.id);
     if (idx < 0) {
       addConversation(conversation);

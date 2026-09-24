@@ -235,7 +235,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       providers: [
         ListenableProvider(create: (context) => ConnectivityProvider()),
         ChangeNotifierProvider(create: (context) => AuthenticationProvider()),
-        ChangeNotifierProvider(create: (context) => ConversationProvider()),
+        ChangeNotifierProvider(
+          create: (context) {
+            final provider = ConversationProvider(localSegmentStore: LocalSegmentStore.appSupport());
+            unawaited(provider.hydratePendingDrafts());
+            return provider;
+          },
+        ),
         ListenableProvider(create: (context) => AppProvider()),
         ChangeNotifierProvider(create: (context) => PeopleProvider()),
         ChangeNotifierProvider(create: (context) => UsageProvider()),

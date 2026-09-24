@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:omi/app_globals.dart';
 import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/structured.dart';
+import 'package:omi/backend/schema/transcript_segment.dart';
 import 'package:omi/l10n/app_localizations.dart';
+import 'package:omi/models/pending_conversation_draft.dart';
 import 'package:omi/pages/conversations/widgets/processing_capture.dart';
 import 'package:omi/providers/conversation_provider.dart';
 
@@ -27,6 +29,50 @@ String _processingTakingLonger(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets('shows the live draft and a play control while processing', (tester) async {
+    final provider = ConversationProvider(isSignedIn: () => false);
+    addTearDown(provider.dispose);
+    final now = DateTime.now();
+    final draft = PendingConversationDraft(
+      conversationId: 'processing-1',
+      sessionStartSeconds: 0,
+      segments: [
+        TranscriptSegment(
+          id: 's1',
+          text: 'hola món',
+          speaker: 'SPEAKER_00',
+          isUser: false,
+          personId: null,
+          start: 0,
+          end: 1,
+          translations: const [],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChangeNotifierProvider.value(
+          value: provider,
+          child: Scaffold(
+            body: ProcessingConversationWidget(
+              conversation: _processingConversation(createdAt: now, finishedAt: now),
+              draft: draft,
+              now: () => now,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('processing_conversation_draft_preview')), findsOneWidget);
+    expect(find.text('hola món'), findsOneWidget);
+    expect(find.byKey(const Key('draft_audio_play_button')), findsOneWidget);
+  });
+
   testWidgets('shows timeout warning and retry after two minutes of processing', (tester) async {
     final provider = ConversationProvider(isSignedIn: () => false);
     addTearDown(provider.dispose);

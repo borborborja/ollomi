@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,7 +9,9 @@ import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/message_event.dart';
 import 'package:omi/backend/schema/structured.dart';
 import 'package:omi/backend/schema/transcript_segment.dart';
+import 'package:omi/models/pending_conversation_draft.dart';
 import 'package:omi/providers/capture_provider.dart';
+import 'package:omi/providers/conversation_provider.dart';
 import 'package:omi/services/capture/local_segment_store.dart';
 
 class _OfflineConnectivityPlatform extends ConnectivityPlatform {
@@ -19,6 +20,15 @@ class _OfflineConnectivityPlatform extends ConnectivityPlatform {
 
   @override
   Stream<List<ConnectivityResult>> get onConnectivityChanged => const Stream.empty();
+}
+
+ServerConversation _conversation(String id, {ConversationStatus status = ConversationStatus.processing}) {
+  return ServerConversation(
+    id: id,
+    createdAt: DateTime(2026, 9, 24),
+    structured: Structured('', ''),
+    status: status,
+  );
 }
 
 TranscriptSegment _segment(String id, String text) {
@@ -114,6 +124,47 @@ void main() {
     final updated = provider.mergeLiveSegments(merged, [_segment('live-1', 'hola!')]);
     expect(updated.where((segment) => segment.id == 'live-1').single.text, 'hola!');
     expect(updated.length, 2);
+  });
+
+  test('a processing draft stays until completion and clears then', () async {
+    final directory = await Directory.systemTemp.createTemp('ollomi-drafts');
+    final store = LocalSegmentStore.at(directory);
+    final provider = ConversationProvider(localSegmentStore: store, isSignedIn: () => false);
+    addTearDown(provider.dispose);
+
+    await provider.savePendingDraft(
+      PendingConversationDraft(
+        conversationId: 'conv-1',
+        sessionStartSeconds: 100,
+        segments: [_segment('s1', 'hola')],
+      ),
+    );
+    expect(provider.draftFor('conv-1')?.previewText, 'hola');
+
+    // A failed conversation keeps its draft: the transcript must not vanish.
+    provider.upsertConversation(_conversation('conv-1', status: ConversationStatus.failed));
+    expect(provider.draftFor('conv-1'), isNotNull);
+
+    // Completion replaces the draft and releases the persisted copy.
+    provider.upsertConversation(_conversation('conv-1', status: ConversationStatus.completed));
+    expect(provider.draftFor('conv-1'), isNull);
+    await provider.pendingDraftIo;
+    expect(await store.loadDrafts(), isEmpty);
+    await directory.delete(recursive: true);
+  });
+
+  test('drafts survive an app restart', () async {
+    final directory = await Directory.systemTemp.createTemp('ollomi-drafts');
+    final store = LocalSegmentStore.at(directory);
+    await store.replaceDraft('conv-2', 200, [_segment('s2', 'adeu')]);
+
+    final restored = ConversationProvider(localSegmentStore: store, isSignedIn: () => false);
+    addTearDown(restored.dispose);
+    await restored.hydratePendingDrafts();
+
+    expect(restored.draftFor('conv-2')?.previewText, 'adeu');
+    expect(restored.draftFor('conv-2')?.sessionStartSeconds, 200);
+    await directory.delete(recursive: true);
   });
 
   test('durable live segments survive and can be released', () async {
