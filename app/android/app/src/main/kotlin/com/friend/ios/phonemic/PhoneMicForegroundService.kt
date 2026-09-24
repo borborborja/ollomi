@@ -12,16 +12,18 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.friend.ios.background.CaptureWakeLock
 
 /**
  * Thin lifecycle shell that keeps native mic capture alive in the background. It
- * owns only the foreground-service promotion + notification; the AudioRecord
- * engine and all capture policy live in the controller (Wave 2).
+ * owns the foreground-service promotion, the notification and the partial wake
+ * lock that keeps AudioRecord fed while the screen is off; the capture engine and
+ * all capture policy live in the controller.
  *
  * No restart/resurrect policy of its own: [onStartCommand] returns
- * START_NOT_STICKY (Granola-identical) and there is no onTaskRemoved override —
- * the controller owns when to [start]/[stop] this service (e.g. it stops it on
- * engine death), so the service never second-guesses it.
+ * START_NOT_STICKY (Granola-identical) — the controller owns when to
+ * [start]/[stop] this service (e.g. it stops it on engine death), so the service
+ * never second-guesses it.
  */
 class PhoneMicForegroundService : Service() {
 
@@ -57,8 +59,11 @@ class PhoneMicForegroundService : Service() {
         }
     }
 
+    private lateinit var captureWakeLock: CaptureWakeLock
+
     override fun onCreate() {
         super.onCreate()
+        captureWakeLock = CaptureWakeLock(this)
         createNotificationChannel()
         Log.d(TAG, "Service created")
     }
@@ -82,8 +87,28 @@ class PhoneMicForegroundService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        // CPU can enter Doze with the screen off even with a foreground service;
+        // without this lock AudioRecord stops delivering frames and the recording
+        // silently truncates. Held for the session (service lifetime).
+        captureWakeLock.acquire()
         // No resurrect path by design — the controller owns restart policy.
         return START_NOT_STICKY
+    }
+
+    /**
+     * Task removal (swipe from recents) is deliberately a no-op here: capture
+     * survival is the controller's call, and it stops this service when the
+     * Flutter engine is destroyed for good. Pressing Home never reaches this.
+     */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.d(TAG, "Task removed; leaving capture lifecycle to the controller")
+        super.onTaskRemoved(rootIntent)
+    }
+
+    override fun onDestroy() {
+        captureWakeLock.release()
+        Log.d(TAG, "Service destroyed")
+        super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

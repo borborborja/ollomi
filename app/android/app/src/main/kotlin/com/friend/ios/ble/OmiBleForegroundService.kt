@@ -7,6 +7,8 @@ import com.friend.ios.BleService
 import com.friend.ios.batch.LimitlessBatchAudioWriter
 import com.friend.ios.batch.OmiBackgroundAudioStreamer
 import com.friend.ios.batch.OmiBatchAudioWriter
+import com.friend.ios.background.CaptureAudioTargets
+import com.friend.ios.background.CaptureWakeLock
 import com.friend.ios.limitless.LimitlessFlashDrainEngine
 
 import android.annotation.SuppressLint
@@ -57,6 +59,8 @@ class OmiBleForegroundService : Service() {
         private const val MAX_DISCONNECT_HISTORY = 20
         private const val RSSI_TREND_WINDOW_MS = 15_000L
         private const val RSSI_TREND_FADING_DROP_DB = 10
+        /** A captured frame refreshes the wake lock; this much silence releases it. */
+        private const val WAKE_LOCK_IDLE_RELEASE_MS = 30_000L
         /** Classify the RSSI trajectory in the window before [nowMs]. See BleDisconnectEvent.rssiTrend
          *  for the semantics of each label. */
         private fun classifyRssiTrend(samples: List<Pair<Long, Int>>, nowMs: Long): String {
@@ -161,6 +165,30 @@ class OmiBleForegroundService : Service() {
     fun stopCapture(reason: String) {
         backgroundAudioStreamer.stop(reason)
         batchAudioWriter.stopCapture(reason)
+        releaseCaptureWakeLock()
+    }
+
+    /**
+     * Frame-latched wake lock: the CPU must stay awake while captured audio flows
+     * with the screen off, but a service sitting connected-and-idle for hours must
+     * not pin it. Each captured frame refreshes an idle timeout that releases it.
+     */
+    private fun holdCaptureWakeLock() {
+        captureWakeLock.acquire()
+        handler.removeCallbacks(releaseCaptureWakeLockRunnable)
+        handler.postDelayed(releaseCaptureWakeLockRunnable, WAKE_LOCK_IDLE_RELEASE_MS)
+    }
+
+    private fun releaseCaptureWakeLock() {
+        handler.removeCallbacks(releaseCaptureWakeLockRunnable)
+        captureWakeLock.release()
+    }
+
+    private fun isCapturedAudioFrame(address: String, serviceUuid: String, characteristicUuid: String): Boolean {
+        val streamTarget = backgroundAudioStreamer.configuredAudioTargetFor(address)
+        if (CaptureAudioTargets.matches(streamTarget, serviceUuid, characteristicUuid)) return true
+        val batchTarget = batchAudioWriter.configuredAudioTargetFor(address)
+        return CaptureAudioTargets.matches(batchTarget, serviceUuid, characteristicUuid)
     }
 
     // ── Per-device state ──
@@ -194,6 +222,8 @@ class OmiBleForegroundService : Service() {
     private val batchAudioWriter by lazy { OmiBatchAudioWriter(applicationContext) }
     private val limitlessBatchWriter by lazy { LimitlessBatchAudioWriter(applicationContext) }
     private val limitlessDrainEngine by lazy { LimitlessFlashDrainEngine(applicationContext, limitlessBatchWriter) }
+    private lateinit var captureWakeLock: CaptureWakeLock
+    private val releaseCaptureWakeLockRunnable = Runnable { captureWakeLock.release() }
 
     // ── Connection listener — receives GATT events from OmiBleManager ──
 
@@ -551,6 +581,7 @@ class OmiBleForegroundService : Service() {
         // Finalize the in-progress batch recording so it's saved + ingestable right away
         // (a plain BLE disconnect never delivers another packet to trigger the gap finalize).
         batchAudioWriter.stopCapture("ble_disconnected")
+        releaseCaptureWakeLock()
         limitlessDrainEngine.onDeviceDisconnected(address)
 
         val addr = address.uppercase()
@@ -703,6 +734,7 @@ class OmiBleForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        captureWakeLock = CaptureWakeLock(this)
         // Transition guard: old builds used START_STICKY, so Android may re-deliver
         // a pending intent after process death before MainActivity initializes OmiBleManager.
         if (!OmiBleManager.isInitialized) OmiBleManager.initialize(application)
@@ -735,6 +767,9 @@ class OmiBleForegroundService : Service() {
                 characteristicUuid: String,
                 value: ByteArray
             ) {
+                // Capture audio must keep the CPU awake with the screen off; heartbeats
+                // and other characteristics must not (see holdCaptureWakeLock).
+                if (isCapturedAudioFrame(address, serviceUuid, characteristicUuid)) holdCaptureWakeLock()
                 // Batch mode and background streaming are mutually exclusive (gated by
                 // their respective prefs); calling all sinks is safe — each self-gates.
                 batchAudioWriter.handleCharacteristic(address, serviceUuid, characteristicUuid, value)
@@ -798,6 +833,7 @@ class OmiBleForegroundService : Service() {
     override fun onDestroy() {
         Log.d(TAG, "Service destroying")
         isDestroying = true
+        releaseCaptureWakeLock()
         backgroundAudioStreamer.stop("service_destroyed")
         batchAudioWriter.stopCapture("service_destroyed")
         limitlessDrainEngine.stop("service_destroyed")
