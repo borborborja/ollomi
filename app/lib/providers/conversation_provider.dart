@@ -977,6 +977,12 @@ class ConversationProvider extends ChangeNotifier {
     return status == ConversationStatus.processing || status == ConversationStatus.merging;
   }
 
+  /// The processing card is also the retry surface for a failed conversation;
+  /// hiding failed rows would make the recording disappear silently.
+  bool _isCardStatus(ConversationStatus status) {
+    return _isActiveProcessingStatus(status) || status == ConversationStatus.failed;
+  }
+
   Map<String, ServerConversation> _realProcessingConversationsById() => {
         for (final conversation in processingConversations)
           if (conversation.id != '0') conversation.id: conversation,
@@ -1075,14 +1081,14 @@ class ConversationProvider extends ChangeNotifier {
         continue;
       }
       final current = result.item;
-      if (current != null && _isActiveProcessingStatus(current.status) && _matchesActiveConversationFilters(current)) {
+      if (current != null && _isCardStatus(current.status) && _matchesActiveConversationFilters(current)) {
         reconciled.add(current);
       }
     }
 
     for (final result in lifecycleResults.values) {
       final conversation = result.item;
-      if (!result.ok || conversation == null || !_isActiveProcessingStatus(conversation.status)) continue;
+      if (!result.ok || conversation == null || !_isCardStatus(conversation.status)) continue;
       // Previously tracked IDs are owned by the live-list loop above. If a
       // websocket completion removed one while lifecycle GETs were in flight,
       // a stale detail response must not revive it here. This loop only admits

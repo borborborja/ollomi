@@ -65,7 +65,33 @@ class LocalSegmentStore {
     final dir = await resolveDirectory();
     final file = _fileFor(dir, sessionId);
     if (!await file.exists()) return const [];
-    final decoded = jsonDecode(await file.readAsString());
+    return _decodeSegments(await file.readAsString());
+  }
+
+  /// Segments of the most recently written session.
+  ///
+  /// A restarted app has no in-memory session id, but a foreground capture can
+  /// still be running; this lets the live screen restore what was already
+  /// transcribed instead of showing an empty transcript.
+  Future<List<TranscriptSegment>> loadLatestSession() async {
+    if (!enabled) return const [];
+    final dir = await resolveDirectory();
+    if (!await dir.exists()) return const [];
+    final files = (await dir.list().toList()).whereType<File>().where((file) => file.path.endsWith('.json')).toList()
+      ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+    for (final file in files) {
+      try {
+        final segments = _decodeSegments(await file.readAsString());
+        if (segments.isNotEmpty) return segments;
+      } catch (_) {
+        continue;
+      }
+    }
+    return const [];
+  }
+
+  static List<TranscriptSegment> _decodeSegments(String content) {
+    final decoded = jsonDecode(content);
     if (decoded is! Map<String, dynamic>) return const [];
     final raw = decoded['segments'];
     if (raw is! List) return const [];
