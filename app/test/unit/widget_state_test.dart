@@ -4,7 +4,7 @@ import 'package:omi/services/widgets/widget_state.dart';
 
 void main() {
   test('state encodes the native widget keys', () {
-    const state = WidgetState(
+    const state = OllomiWidgetState(
       recording: true,
       continuous: true,
       sourceKind: 'ble',
@@ -38,7 +38,7 @@ void main() {
   });
 
   test('defaults describe an idle widget', () {
-    const state = WidgetState();
+    const state = OllomiWidgetState();
 
     expect(state.recording, isFalse);
     expect(state.transcriptLines, isEmpty);

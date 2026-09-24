@@ -25,7 +25,7 @@ void main() {
   test('pushState sends the encoded state', () async {
     final bridge = WidgetBridge();
 
-    await bridge.pushState(const WidgetState(recording: true, source: 'Omi'));
+    await bridge.pushState(const OllomiWidgetState(recording: true, source: 'Omi'));
 
     expect(calls.single.method, 'updateState');
     expect(calls.single.arguments['state'], contains('"recording":true'));
@@ -41,7 +41,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
     final bridge = WidgetBridge();
 
-    await bridge.pushState(const WidgetState());
+    await bridge.pushState(const OllomiWidgetState());
     expect(await bridge.consumePendingAction(), isNull);
   });
 

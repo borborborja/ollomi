@@ -2,10 +2,10 @@ import 'dart:convert';
 
 /// State pushed to the Android home-screen widgets.
 ///
-/// Keys mirror the native [WidgetState] JSON. Everything user-visible is a
+/// Keys mirror the native [OllomiWidgetState] JSON. Everything user-visible is a
 /// localized label so the widgets follow the app language.
-class WidgetState {
-  const WidgetState({
+class OllomiWidgetState {
+  const OllomiWidgetState({
     this.recording = false,
     this.continuous = false,
     this.sourceKind = '',

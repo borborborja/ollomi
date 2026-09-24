@@ -147,7 +147,7 @@ class WidgetCoordinator {
     final recording = capture.isCaptureActive;
 
     await _bridge.pushState(
-      WidgetState(
+      OllomiWidgetState(
         recording: recording,
         continuous: capture.continuousCaptureEnabled,
         sourceKind: capture.recordingDevice != null ? 'ble' : (recording ? 'phone' : ''),

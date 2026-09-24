@@ -11,7 +11,7 @@ import 'package:omi/utils/logger.dart';
 class WidgetBridge {
   static const MethodChannel _channel = MethodChannel('com.ollomi.widgets');
 
-  Future<void> pushState(WidgetState state) async {
+  Future<void> pushState(OllomiWidgetState state) async {
     try {
       await _channel.invokeMethod<bool>('updateState', {'state': state.encode()});
     } catch (e) {
