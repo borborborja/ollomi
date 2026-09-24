@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:omi/backend/preferences.dart';
+import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/backend/schema/message_event.dart';
+import 'package:omi/backend/schema/structured.dart';
 import 'package:omi/backend/schema/transcript_segment.dart';
 import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/services/capture/local_segment_store.dart';
@@ -60,6 +62,40 @@ void main() {
   test('processing_started without a conversation stays unknown', () {
     final event = MessageEvent.fromJson({'type': 'processing_started', 'job_id': 'job-1'});
     expect(event, isA<UnknownEvent>());
+  });
+
+  test('an empty in-progress conversation never reaches the list', () {
+    final provider = CaptureProvider(localSegmentStore: LocalSegmentStore.disabled());
+    ServerConversation conversation({
+      required ConversationStatus status,
+      List<TranscriptSegment> segments = const [],
+    }) {
+      return ServerConversation(
+        id: 'conv-1',
+        createdAt: DateTime.now(),
+        structured: Structured('', ''),
+        status: status,
+        transcriptSegments: segments,
+      );
+    }
+
+    // The device connected but never sent audio: no phantom "Nueva conversación".
+    expect(provider.shouldSurfaceConversation(conversation(status: ConversationStatus.in_progress)), isFalse);
+    // Once there is content, the live row is real.
+    expect(
+      provider.shouldSurfaceConversation(
+        conversation(status: ConversationStatus.in_progress, segments: [_segment('s1', 'hola')]),
+      ),
+      isTrue,
+    );
+    // Terminal states are always visible.
+    for (final status in [
+      ConversationStatus.processing,
+      ConversationStatus.completed,
+      ConversationStatus.failed,
+    ]) {
+      expect(provider.shouldSurfaceConversation(conversation(status: status)), isTrue);
+    }
   });
 
   test('mergeLiveSegments never drops the live transcript', () {

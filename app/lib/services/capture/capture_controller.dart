@@ -2697,8 +2697,21 @@ class CaptureController extends ChangeNotifier
     await RecordingTransferCoordinator.instance.wake(WakeTrigger.cooldownElapsed);
   }
 
+  /// A live conversation with no content yet is not a result the user asked
+  /// for: surfacing it puts an empty "Nueva conversación" card in the list as
+  /// soon as the socket opens, even when the device never sends a byte.
+  @visibleForTesting
+  bool shouldSurfaceConversation(ServerConversation conversation) {
+    if (conversation.status != ConversationStatus.in_progress) return true;
+    return conversation.transcriptSegments.isNotEmpty || conversation.photos.isNotEmpty;
+  }
+
   Future<void> _processConversationCreated(ServerConversation? conversation, List<ServerMessage> messages) async {
     if (conversation == null) return;
+    if (!shouldSurfaceConversation(conversation)) {
+      Logger.debug('Skipping empty in-progress conversation ${conversation.id}');
+      return;
+    }
 
     // Star the conversation if it was marked for starring
     if (_starOngoingConversation) {
@@ -2719,12 +2732,16 @@ class CaptureController extends ChangeNotifier
       return;
     }
     ServerConversation? conversation = await getConversationById(memoryId);
-    if (conversation != null) {
-      Logger.debug("Adding last conversation to conversations: $memoryId");
-      externalActions.upsertConversation(conversation);
-    } else {
+    if (conversation == null) {
       Logger.debug("Failed to fetch last conversation: $memoryId");
+      return;
     }
+    if (!shouldSurfaceConversation(conversation)) {
+      Logger.debug("Ignoring empty in-progress conversation: $memoryId");
+      return;
+    }
+    Logger.debug("Adding last conversation to conversations: $memoryId");
+    externalActions.upsertConversation(conversation);
   }
 
   void _handleTranslationEvent(List<TranscriptSegment> translatedSegments) {
