@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import shutil
 import subprocess
 import tempfile
@@ -15,6 +16,7 @@ from selfhost.config import settings
 from selfhost.db import Job, Record, User, emit, ident, now, owned, transaction
 from selfhost.extraction import normalize_extraction
 from selfhost.profiles import completion
+from selfhost.records import queue_audio_part, queue_enrich_job
 from selfhost.search import index_record, purge_index
 from selfhost.voiceprint import classify_segments, diarize_segments
 
@@ -36,6 +38,46 @@ celery.conf.update(
 
 class Cancelled(Exception):
     pass
+
+
+def extract_json_payload(content):
+    """Return the extraction object from a chat completion.
+
+    Small and local models wrap JSON in markdown fences or prepend prose even
+    when the request asks for a JSON object; the durable transcript must not
+    depend on that formatting. The repair prompt in [enrichment] is the second
+    chance before [finish_conversation] falls back to a transcript-only result.
+    """
+    if not isinstance(content, str):
+        raise ValueError("Invalid extraction JSON")
+    text = content.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[A-Za-z0-9_.-]*\s*", "", text)
+        text = re.sub(r"\s*```\s*$", "", text)
+    candidates = [text]
+    start, end = text.find("{"), text.rfind("}")
+    if start != -1 and end > start:
+        candidates.append(text[start : end + 1])
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict):
+            return parsed
+    raise ValueError("Invalid extraction JSON")
+
+
+def fallback_extraction(segments):
+    """Structured data that keeps the transcript visible when the model fails."""
+    spoken = next(
+        ((segment.get("text") or "").strip() for segment in segments if (segment.get("text") or "").strip()),
+        "",
+    )
+    result = normalize_extraction({}, "")
+    if spoken:
+        result["title"] = spoken[:80]
+    return result
 
 
 def enrich_speaker_labels(user_id, clip, batch, job_id):
@@ -117,7 +159,10 @@ def enrichment(profile, segments, *, reference_time, time_zone, heartbeat=lambda
             )
         transcript = "\n".join(summaries)
     if len(transcript) > 16000:
-        raise ValueError("Model failed to compress a long recording within its context")
+        # A summary model that cannot compress is not a transcription failure:
+        # truncate for extraction instead of failing the whole conversation.
+        logger.warning("Keeping the first 16000 characters of a long transcript for extraction")
+        transcript = transcript[:16000]
     heartbeat()
     if not transcript.strip():
         return normalize_extraction({"title": "Sin voz detectada"}, transcript)
@@ -146,10 +191,23 @@ Esquema: {{
         ],
         json_output=True,
     )
+    raw = result.get("content") if isinstance(result, dict) else None
     try:
-        parsed = json.loads(result["content"])
-    except (KeyError, TypeError, json.JSONDecodeError) as error:
-        raise ValueError("Invalid extraction JSON") from error
+        parsed = extract_json_payload(raw)
+    except ValueError:
+        heartbeat()
+        repaired = completion(
+            profile,
+            [
+                {
+                    "role": "system",
+                    "content": "Devuelve únicamente el objeto JSON válido solicitado, sin texto adicional ni bloques de código.",
+                },
+                {"role": "user", "content": raw if isinstance(raw, str) else ""},
+            ],
+            json_output=True,
+        )
+        parsed = extract_json_payload(repaired.get("content") if isinstance(repaired, dict) else None)
     return normalize_extraction(parsed, transcript)
 
 
@@ -158,13 +216,27 @@ def finish_conversation(job, segments):
     with transaction() as db:
         user = db.get(User, job.user_id)
         time_zone = (user.preferences or {}).get("time_zone") or "UTC"
-    result = enrichment(
-        job.payload["chat"],
-        segments,
-        reference_time=now().isoformat(),
-        time_zone=time_zone,
-        heartbeat=lambda: checkpoint(job, 60),
-    )
+    enrichment_error = None
+    try:
+        result = enrichment(
+            job.payload["chat"],
+            segments,
+            reference_time=now().isoformat(),
+            time_zone=time_zone,
+            heartbeat=lambda: checkpoint(job, 60),
+        )
+    except ValueError as error:
+        # The transcript is the durable product of the recording. A misbehaving
+        # summary model must not hide the conversation or leave it processing:
+        # publish the transcript with a minimal structured fallback and mark the
+        # enrichment as retryable.
+        logger.warning(
+            "Enrichment failed for conversation %s: %s",
+            job.payload.get("conversation_id"),
+            error,
+        )
+        result = fallback_extraction(segments)
+        enrichment_error = type(error).__name__
     checkpoint(job, 85)
     with transaction() as db:
         live = db.scalar(select(Job).where(Job.id == job.id).with_for_update())
@@ -231,12 +303,15 @@ def finish_conversation(job, segments):
                 persisted.append({**stored, "id": record_id})
             structured[result_key] = persisted
         row.data = {
-            **row.data,
+            **{key: value for key, value in row.data.items() if key not in {"error", "failed_at"}},
             "transcript_segments": segments,
             "structured": structured,
             "status": "completed",
+            "enrichment_failed": enrichment_error is not None,
             "finished_at": now().isoformat(),
         }
+        if enrichment_error:
+            row.data = {**row.data, "enrichment_error": enrichment_error}
         db.add(
             Job(
                 user_id=job.user_id,
@@ -469,13 +544,49 @@ def run_job(job_id):
     except Cancelled:
         return
     except Exception as error:
-        logger.error("Job %s failed (%s)", job.id, type(error).__name__)
+        logger.exception("Job %s failed (%s)", job.id, type(error).__name__)
         with transaction() as db:
             live = db.get(Job, job.id)
             if live and live.status == "running" and live.lease_token == job.lease_token:
                 live.status, live.lease_token = "failed", None
                 live.error = "Processing failed: " + type(error).__name__ + ". Check provider availability and retry."
                 emit(db, job.user_id, "job_failed", {"job_id": job.id})
+                conversation_id = (live.payload or {}).get("conversation_id")
+                if conversation_id:
+                    mark_conversation_failed(db, live.user_id, conversation_id)
+
+
+def mark_conversation_failed(db, user_id, conversation_id):
+    """Give a conversation a terminal status when its last processing job failed.
+
+    Without this, a failed audio/enrichment job left the conversation in
+    `processing` forever: the app could only show an endless "still working"
+    card and its retry path had nothing to recover.
+    """
+    row = db.get(Record, conversation_id)
+    if row is None or row.user_id != user_id or row.kind != "conversation":
+        return
+    if (row.data or {}).get("status") not in {"in_progress", "processing", "merging"}:
+        return
+    pending = db.scalar(
+        select(func.count())
+        .select_from(Job)
+        .where(
+            Job.kind.in_(["audio", "enrich"]),
+            Job.status.in_(["queued", "running"]),
+            Job.payload["conversation_id"].as_string() == conversation_id,
+        )
+    )
+    if pending:
+        return
+    data = row.data or {}
+    reason = (
+        "No se pudo transcribir el audio"
+        if not data.get("transcript_segments")
+        else "No se pudo resumir la conversación"
+    )
+    row.data = {**data, "status": "failed", "error": reason, "failed_at": now().isoformat()}
+    emit(db, user_id, "conversation_failed", {"id": row.id, "reason": reason})
 
 
 @celery.task(name="ollomi.recover")
@@ -492,6 +603,21 @@ def recover():
             .with_for_update(skip_locked=True)
         )
         for job in cleanup:
+            job.status, job.error = "queued", None
+        # Media and enrichment failures are retried while attempts remain; once
+        # the cap is reached the conversation gets a terminal status instead of
+        # staying `processing` forever.
+        retryable = db.scalars(
+            select(Job)
+            .where(
+                Job.status == "failed",
+                Job.kind.in_(["audio", "enrich"]),
+                Job.attempts < settings().job_retry_attempts,
+                Job.updated_at < now() - timedelta(seconds=60),
+            )
+            .with_for_update(skip_locked=True)
+        )
+        for job in retryable:
             job.status, job.error = "queued", None
         expired = list(
             db.scalars(
@@ -519,6 +645,45 @@ def recover():
             if data.get("file_ids") or data.get("audio_files") or data.get("transcript_segments") or data.get("photos"):
                 continue
             db.delete(row)
+        # A conversation can be left processing with all its jobs terminal
+        # (worker crash, provider outage, or a failure recorded before this
+        # recovery existed). Queue whatever is missing once; exhausted retries
+        # get a terminal failure instead of an eternal processing card.
+        stuck = list(
+            db.scalars(
+                select(Record)
+                .where(
+                    Record.kind == "conversation",
+                    Record.data["status"].as_string().in_(["processing", "merging"]),
+                    Record.updated_at < now() - timedelta(minutes=15),
+                )
+                .with_for_update(skip_locked=True)
+            )
+        )
+        for row in stuck:
+            jobs = list(
+                db.scalars(
+                    select(Job).where(
+                        Job.kind.in_(["audio", "enrich"]),
+                        Job.payload["conversation_id"].as_string() == row.id,
+                    )
+                )
+            )
+            if not jobs:
+                data = row.data or {}
+                if data.get("transcript_segments"):
+                    queue_enrich_job(db, row)
+                elif data.get("file_ids"):
+                    file_ids = list(data["file_ids"])
+                    for file_id in file_ids:
+                        queue_audio_part(db, row, file_id, len(file_ids))
+                else:
+                    mark_conversation_failed(db, row.user_id, row.id)
+                continue
+            if any(job.status in {"queued", "running"} for job in jobs):
+                continue
+            if all(job.attempts >= settings().job_retry_attempts for job in jobs):
+                mark_conversation_failed(db, row.user_id, row.id)
         ids = list(db.scalars(select(Job.id).where(Job.status == "queued").order_by(Job.created_at).limit(100)))
     for job_id in ids:
         run_job.delay(job_id)
