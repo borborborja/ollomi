@@ -42,7 +42,11 @@ def test_knowledge_graph_reflects_only_the_owners_memories(client, admin, other)
 
 
 def test_knowledge_graph_shows_conversations_and_source_links(client, admin):
-    created = client.post("/v1/conversations", headers=admin, json={})
+    created = client.post(
+        "/v1/conversations",
+        headers=admin,
+        json={"transcript_segments": [{"id": "s1", "text": "hola", "start": 0, "end": 1}]},
+    )
     assert created.status_code == 200
     conversation_id = created.json()["conversation"]["id"]
     client.patch(

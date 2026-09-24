@@ -86,6 +86,106 @@ def reindex_record(db, uid, record):
     emit(db, uid, record.kind + "_updated", {"id": record.id})
 
 
+def queue_enrich_job(db, row):
+    """Queue structured extraction for a conversation that already has a transcript."""
+    job = Job(
+        user_id=row.user_id,
+        kind="enrich",
+        payload={
+            "conversation_id": row.id,
+            "chat": selected_profile(db, row.user_id, "chat"),
+            "embedding": selected_profile(db, row.user_id, "embedding"),
+        },
+    )
+    db.add(job)
+    db.flush()
+    row.data = {**(row.data or {}), "status": "processing"}
+    return job
+
+
+def queue_audio_part(db, row, file_id, file_count=1, language=None):
+    """Queue transcription for an already-stored audio part of a conversation."""
+    user = db.get(User, row.user_id)
+    data = row.data or {}
+    job = Job(
+        user_id=row.user_id,
+        kind="audio",
+        payload={
+            "file_id": file_id,
+            "conversation_id": row.id,
+            "language": language or data.get("language", "auto"),
+            "file_count": file_count,
+            # Snapshot the retention contract at admission, like enqueue_audio: a
+            # later settings change must not rewrite an already queued part.
+            "retain_audio": bool(user and user.preferences.get("private_cloud_sync_enabled", False)),
+            "vocabulary": (
+                [
+                    word
+                    for word in ((user.preferences or {}).get("vocabulary") or [])
+                    if isinstance(word, str) and word.strip()
+                ]
+                if user
+                else []
+            ),
+            **{p: selected_profile(db, row.user_id, p) for p in ("stt", "chat", "embedding")},
+        },
+    )
+    db.add(job)
+    db.flush()
+    row.data = {**data, "status": "processing"}
+    return job
+
+
+def finalize_live_conversation(db, row):
+    """Process the conversation a capture ended on, cloud-contract style.
+
+    The app calls `POST /v1/conversations` when the user stops recording. The
+    listen socket may have already queued the audio, so this fills only the gap:
+    a transcript without an enrichment job, or audio parts without a
+    transcription job. It never creates a duplicate empty conversation.
+    """
+    data = row.data or {}
+    pending = db.scalar(
+        select(Job.id)
+        .where(
+            Job.kind.in_(["audio", "enrich"]),
+            Job.status.in_(["queued", "running"]),
+            Job.payload["conversation_id"].as_string() == row.id,
+        )
+        .limit(1)
+    )
+    if pending:
+        return {"conversation": wire(row), "messages": [], "job_id": pending}
+
+    segments = data.get("transcript_segments") or []
+    file_ids = list(data.get("file_ids") or [])
+    enrich_exists = db.scalar(
+        select(Job.id)
+        .where(
+            Job.kind == "enrich",
+            Job.payload["conversation_id"].as_string() == row.id,
+        )
+        .limit(1)
+    )
+    job = None
+    if segments and not enrich_exists:
+        job = queue_enrich_job(db, row)
+    elif file_ids:
+        existing_files = set(
+            db.scalars(
+                select(Job.payload["file_id"].as_string()).where(
+                    Job.kind == "audio",
+                    Job.payload["conversation_id"].as_string() == row.id,
+                )
+            )
+        )
+        queued = [
+            queue_audio_part(db, row, file_id, len(file_ids)) for file_id in file_ids if file_id not in existing_files
+        ]
+        job = queued[0] if queued else None
+    return {"conversation": wire(row), "messages": [], "job_id": job.id if job else ""}
+
+
 def list_rows(db, uid, kind, limit=100, offset=0):
     return list(
         db.scalars(
@@ -108,24 +208,15 @@ def conversations(
     user=Depends(current_user),
 ):
     with transaction() as db:
-        query = select(Record).where(
-            Record.user_id == user.id, Record.kind == "conversation"
-        )
+        query = select(Record).where(Record.user_id == user.id, Record.kind == "conversation")
         if folder_id:
             query = query.where(Record.data["folder_id"].as_string() == folder_id)
         if starred is not None:
             query = query.where(Record.data["starred"].as_boolean() == starred)
         if statuses:
-            query = query.where(
-                Record.data["status"].as_string().in_(statuses.split(","))
-            )
+            query = query.where(Record.data["status"].as_string().in_(statuses.split(",")))
         return [
-            wire(r)
-            for r in db.scalars(
-                query.order_by(Record.created_at.desc(), Record.id)
-                .offset(offset)
-                .limit(limit)
-            )
+            wire(r) for r in db.scalars(query.order_by(Record.created_at.desc(), Record.id).offset(offset).limit(limit))
         ]
 
 
@@ -137,57 +228,77 @@ def conversation(record_id: str, user=Depends(current_user)):
 
 @router.post("/v1/conversations")
 def create_conversation(body: dict = Body(default={}), user=Depends(current_user)):
+    requested_id = body.get("conversation_id")
     with transaction() as db:
-        row = insert(
-            db,
-            user.id,
-            "conversation",
-            conversation_data(
-                {
-                    k: v
-                    for k, v in body.items()
-                    if k
-                    in {
-                        "transcript_segments",
-                        "language",
-                        "source",
-                        "started_at",
-                        "finished_at",
+        row = None
+        if requested_id:
+            row = owned(db, user.id, requested_id, "conversation")
+        else:
+            row = db.scalar(
+                select(Record)
+                .where(
+                    Record.user_id == user.id,
+                    Record.kind == "conversation",
+                    Record.data["status"].as_string().in_(["in_progress", "processing"]),
+                )
+                .order_by(Record.created_at.desc(), Record.id)
+                .limit(1)
+            )
+        if row is not None:
+            if (row.data or {}).get("status") in {"in_progress", "processing"}:
+                return finalize_live_conversation(db, row)
+            # An explicit id that is already finalized stays idempotent instead
+            # of producing a duplicate empty conversation.
+            return {"conversation": wire(row), "messages": [], "job_id": ""}
+        if body.get("transcript_segments"):
+            created = insert(
+                db,
+                user.id,
+                "conversation",
+                conversation_data(
+                    {
+                        k: v
+                        for k, v in body.items()
+                        if k
+                        in {
+                            "transcript_segments",
+                            "language",
+                            "source",
+                            "started_at",
+                            "finished_at",
+                        }
                     }
-                }
-            ),
-        )
-        job = Job(
-            user_id=user.id,
-            kind="enrich",
-            payload={
-                "conversation_id": row.id,
-                "chat": selected_profile(db, user.id, "chat"),
-                "embedding": selected_profile(db, user.id, "embedding"),
-            },
-        )
-        db.add(job)
-        db.flush()
-        return {"conversation": wire(row), "messages": [], "job_id": job.id}
+                ),
+            )
+            job = queue_enrich_job(db, created)
+            return {"conversation": wire(created), "messages": [], "job_id": job.id}
+        raise HTTPException(404, "No in-progress conversation to process")
 
 
 @router.post("/v1/conversations/{record_id}/reprocess")
 def reprocess(record_id: str, user=Depends(current_user)):
     with transaction() as db:
         row = owned(db, user.id, record_id, "conversation")
-        row.data = {**row.data, "status": "processing"}
-        job = Job(
-            user_id=user.id,
-            kind="enrich",
-            payload={
-                "conversation_id": row.id,
-                "chat": selected_profile(db, user.id, "chat"),
-                "embedding": selected_profile(db, user.id, "embedding"),
-            },
+        data = row.data or {}
+        pending = db.scalar(
+            select(Job.id)
+            .where(
+                Job.kind.in_(["audio", "enrich"]),
+                Job.status.in_(["queued", "running"]),
+                Job.payload["conversation_id"].as_string() == row.id,
+            )
+            .limit(1)
         )
-        db.add(job)
-        db.flush()
-        return {"conversation": wire(row), "messages": [], "job_id": job.id}
+        if not pending:
+            if data.get("transcript_segments"):
+                queue_enrich_job(db, row)
+            elif data.get("file_ids"):
+                file_ids = list(data["file_ids"])
+                for file_id in file_ids:
+                    queue_audio_part(db, row, file_id, len(file_ids))
+            else:
+                row.data = {**data, "status": "failed", "error": "Sin contenido que reprocesar"}
+        return wire(row)
 
 
 @router.patch("/v1/conversations/{record_id}")
@@ -235,14 +346,10 @@ def conversation_field(
                 "overview": body.get("overview", body.get("summary", "")),
             }
         elif field == "starred":
-            data["starred"] = (
-                starred if starred is not None else body.get("starred", False)
-            )
+            data["starred"] = starred if starred is not None else body.get("starred", False)
         elif field == "visibility":
             if value != "private":
-                raise HTTPException(
-                    422, "Public sharing is not enabled; use an authenticated export"
-                )
+                raise HTTPException(422, "Public sharing is not enabled; use an authenticated export")
             data["visibility"] = "private"
         else:
             raise HTTPException(404, "Unknown conversation operation")
@@ -261,10 +368,7 @@ def edit_segment(record_id: str, body: dict, user=Depends(current_user)):
         matches = [
             s
             for i, s in enumerate(segments)
-            if (
-                body.get("segment_id") is not None and s.get("id") == body["segment_id"]
-            )
-            or i == index
+            if (body.get("segment_id") is not None and s.get("id") == body["segment_id"]) or i == index
         ]
         if not matches or not isinstance(body.get("text"), str):
             raise HTTPException(422, "Invalid segment or text")
@@ -284,9 +388,7 @@ def assign_segments(record_id: str, body: dict, user=Depends(current_user)):
         segments = [dict(s) for s in row.data["transcript_segments"]]
         for i, segment in enumerate(segments):
             if i in indices or segment.get("id") in body.get("segment_ids", []):
-                segment.update(
-                    person_id=body.get("person_id"), is_user=body.get("is_user", False)
-                )
+                segment.update(person_id=body.get("person_id"), is_user=body.get("is_user", False))
         row.data = {**row.data, "transcript_segments": segments}
         reindex_record(db, user.id, row)
         return {"status": "ok"}
@@ -324,9 +426,7 @@ def delete_record(uid, record_id, kind):
                     },
                 )
             )
-        db.add(
-            Job(user_id=uid, kind="purge_index", payload={"record_ids": deleted_ids})
-        )
+        db.add(Job(user_id=uid, kind="purge_index", payload={"record_ids": deleted_ids}))
         db.delete(row)
         emit(db, uid, kind + "_deleted", {"id": record_id})
     return {"status": "ok"}
@@ -375,11 +475,7 @@ def edit_memory(record_id: str, body: dict, user=Depends(current_user)):
         row = owned(db, user.id, record_id, "memory")
         row.data = {
             **row.data,
-            **{
-                k: v
-                for k, v in body.items()
-                if k in {"content", "category", "tags", "reviewed"}
-            },
+            **{k: v for k, v in body.items() if k in {"content", "category", "tags", "reviewed"}},
         }
         db.add(
             Job(
@@ -412,16 +508,8 @@ def tasks(
         if completed is not None:
             query = query.where(Record.data["completed"].as_boolean() == completed)
         if conversation_id:
-            query = query.where(
-                Record.data["conversation_id"].as_string() == conversation_id
-            )
-        rows = list(
-            db.scalars(
-                query.order_by(Record.created_at.desc(), Record.id)
-                .offset(offset)
-                .limit(limit + 1)
-            )
-        )
+            query = query.where(Record.data["conversation_id"].as_string() == conversation_id)
+        rows = list(db.scalars(query.order_by(Record.created_at.desc(), Record.id).offset(offset).limit(limit + 1)))
         return {
             "action_items": [wire(r) for r in rows[:limit]],
             "has_more": len(rows) > limit,
@@ -460,11 +548,7 @@ def update_task(record_id: str, body: dict, user=Depends(current_user)):
                 raise HTTPException(422, "Invalid due_at") from None
         row.data = {
             **row.data,
-            **{
-                k: v
-                for k, v in body.items()
-                if k in {"description", "completed", "due_at"}
-            },
+            **{k: v for k, v in body.items() if k in {"description", "completed", "due_at"}},
             **({"reminded": False} if "due_at" in body else {}),
         }
         reindex_record(db, user.id, row)
@@ -566,12 +650,7 @@ def events(
 ):
     with transaction() as db:
         rows = list(
-            db.scalars(
-                select(Event)
-                .where(Event.user_id == user.id, Event.id > after)
-                .order_by(Event.id)
-                .limit(limit)
-            )
+            db.scalars(select(Event).where(Event.user_id == user.id, Event.id > after).order_by(Event.id).limit(limit))
         )
         return {
             "events": [
@@ -637,7 +716,5 @@ def export(user=Depends(current_user)):
         return Response(
             json.dumps(result, ensure_ascii=False),
             media_type="application/json",
-            headers={
-                "Content-Disposition": 'attachment; filename="ollomi-export.json"'
-            },
+            headers={"Content-Disposition": 'attachment; filename="ollomi-export.json"'},
         )

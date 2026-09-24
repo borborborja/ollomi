@@ -23,9 +23,9 @@ from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from selfhost.config import settings
-from selfhost.db import Job, Record, User, emit, ident, owned, transaction
+from selfhost.db import Job, Record, User, emit, ident, owned, transaction, wire
 from selfhost.profiles import call_with_fallback, provider_client, selected_profile
-from selfhost.records import conversation_data
+from selfhost.records import conversation_data, queue_audio_part
 from selfhost.security import authenticate, current_user
 from selfhost.stt_filter import filter_silent_hallucinations
 
@@ -53,6 +53,11 @@ def job_wire(job):
     }
 
 
+def conversation_wire(uid, conversation_id):
+    with transaction() as db:
+        return wire(owned(db, uid, conversation_id, "conversation"))
+
+
 def enqueue_audio(
     uid,
     file_id,
@@ -63,8 +68,6 @@ def enqueue_audio(
     file_count=1,
 ):
     with transaction() as db:
-        user = db.get(User, uid)
-        retain_audio = bool(user and user.preferences.get("private_cloud_sync_enabled", False))
         file_row = Record(
             id=file_id,
             user_id=uid,
@@ -97,29 +100,10 @@ def enqueue_audio(
         else:
             db.add(row)
         file_row.data = {**file_row.data, "conversation_id": row.id}
-        job = Job(
-            user_id=uid,
-            payload={
-                "file_id": file_id,
-                "conversation_id": row.id,
-                "language": language,
-                "file_count": file_count,
-                # Snapshot the user's choice when audio is admitted. A later
-                # settings change must not rewrite the retention contract of a
-                # queued or running recording.
-                "retain_audio": retain_audio,
-                "vocabulary": [
-                    word
-                    for word in ((user.preferences or {}).get("vocabulary") or [])
-                    if isinstance(word, str) and word.strip()
-                ]
-                if user
-                else [],
-                **{p: selected_profile(db, uid, p) for p in ("stt", "chat", "embedding")},
-            },
-        )
-        db.add(job)
-        db.flush()
+        # Snapshot the user's choice when audio is admitted. A later settings
+        # change must not rewrite the retention contract of a queued or running
+        # recording.
+        job = queue_audio_part(db, row, file_id, file_count, language)
         if receipt_id:
             db.add(
                 Record(
@@ -696,7 +680,10 @@ async def listen(socket: WebSocket):
                 segment.conversation_id,
             )
             try:
-                await send_json({"type": "processing_started", **job})
+                # The app needs the conversation itself to show the processing
+                # card immediately; job-only frames used to be ignored.
+                memory = await run_in_threadpool(conversation_wire, user.id, segment.conversation_id)
+                await send_json({"type": "processing_started", **job, "memory": memory})
             except Exception:
                 pass
         else:

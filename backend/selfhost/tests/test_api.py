@@ -297,7 +297,11 @@ def test_import_durable_owner_cancel_and_retry(client, admin, other):
 
 
 def test_delete_cancels_pending_derivations(client, admin):
-    created = client.post("/v1/conversations", headers=admin, json={}).json()
+    created = client.post(
+        "/v1/conversations",
+        headers=admin,
+        json={"transcript_segments": [{"id": "s1", "text": "hola", "start": 0, "end": 1}]},
+    ).json()
     assert client.delete("/v1/conversations/" + created["conversation"]["id"], headers=admin).status_code == 200
     from selfhost.worker import claim
 
