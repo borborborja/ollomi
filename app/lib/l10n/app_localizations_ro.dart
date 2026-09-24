@@ -10127,4 +10127,10 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Trage pentru a ordona prioritatea.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Permite ca Ollomi să ruleze în fundal pentru ca înregistrarea să continue cu ecranul stins.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Înregistrarea în fundal nu este disponibilă. Ține Ollomi deschis în timpul înregistrării.';
 }

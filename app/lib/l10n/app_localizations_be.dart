@@ -10110,4 +10110,10 @@ class AppLocalizationsBe extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Дазвольце Ollomi працаваць у фоне, каб запіс працягваўся з выключаным экранам.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Фонавы запіс недаступны. Трымайце Ollomi адкрытым падчас запісу.';
 }

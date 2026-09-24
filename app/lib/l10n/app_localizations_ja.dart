@@ -9907,4 +9907,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'ドラッグして接続の優先順位を設定します。';
+
+  @override
+  String get backgroundCaptureBatteryWarning => '画面オフでも録音を続けるため、Ollomiのバックグラウンド実行を許可してください。';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'バックグラウンド録音を利用できません。録音中はOllomiを開いたままにしてください。';
 }

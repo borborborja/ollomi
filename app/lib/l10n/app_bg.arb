@@ -3267,5 +3267,7 @@
     "forgetDevice": "Forget device",
     "forgetDeviceConfirm": "Remove this device from the known list? Its custom name and settings will be forgotten.",
     "backgroundModeRequired": "Background mode is off. Automatic reconnection while the app is closed needs it.",
-    "priorityOrderHint": "Drag to set the connection priority order."
+    "priorityOrderHint": "Drag to set the connection priority order.",
+    "backgroundCaptureBatteryWarning": "Разреши на Ollomi да работи във фонов режим, за да продължи записът при изгасен екран.",
+    "phoneMicBackgroundUnavailable": "Фоновото записване не е налично. Дръж Ollomi отворен по време на запис."
 }

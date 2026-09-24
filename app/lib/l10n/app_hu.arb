@@ -3385,5 +3385,7 @@
     "forgetDevice": "Eszköz elfelejtése",
     "forgetDeviceConfirm": "Eltávolítod ezt az eszközt a listáról? A név és a beállítások elvesznek.",
     "backgroundModeRequired": "A háttérmód ki van kapcsolva. Az automatikus újracsatlakozás zárt alkalmazásnál ettől függ.",
-    "priorityOrderHint": "Húzd a prioritási sorrend beállításához."
+    "priorityOrderHint": "Húzd a prioritási sorrend beállításához.",
+    "backgroundCaptureBatteryWarning": "Engedélyezd, hogy az Ollomi a háttérben fusson, így a felvétel kikapcsolt képernyővel is folytatódik.",
+    "phoneMicBackgroundUnavailable": "A háttérfelvétel nem érhető el. Tartsd nyitva az Ollomit felvétel közben."
 }

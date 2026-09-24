@@ -10855,5 +10855,7 @@
     "forgetDevice": "שכח מכשיר",
     "forgetDeviceConfirm": "להסיר מכשיר זה מהרשימה? השם וההגדרות יישכחו.",
     "backgroundModeRequired": "מצב רקע כבוי. התחברות מחדש אוטומטית כשהאפליקציה סגורה תלויה בכך.",
-    "priorityOrderHint": "גרור כדי לקבוע סדר עדיפות."
+    "priorityOrderHint": "גרור כדי לקבוע סדר עדיפות.",
+    "backgroundCaptureBatteryWarning": "אפשר ל-Ollomi לפעול ברקע כדי שההקלטה תמשיך גם כשהמסך כבוי.",
+    "phoneMicBackgroundUnavailable": "הקלטה ברקע אינה זמינה. השאר את Ollomi פתוח בזמן ההקלטה."
 }

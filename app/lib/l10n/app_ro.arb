@@ -3289,5 +3289,7 @@
     "forgetDevice": "Uită dispozitivul",
     "forgetDeviceConfirm": "Elimini acest dispozitiv din listă? Numele și setările vor fi uitate.",
     "backgroundModeRequired": "Modul de fundal este oprit. Reconectarea automată cu aplicația închisă depinde de el.",
-    "priorityOrderHint": "Trage pentru a ordona prioritatea."
+    "priorityOrderHint": "Trage pentru a ordona prioritatea.",
+    "backgroundCaptureBatteryWarning": "Permite ca Ollomi să ruleze în fundal pentru ca înregistrarea să continue cu ecranul stins.",
+    "phoneMicBackgroundUnavailable": "Înregistrarea în fundal nu este disponibilă. Ține Ollomi deschis în timpul înregistrării."
 }

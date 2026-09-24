@@ -391,6 +391,11 @@ class SharedPreferencesUtil {
 
   set backgroundModeEnabled(bool value) => saveBool('backgroundModeEnabled', value);
 
+  /// Whether the one-time "allow background recording" battery prompt was shown.
+  bool get backgroundCaptureBatteryPromptShown => getBool('backgroundCaptureBatteryPromptShown');
+
+  set backgroundCaptureBatteryPromptShown(bool value) => saveBool('backgroundCaptureBatteryPromptShown', value);
+
   // Batch (offline) capture mode: when on, BLE audio is stored to local .bin files
   // by the native layer instead of being transcribed in real time. Mutually
   // exclusive with the realtime transcription socket (see CaptureProvider).

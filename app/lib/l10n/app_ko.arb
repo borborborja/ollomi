@@ -3289,5 +3289,7 @@
     "forgetDevice": "Forget device",
     "forgetDeviceConfirm": "Remove this device from the known list? Its custom name and settings will be forgotten.",
     "backgroundModeRequired": "Background mode is off. Automatic reconnection while the app is closed needs it.",
-    "priorityOrderHint": "Drag to set the connection priority order."
+    "priorityOrderHint": "Drag to set the connection priority order.",
+    "backgroundCaptureBatteryWarning": "화면이 꺼져도 녹음이 계속되도록 Ollomi가 백그라운드에서 실행되도록 허용하세요.",
+    "phoneMicBackgroundUnavailable": "백그라운드 녹음을 사용할 수 없습니다. 녹음하는 동안 Ollomi를 열어 두세요."
 }

@@ -3289,5 +3289,7 @@
     "forgetDevice": "Glem enhet",
     "forgetDeviceConfirm": "Fjerne denne enheten fra listen? Navn og innstillinger glemmes.",
     "backgroundModeRequired": "Bakgrunnsmodus er av. Automatisk gjenkobling med lukket app avhenger av det.",
-    "priorityOrderHint": "Dra for å angi prioritetsrekkefølge."
+    "priorityOrderHint": "Dra for å angi prioritetsrekkefølge.",
+    "backgroundCaptureBatteryWarning": "Tillat at Ollomi kjører i bakgrunnen slik at opptaket fortsetter med skjermen av.",
+    "phoneMicBackgroundUnavailable": "Bakgrunnsopptak er ikke tilgjengelig. Hold Ollomi åpent mens du tar opp."
 }

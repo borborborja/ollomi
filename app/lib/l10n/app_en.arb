@@ -11890,5 +11890,9 @@
     "@forgetDevice": {"description": "Known-devices screen string."},
     "@forgetDeviceConfirm": {"description": "Known-devices screen string."},
     "@backgroundModeRequired": {"description": "Known-devices screen string."},
-    "@priorityOrderHint": {"description": "Known-devices screen string."}
+    "@priorityOrderHint": {"description": "Known-devices screen string."},
+    "backgroundCaptureBatteryWarning": "Allow Ollomi to run in the background so recording keeps working with the screen off.",
+    "phoneMicBackgroundUnavailable": "Background recording is unavailable. Keep Ollomi open while recording.",
+    "@backgroundCaptureBatteryWarning": {"description": "Android battery-optimization nudge shown once when a recording starts."},
+    "@phoneMicBackgroundUnavailable": {"description": "Warning shown when the phone-mic foreground service could not start, so background recording is not guaranteed."}
 }

@@ -10070,4 +10070,10 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Povoľ Ollomi bežať na pozadí, aby nahrávanie fungovalo aj s vypnutou obrazovkou.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Nahrávanie na pozadí nie je dostupné. Počas nahrávania nechaj Ollomi otvorené.';
 }

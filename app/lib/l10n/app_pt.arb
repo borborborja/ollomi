@@ -3325,5 +3325,7 @@
     "forgetDevice": "Esquecer dispositivo",
     "forgetDeviceConfirm": "Remover este dispositivo da lista? O nome personalizado e as configurações serão esquecidos.",
     "backgroundModeRequired": "O modo em segundo plano está desligado. A religação automática com a app fechada depende dele.",
-    "priorityOrderHint": "Arrasta para definir a ordem de prioridade."
+    "priorityOrderHint": "Arrasta para definir a ordem de prioridade.",
+    "backgroundCaptureBatteryWarning": "Permite que o Ollomi seja executado em segundo plano para que a gravação continue com o ecrã desligado.",
+    "phoneMicBackgroundUnavailable": "A gravação em segundo plano não está disponível. Mantém o Ollomi aberto durante a gravação."
 }

@@ -10855,5 +10855,7 @@
     "forgetDevice": "Forget device",
     "forgetDeviceConfirm": "Remove this device from the known list? Its custom name and settings will be forgotten.",
     "backgroundModeRequired": "Background mode is off. Automatic reconnection while the app is closed needs it.",
-    "priorityOrderHint": "Drag to set the connection priority order."
+    "priorityOrderHint": "Drag to set the connection priority order.",
+    "backgroundCaptureBatteryWarning": "اسکرین بند ہونے پر بھی ریکارڈنگ جاری رکھنے کے لیے Ollomi کو پس منظر میں چلانے کی اجازت دیں۔",
+    "phoneMicBackgroundUnavailable": "پس منظر میں ریکارڈنگ دستیاب نہیں۔ ریکارڈنگ کے دوران Ollomi کھلا رکھیں۔"
 }

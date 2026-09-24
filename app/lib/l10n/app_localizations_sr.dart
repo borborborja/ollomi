@@ -10094,4 +10094,10 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Дозволи Ollomi да ради у позадини како би снимање радило и са искљученим екраном.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Снимање у позадини није доступно. Држи Ollomi отворен током снимања.';
 }

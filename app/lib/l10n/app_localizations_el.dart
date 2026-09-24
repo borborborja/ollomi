@@ -10152,4 +10152,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Σύρετε για σειρά προτεραιότητας.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Επίτρεψε στο Ollomi να λειτουργεί στο παρασκήνιο ώστε η εγγραφή να συνεχίζεται με σβηστή οθόνη.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Η εγγραφή στο παρασκήνιο δεν είναι διαθέσιμη. Κράτησε το Ollomi ανοιχτό κατά την εγγραφή.';
 }

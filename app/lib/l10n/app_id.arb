@@ -3331,5 +3331,7 @@
     "forgetDevice": "Lupakan perangkat",
     "forgetDeviceConfirm": "Hapus perangkat ini dari daftar? Nama dan pengaturannya akan dilupakan.",
     "backgroundModeRequired": "Mode latar belakang mati. Penyambungan ulang otomatis saat app tertutup bergantung padanya.",
-    "priorityOrderHint": "Seret untuk mengatur prioritas."
+    "priorityOrderHint": "Seret untuk mengatur prioritas.",
+    "backgroundCaptureBatteryWarning": "Izinkan Ollomi berjalan di latar belakang agar rekaman tetap berjalan saat layar mati.",
+    "phoneMicBackgroundUnavailable": "Perekaman latar belakang tidak tersedia. Biarkan Ollomi terbuka saat merekam."
 }

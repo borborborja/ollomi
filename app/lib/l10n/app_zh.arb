@@ -3311,5 +3311,7 @@
     "forgetDevice": "忘记设备",
     "forgetDeviceConfirm": "从列表中移除此设备？自定义名称和设置将被遗忘。",
     "backgroundModeRequired": "后台模式已关闭。应用关闭时的自动重连依赖它。",
-    "priorityOrderHint": "拖动以设置连接优先级。"
+    "priorityOrderHint": "拖动以设置连接优先级。",
+    "backgroundCaptureBatteryWarning": "允许 Ollomi 在后台运行，以便在屏幕关闭时继续录音。",
+    "phoneMicBackgroundUnavailable": "后台录音不可用。录音期间请保持 Ollomi 打开。"
 }

@@ -3289,5 +3289,7 @@
     "forgetDevice": "Apparaat vergeten",
     "forgetDeviceConfirm": "Dit apparaat uit de lijst verwijderen? Naam en instellingen gaan verloren.",
     "backgroundModeRequired": "De achtergrondmodus staat uit. Automatisch opnieuw verbinden met gesloten app hangt daarvan af.",
-    "priorityOrderHint": "Sleep om de prioriteitsorde te wijzigen."
+    "priorityOrderHint": "Sleep om de prioriteitsorde te wijzigen.",
+    "backgroundCaptureBatteryWarning": "Sta Ollomi toe om op de achtergrond te draaien zodat opnemen blijft werken met het scherm uit.",
+    "phoneMicBackgroundUnavailable": "Achtergrondopname is niet beschikbaar. Houd Ollomi open tijdens het opnemen."
 }

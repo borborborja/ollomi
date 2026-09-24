@@ -10100,4 +10100,10 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Перетягніть, щоб задати пріоритет.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Дозвольте Ollomi працювати у фоні, щоб запис тривав із вимкненим екраном.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Фоновий запис недоступний. Тримайте Ollomi відкритим під час запису.';
 }

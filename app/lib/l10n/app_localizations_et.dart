@@ -10072,4 +10072,10 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Luba Ollomil taustal töötada, et salvestus jätkuks ka ekraani väljalülitamisel.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Taustasalvestus pole saadaval. Hoia salvestamise ajal Ollomi avatud.';
 }

@@ -3266,5 +3266,7 @@
     "forgetDevice": "Gerät entfernen",
     "forgetDeviceConfirm": "Dieses Gerät aus der Liste entfernen? Name und Einstellungen gehen verloren.",
     "backgroundModeRequired": "Der Hintergrundmodus ist aus. Die automatische Wiederverbindung bei geschlossener App hängt davon ab.",
-    "priorityOrderHint": "Ziehen, um die Verbindungspriorität zu ordnen."
+    "priorityOrderHint": "Ziehen, um die Verbindungspriorität zu ordnen.",
+    "backgroundCaptureBatteryWarning": "Erlaube Ollomi, im Hintergrund zu laufen, damit die Aufnahme bei ausgeschaltetem Bildschirm weiterläuft.",
+    "phoneMicBackgroundUnavailable": "Hintergrundaufnahme ist nicht verfügbar. Halte Ollomi während der Aufnahme geöffnet."
 }

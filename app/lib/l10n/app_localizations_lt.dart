@@ -10098,4 +10098,10 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'Leisk Ollomi veikti fone, kad įrašymas tęstųsi išjungus ekraną.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'Įrašymas fone nepasiekiamas. Įrašymo metu laikyk Ollomi atidarytą.';
 }

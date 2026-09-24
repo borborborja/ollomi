@@ -10084,4 +10084,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'স্ক্রিন বন্ধ থাকলেও রেকর্ডিং চালু রাখতে Ollomi-কে ব্যাকগ্রাউন্ডে চলার অনুমতি দিন।';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'ব্যাকগ্রাউন্ড রেকর্ডিং উপলভ্য নয়। রেকর্ড করার সময় Ollomi খোলা রাখুন।';
 }

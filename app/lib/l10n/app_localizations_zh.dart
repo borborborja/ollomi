@@ -9888,4 +9888,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get priorityOrderHint => '拖动以设置连接优先级。';
+
+  @override
+  String get backgroundCaptureBatteryWarning => '允许 Ollomi 在后台运行，以便在屏幕关闭时继续录音。';
+
+  @override
+  String get phoneMicBackgroundUnavailable => '后台录音不可用。录音期间请保持 Ollomi 打开。';
 }

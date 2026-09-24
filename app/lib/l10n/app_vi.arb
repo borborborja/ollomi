@@ -3294,5 +3294,7 @@
     "forgetDevice": "Forget device",
     "forgetDeviceConfirm": "Remove this device from the known list? Its custom name and settings will be forgotten.",
     "backgroundModeRequired": "Background mode is off. Automatic reconnection while the app is closed needs it.",
-    "priorityOrderHint": "Drag to set the connection priority order."
+    "priorityOrderHint": "Drag to set the connection priority order.",
+    "backgroundCaptureBatteryWarning": "Cho phép Ollomi chạy nền để ghi âm tiếp tục khi màn hình tắt.",
+    "phoneMicBackgroundUnavailable": "Ghi âm nền không khả dụng. Giữ Ollomi mở trong khi ghi âm."
 }

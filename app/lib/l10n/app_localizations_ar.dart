@@ -10019,4 +10019,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get priorityOrderHint => 'اسحب لترتيب أولوية الاتصال.';
+
+  @override
+  String get backgroundCaptureBatteryWarning => 'اسمح لـ Ollomi بالعمل في الخلفية حتى يستمر التسجيل مع إطفاء الشاشة.';
+
+  @override
+  String get phoneMicBackgroundUnavailable => 'التسجيل في الخلفية غير متاح. أبقِ Ollomi مفتوحًا أثناء التسجيل.';
 }
