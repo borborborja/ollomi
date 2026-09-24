@@ -5,6 +5,7 @@ import wave
 from selfhost.stt_filter import (
     filter_silent_hallucinations,
     is_hallucination,
+    is_vocabulary_echo,
     normalize_text,
     pcm_rms,
 )
@@ -92,3 +93,69 @@ def test_unreadable_file_is_returned_unchanged(tmp_path):
     path.write_bytes(b"not a wave file")
     segments = [{"start": 0, "end": 1, "text": "you", "speaker": None}]
     assert filter_silent_hallucinations(segments, path, 60) == segments
+
+
+def test_vocabulary_echo_detection():
+    vocabulary = ["ordis", "ElGiroscopi"]
+    # Exact and glued spellings are echoes.
+    assert is_vocabulary_echo("El Giroscopi", vocabulary)
+    assert is_vocabulary_echo("ElGiroscopi", vocabulary)
+    assert is_vocabulary_echo("ordis", vocabulary)
+    # Garbled model output from the live reports ("EGIRGORSOPI").
+    assert is_vocabulary_echo("EGIRGORSOPI", vocabulary)
+    assert is_vocabulary_echo("Elegiroscopi.com", vocabulary)
+    # Real speech that merely mentions a term is not an echo.
+    assert not is_vocabulary_echo("El desastre de Bermuda es", vocabulary)
+    assert not is_vocabulary_echo("hemos hablado con El Giroscopi sobre el proyecto", vocabulary)
+    assert not is_vocabulary_echo("ElGiroscopi", [])
+
+
+def test_quiet_vocabulary_echo_is_dropped(tmp_path):
+    path = tmp_path / "silence.wav"
+    _write_wav(path, seconds=1, amplitude=0)
+    segments = [{"start": 0, "end": 1, "text": "EGIRGORSOPI", "speaker": None}]
+    assert filter_silent_hallucinations(segments, path, 60, vocabulary=["ElGiroscopi"]) == []
+
+
+def test_loud_vocabulary_mention_is_kept(tmp_path):
+    # A clear, loud mention of the term must survive even though a quiet echo of
+    # the same text is dropped.
+    path = tmp_path / "loud.wav"
+    _write_wav(path, seconds=1, amplitude=12000)
+    segments = [{"start": 0, "end": 1, "text": "El Giroscopi", "speaker": None}]
+    kept = filter_silent_hallucinations(segments, path, 60, vocabulary=["ElGiroscopi"])
+    assert [s["text"] for s in kept] == ["El Giroscopi"]
+
+
+def test_no_speech_prob_drops_confident_artefacts(tmp_path):
+    # Whisper-family models return no_speech_prob per segment; when the model
+    # itself reports no speech, the text is an artefact even over loud audio.
+    path = tmp_path / "loud.wav"
+    _write_wav(path, seconds=1, amplitude=12000)
+    segments = [
+        {"start": 0, "end": 1, "text": "you", "speaker": None, "no_speech_prob": 0.9},
+        {"start": 0, "end": 1, "text": "EGIRGORSOPI", "speaker": None, "no_speech_prob": 0.6},
+        {"start": 0, "end": 1, "text": "gracias por venir", "speaker": None, "no_speech_prob": 0.2},
+    ]
+    kept = filter_silent_hallucinations(segments, path, 60, vocabulary=["ElGiroscopi"])
+    assert [s["text"] for s in kept] == ["gracias por venir"]
+
+
+def test_segment_order_is_preserved_after_filtering(tmp_path):
+    path = tmp_path / "mix.wav"
+    _write_wav(path, seconds=2, amplitude=0)
+    with wave.open(str(path), "wb") as clip:
+        clip.setnchannels(1)
+        clip.setsampwidth(2)
+        clip.setframerate(16000)
+        frames = bytearray(16000 * 2)  # first second silent
+        for index in range(16000):
+            frames += struct.pack("<h", int(12000 * math.sin(2 * math.pi * 220 * index / 16000)))
+        clip.writeframes(bytes(frames))
+    segments = [
+        {"start": 0, "end": 1, "text": "EGIRGORSOPI", "speaker": None},
+        {"start": 1, "end": 2, "text": "hola", "speaker": None},
+        {"start": 1, "end": 2, "text": "EGIRGORSOPI", "speaker": None},
+    ]
+    kept = filter_silent_hallucinations(segments, path, 60, vocabulary=["ElGiroscopi"])
+    assert [(s["start"], s["text"]) for s in kept] == [(1, "hola"), (1, "EGIRGORSOPI")]

@@ -152,7 +152,9 @@ def _stt_response(provider):
     return {"text": "ok", "segments": [{"start": 0.0, "end": 1.0, "text": "ok"}]}
 
 
-def test_openai_compatible_vocabulary_becomes_prompt(tmp_path, monkeypatch):
+def test_openai_compatible_vocabulary_is_not_sent_as_prompt(tmp_path, monkeypatch):
+    # A prompt makes Whisper-family models echo the vocabulary on noise/music;
+    # the user's vocabulary must not reach the adapter this way.
     from selfhost import audio
 
     calls = []
@@ -169,7 +171,8 @@ def test_openai_compatible_vocabulary_becomes_prompt(tmp_path, monkeypatch):
 
     audio.transcribe_file(profile, path, vocabulary=["Ollomi", "Micapum"])
 
-    assert calls[0][1]["data"]["prompt"] == "Ollomi, Micapum"
+    assert "prompt" not in calls[0][1]["data"]
+    assert "initial_prompt" not in calls[0][1]["data"]
 
 
 def test_openai_compatible_keeps_an_explicit_prompt(tmp_path, monkeypatch):
