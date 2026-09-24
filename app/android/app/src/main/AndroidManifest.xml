@@ -165,5 +165,55 @@
             android:stopWithTask="false"
             android:exported="false" />
 
+        <!-- Home-screen widgets: state is pushed by Dart; actions run natively when
+             the native writers are configured, else they open the app. -->
+        <receiver
+            android:name="com.friend.ios.widgets.RecordWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/record_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name="com.friend.ios.widgets.TranscriptWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/transcript_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name="com.friend.ios.widgets.DeviceWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/device_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name="com.friend.ios.widgets.CombinedWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/combined_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name="com.friend.ios.widgets.WidgetActionReceiver"
+            android:exported="false" />
+
     </application>
 </manifest>

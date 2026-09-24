@@ -26,6 +26,8 @@ import 'package:omi/services/integrations/asana_service.dart';
 import 'package:omi/services/integrations/clickup_service.dart';
 import 'package:omi/services/integrations/google_tasks_service.dart';
 import 'package:omi/services/notifications.dart';
+import 'package:omi/services/widgets/widget_bridge.dart';
+import 'package:omi/services/widgets/widget_coordinator.dart';
 import 'package:omi/services/integrations/todoist_service.dart';
 import 'package:omi/utils/alerts/app_snackbar.dart';
 import 'package:omi/utils/l10n_extensions.dart';
@@ -42,6 +44,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
+  late final WidgetCoordinator _widgetCoordinator = WidgetCoordinator(WidgetBridge());
   Future<void> initDeepLinks() async {
     _appLinks = AppLinks();
 
@@ -400,6 +403,7 @@ class _AppShellState extends State<AppShell> {
       // so getInitialLink() doesn't race against cache loading (#4763)
       if (mounted) {
         initDeepLinks();
+        unawaited(_widgetCoordinator.attach(context));
       }
     });
   }
@@ -444,6 +448,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _widgetCoordinator.dispose();
     _linkSubscription?.cancel();
     super.dispose();
   }

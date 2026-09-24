@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_record_description">Start and stop recordings</string>
+    <string name="widget_transcript_description">Latest transcript lines</string>
+    <string name="widget_device_description">Connected device and connect</string>
+    <string name="widget_combined_description">Recording, transcript and device</string>
+</resources>

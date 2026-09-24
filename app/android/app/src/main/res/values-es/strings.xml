@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_record_description">Iniciar y detener grabaciones</string>
+    <string name="widget_transcript_description">Últimas líneas de transcripción</string>
+    <string name="widget_device_description">Dispositivo conectado y conectar</string>
+    <string name="widget_combined_description">Grabación, transcripción y dispositivo</string>
+</resources>

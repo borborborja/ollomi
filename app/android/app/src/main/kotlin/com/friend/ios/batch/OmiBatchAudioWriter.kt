@@ -186,6 +186,7 @@ class OmiBatchAudioWriter(context: Context) : BaseBatchAudioWriter(context, TAG,
 
     private fun loadConfig(): Config? {
         if (!boolPref("batchModeEnabled", false)) return null
+        if (boolPref("widgetCapturePaused", false)) return null
         val dir = stringPref("batchAudioDir")
         if (dir.isEmpty()) return null
         val raw = stringPref("nativeBleStreamConfig")
