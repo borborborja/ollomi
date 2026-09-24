@@ -29,11 +29,7 @@ def decode_bin(source, destination, filename):
         raise HTTPException(422, "Unsupported WAL codec or filename")
     codec, rate, channels, frame_size = match.groups()
     rate, channels, frame_size = int(rate), int(channels), int(frame_size)
-    if (
-        rate not in {8000, 16000, 24000, 48000}
-        or channels not in {1, 2}
-        or frame_size > rate * 120 // 1000
-    ):
+    if rate not in {8000, 16000, 24000, 48000} or channels not in {1, 2} or frame_size > rate * 120 // 1000:
         raise HTTPException(422, "Invalid WAL audio parameters")
     if codec == "lc3_fs1030" and (rate, channels, frame_size) != (16000, 1, 160):
         raise HTTPException(422, "Invalid Friend Pendant WAL audio parameters")
@@ -54,9 +50,7 @@ def decode_bin(source, destination, filename):
         output.setframerate(rate)
         while prefix := input_file.read(4):
             if len(prefix) != 4:
-                raise HTTPException(
-                    422, "Truncated WAL length prefix; original must be kept"
-                )
+                raise HTTPException(422, "Truncated WAL length prefix; original must be kept")
             length = struct.unpack("<I", prefix)[0]
             if not 0 < length <= 65536:
                 raise HTTPException(422, "Invalid WAL frame length")
@@ -92,21 +86,20 @@ def manifest(body: dict, user=Depends(current_user)):
         "aud": "ollomi-sync",
         "exp": now() + timedelta(hours=1),
     }
-    return {
-        "manifest": jwt.encode(
-            claims, settings().secret_key.get_secret_value(), algorithm="HS256"
-        )
-    }
+    return {"manifest": jwt.encode(claims, settings().secret_key.get_secret_value(), algorithm="HS256")}
 
 
-def accept_files(uid, paths, names, receipt, conversation_id):
+def accept_files(uid, paths, names, receipt, conversation_id, language="auto"):
     receipt_id = str(uuid5(NAMESPACE_URL, f"ollomi:sync:{uid}:{receipt}"))
     with transaction() as db:
         previous = db.get(Record, receipt_id)
         if previous:
             return db.get(Job, previous.data["job_id"]).id
         if conversation_id:
-            owned(db, uid, conversation_id, "conversation")
+            existing = owned(db, uid, conversation_id, "conversation")
+            # A stamped conversation already carries the language its live
+            # segment was captured with; keep every part on the same language.
+            language = (existing.data or {}).get("language") or language
     file_id = ident()
     destination = storage_path(uid, file_id)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -155,6 +148,7 @@ def accept_files(uid, paths, names, receipt, conversation_id):
             uid,
             file_id,
             "omi-recording.wav",
+            language,
             conversation_id=conversation_id,
             receipt_id=receipt_id,
             file_count=len(paths),
@@ -198,7 +192,13 @@ async def sync_files(
                 paths.append(path)
                 names.append(name)
             job_id = await run_in_threadpool(
-                accept_files, user.id, paths, names, digest.hexdigest(), conversation_id
+                accept_files,
+                user.id,
+                paths,
+                names,
+                digest.hexdigest(),
+                conversation_id,
+                (user.preferences or {}).get("language") or "auto",
             )
             return {
                 "job_id": job_id,
@@ -227,12 +227,14 @@ def sync_status(job_id: str, user=Depends(current_user)):
             "processed_segments": count if success else 0,
             "successful_segments": count if success else 0,
             "failed_segments": count if job.status == "failed" else 0,
-            "result": {
-                "new_memories": [job.payload["conversation_id"]],
-                "updated_memories": [],
-                "total_segments": count,
-                "failed_segments": 0,
-            }
-            if success
-            else None,
+            "result": (
+                {
+                    "new_memories": [job.payload["conversation_id"]],
+                    "updated_memories": [],
+                    "total_segments": count,
+                    "failed_segments": 0,
+                }
+                if success
+                else None
+            ),
         }
