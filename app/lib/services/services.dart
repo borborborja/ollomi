@@ -278,6 +278,10 @@ abstract class IMicRecorderService {
     // NativeMicRecorderService emits it — capture resumes natively; Dart just
     // mirrors the state.
     Function(bool began)? onInterruption,
+    // Non-fatal native capture errors. Live failures normally stay internal
+    // (native self-heals); background-capability warnings such as
+    // foreground_service_failed are surfaced to the UI. Unused on flutter_sound.
+    Function(String code, String message)? onError,
   });
 
   // Transcribe Later capture: audio is opus-encoded and written to WAL-compatible
@@ -317,6 +321,7 @@ class MicRecorderBackgroundService implements IMicRecorderService {
     Function()? onInitializing,
     Function()? onStalled,
     Function(bool began)? onInterruption,
+    Function(String code, String message)? onError,
   }) async {
     await _runner.ensureRunning();
 
@@ -389,6 +394,7 @@ class MicRecorderService implements IMicRecorderService {
     Function()? onInitializing,
     Function()? onStalled,
     Function(bool began)? onInterruption,
+    Function(String code, String message)? onError,
   }) async {
     if (_status == RecorderServiceStatus.recording) {
       throw Exception("Recorder is recording, please stop it before start new recording.");

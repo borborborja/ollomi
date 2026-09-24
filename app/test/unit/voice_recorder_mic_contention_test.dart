@@ -24,6 +24,7 @@ class _ContendedMic implements IMicRecorderService {
     Function()? onInitializing,
     Function()? onStalled,
     Function(bool began)? onInterruption,
+    Function(String code, String message)? onError,
   }) async {
     startCalls++;
     if (failStart) {

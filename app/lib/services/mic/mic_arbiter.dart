@@ -42,6 +42,7 @@ class ArbitratedMic implements IMicRecorderService {
     Function()? onInitializing,
     Function()? onStalled,
     Function(bool began)? onInterruption,
+    Function(String code, String message)? onError,
   }) async {
     if (!_arbiter.tryAcquire(_owner)) {
       throw StateError('Microphone is busy (held by ${_arbiter.owner})');
@@ -59,6 +60,7 @@ class ArbitratedMic implements IMicRecorderService {
         onInitializing: onInitializing,
         onStalled: onStalled,
         onInterruption: onInterruption,
+        onError: onError,
       );
     } catch (e) {
       _arbiter.release(_owner);
