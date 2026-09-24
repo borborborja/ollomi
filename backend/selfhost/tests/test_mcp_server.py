@@ -12,8 +12,9 @@ def _mcp(client, token, payload):
 
 
 def test_personal_mcp_key_is_owner_scoped_and_revocable(client, admin, other):
-    conversation = client.post("/v1/conversations", headers=admin, json={}).json()["conversation"]
-    assert client.post("/v1/conversations", headers=other, json={}).status_code == 200
+    payload = {"transcript_segments": [{"id": "s1", "text": "hola", "start": 0, "end": 1}]}
+    conversation = client.post("/v1/conversations", headers=admin, json=payload).json()["conversation"]
+    assert client.post("/v1/conversations", headers=other, json=payload).status_code == 200
 
     created = client.post("/v1/mcp/keys", headers=admin, json={"name": "Claude Desktop"})
     assert created.status_code == 200
@@ -99,10 +100,13 @@ def test_mcp_oauth_pkce_flow_and_revocation(client):
     assert refreshed.status_code == 200
     refreshed_access = refreshed.json()["access_token"]
     assert refreshed_access != access_token
-    assert client.post(
-        "/oauth/token",
-        data={"grant_type": "refresh_token", "client_id": client_id, "refresh_token": refresh_token},
-    ).status_code == 400
+    assert (
+        client.post(
+            "/oauth/token",
+            data={"grant_type": "refresh_token", "client_id": client_id, "refresh_token": refresh_token},
+        ).status_code
+        == 400
+    )
 
     assert client.post("/oauth/revoke", data={"token": refreshed_access}).status_code == 200
     assert _mcp(client, refreshed_access, {"jsonrpc": "2.0", "id": 4, "method": "ping"}).status_code == 401
@@ -182,16 +186,19 @@ def test_mcp_oauth_code_requires_the_registered_client_and_valid_pkce(client):
         },
     )
     assert wrong_verifier.status_code == 400
-    assert client.post(
-        "/oauth/token",
-        data={
-            "grant_type": "authorization_code",
-            "client_id": first["client_id"],
-            "redirect_uri": "http://127.0.0.1:48231/callback",
-            "code": code,
-            "code_verifier": verifier,
-        },
-    ).status_code == 200
+    assert (
+        client.post(
+            "/oauth/token",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": first["client_id"],
+                "redirect_uri": "http://127.0.0.1:48231/callback",
+                "code": code,
+                "code_verifier": verifier,
+            },
+        ).status_code
+        == 200
+    )
 
 
 def test_password_reset_revokes_mcp_credentials(client, admin, other):

@@ -602,9 +602,9 @@ class CaptureController extends ChangeNotifier
         ? null
         : DeviceUtils.aliasFor(recordingDevice) ??
             (DeviceUtils.isOmiCv1(
-                    modelNumber: recordingDevice.modelNumber,
-                    deviceName: recordingDevice.name,
-                  )
+              modelNumber: recordingDevice.modelNumber,
+              deviceName: recordingDevice.name,
+            )
                 ? 'Omi CV1'
                 : recordingDevice.name.trim().isNotEmpty
                     ? recordingDevice.name.trim()
@@ -2158,8 +2158,7 @@ class CaptureController extends ChangeNotifier
   /// native file (seamless); the live socket asks the server to roll the
   /// segment over while audio keeps streaming.
   Future<void> splitCurrentConversation() async {
-    if (isPhoneMicBatchRecording ||
-        (_recordingDevice != null && SharedPreferencesUtil().batchModeEnabled)) {
+    if (isPhoneMicBatchRecording || (_recordingDevice != null && SharedPreferencesUtil().batchModeEnabled)) {
       startNewOfflineRecording();
       return;
     }
@@ -2320,7 +2319,30 @@ class CaptureController extends ChangeNotifier
   }
 
   Future refreshInProgressConversations() async {
+    // A resume or reconnect during an active capture must not replace the live
+    // transcript with the server's (still empty) in-progress view.
+    if (isCaptureActive && (segments.isNotEmpty || photos.isNotEmpty)) return;
     _loadInProgressConversation();
+  }
+
+  /// Durable live-caption segments for a capture session. Embedders that do not
+  /// persist live segments keep the safe empty default.
+  Future<List<TranscriptSegment>> loadLocalSegments(String sessionId) async => const [];
+
+  /// Segments of the most recent persisted session, used after an app restart
+  /// while a foreground capture may still be running.
+  Future<List<TranscriptSegment>> loadLatestLocalSegments() async => const [];
+
+  /// Drop the durable live-caption copy once its conversation is finalized.
+  Future<void> releaseLocalSegments(String sessionId) async {}
+
+  /// Merge a server or disk view into the live segment list without dropping
+  /// anything already transcribed, keyed by segment id.
+  @visibleForTesting
+  List<TranscriptSegment> mergeLiveSegments(List<TranscriptSegment> live, List<TranscriptSegment> incoming) {
+    final remainSegments = TranscriptSegment.updateSegments(live, incoming);
+    live.addAll(remainSegments);
+    return live;
   }
 
   bool get _canRefreshInProgressConversation =>
@@ -2438,8 +2460,20 @@ class CaptureController extends ChangeNotifier
   Future _loadInProgressConversation() async {
     var convos = await getConversations(statuses: [ConversationStatus.in_progress], limit: 1);
     _conversation = convos.isNotEmpty ? convos.first : null;
+
+    // The server's in-progress conversation stays empty until its durable job
+    // finishes, so merging (never replacing) is what keeps the live transcript
+    // on screen across a resume or a reconnect. The durable local copy restores
+    // segments the app received before it lost the process.
+    final sessionId = activeCaptureSessionId;
+    var localSegments = sessionId == null ? const <TranscriptSegment>[] : await loadLocalSegments(sessionId);
+    if (localSegments.isEmpty && _conversation != null) {
+      localSegments = await loadLatestLocalSegments();
+    }
+
     if (_conversation != null) {
-      segments = _conversation!.transcriptSegments;
+      final incoming = <TranscriptSegment>[...localSegments, ..._conversation!.transcriptSegments];
+      mergeLiveSegments(segments, incoming);
       // Merge server photos with locally-captured temp photos to avoid losing
       // photos that haven't been processed server-side yet.
       final serverPhotos = _conversation!.photos;
@@ -2453,9 +2487,13 @@ class CaptureController extends ChangeNotifier
         }
       }
       photos = mergedPhotos;
-    } else {
+    } else if (!isCaptureActive) {
+      // Only a capture-free environment may drop the list: clearing while a
+      // recording runs is exactly the bug that emptied the live screen.
       segments = [];
       photos = [];
+    } else if (segments.isEmpty && localSegments.isNotEmpty) {
+      segments = List.of(localSegments);
     }
     _segmentsPhotosVersion++; // Bump version so Selector rebuilds
     setHasTranscripts(segments.isNotEmpty);
@@ -2465,6 +2503,7 @@ class CaptureController extends ChangeNotifier
   @override
   void onMessageEventReceived(MessageEvent event) {
     if (event is ConversationProcessingStartedEvent) {
+      final finishedSessionId = activeCaptureSessionId;
       externalActions.addProcessingConversation(event.memory);
       _pendingAutoSyncSessionStart = _sessionStartSeconds;
       _pendingAutoSyncConversationId = event.memory.id;
@@ -2474,6 +2513,9 @@ class CaptureController extends ChangeNotifier
       _pendingFinalizeAndStamp = _finalizeAndStampSession(_sessionStartSeconds, event.memory.id);
 
       _resetStateVariables();
+      if (finishedSessionId != null) {
+        unawaited(releaseLocalSegments(finishedSessionId));
+      }
 
       // Start 30s fallback timer in case ConversationEvent never arrives (WS disconnect)
       _autoSyncFallbackTimer?.cancel();
@@ -2584,6 +2626,10 @@ class CaptureController extends ChangeNotifier
 
   Future<void> forceProcessingCurrentConversation() async {
     final sessionStart = _sessionStartSeconds;
+    // The conversation id the listen socket was opened with: the server uses it
+    // to finalize this exact conversation instead of creating an empty one.
+    final conversationId = _conversation?.id ?? activeRecordingId;
+    final finishedSessionId = activeCaptureSessionId;
 
     // Force-drain tail buffer before clearing state
     final phoneSync = _wal.getSyncs().phone;
@@ -2599,7 +2645,7 @@ class CaptureController extends ChangeNotifier
         status: ConversationStatus.processing,
       ),
     );
-    processInProgressConversation().then((result) async {
+    processInProgressConversation(conversationId: conversationId).then((result) async {
       if (result == null || result.conversation == null) {
         externalActions.removeProcessingConversation('0');
         return;
@@ -2607,6 +2653,9 @@ class CaptureController extends ChangeNotifier
       externalActions.removeProcessingConversation('0');
       result.conversation!.isNew = true;
       _processConversationCreated(result.conversation, result.messages);
+      if (finishedSessionId != null) {
+        unawaited(releaseLocalSegments(finishedSessionId));
+      }
 
       // Stamp WALs with conversation ID and auto-sync
       if (sessionStart > 0 && result.conversation != null) {

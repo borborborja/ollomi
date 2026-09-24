@@ -12,6 +12,12 @@ abstract class MessageEvent {
         return MessageServiceStatusEvent.fromJson(json);
       case 'memory_processing_started':
         return ConversationProcessingStartedEvent.fromJson(json);
+      case 'processing_started':
+        // The self-hosted listen socket reports the finalized segment with the
+        // conversation itself; older servers sent job fields only.
+        return json['memory'] is Map
+            ? ConversationProcessingStartedEvent.fromJson(json)
+            : UnknownEvent(eventType: 'processing_started');
       case 'memory_created':
         return ConversationEvent.fromJson(json);
       case 'last_memory':

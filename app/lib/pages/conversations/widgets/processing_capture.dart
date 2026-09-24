@@ -893,6 +893,30 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
     return widget.conversation.finishedAt ?? _now;
   }
 
+  /// A conversation whose processing gave up: the card becomes its retry
+  /// surface instead of showing an endless "still working" state.
+  bool get _failed => widget.conversation.status == ConversationStatus.failed;
+
+  bool get _isActiveProcessing =>
+      widget.conversation.status == ConversationStatus.processing ||
+      widget.conversation.status == ConversationStatus.merging;
+
+  int _secondsSinceProgressRefresh = 0;
+  static const int _progressRefreshEverySeconds = 15;
+
+  /// The card owns this poll: while a conversation is actively processing, ask
+  /// the provider to reconcile so the finished row moves into the list without
+  /// a manual refresh. Stopping with the widget keeps the timer lifecycle safe.
+  void _maybeRefreshProgress() {
+    if (_failed || !_isActiveProcessing) {
+      _secondsSinceProgressRefresh = 0;
+      return;
+    }
+    if (++_secondsSinceProgressRefresh < _progressRefreshEverySeconds) return;
+    _secondsSinceProgressRefresh = 0;
+    context.read<ConversationProvider>().forceRefreshConversations();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -901,6 +925,7 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
     _timeoutTicker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       _refreshTimeout();
+      _maybeRefreshProgress();
     });
   }
 
@@ -926,11 +951,12 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
   }
 
   void _refreshTimeout() {
-    final timedOut = isConversationProcessingTimedOut(
-      conversationId: widget.conversation.id,
-      processingStartedAt: _processingStartedAt,
-      now: _now,
-    );
+    final timedOut = _failed ||
+        isConversationProcessingTimedOut(
+          conversationId: widget.conversation.id,
+          processingStartedAt: _processingStartedAt,
+          now: _now,
+        );
     if (timedOut != _timedOut) {
       setState(() => _timedOut = timedOut);
     }
@@ -948,10 +974,12 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
         AppSnackbar.showSnackbarError(context.l10n.somethingWentWrong);
         return;
       }
-      if (updated.status == ConversationStatus.processing || updated.status == ConversationStatus.merging) {
+      if (updated.status == ConversationStatus.processing ||
+          updated.status == ConversationStatus.merging ||
+          updated.status == ConversationStatus.failed) {
         // Fresh attempt — give the new processing pass another full timeout window.
         _processingStartedAt = _now;
-        _timedOut = false;
+        _timedOut = updated.status == ConversationStatus.failed;
         provider.addProcessingConversation(updated);
       } else {
         provider.removeProcessingConversation(widget.conversation.id);
@@ -1004,7 +1032,7 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       child: Text(
-                        context.l10n.processing,
+                        _failed ? context.l10n.processingFailed : context.l10n.processing,
                         style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -1026,10 +1054,11 @@ class _ProcessingConversationWidgetState extends State<ProcessingConversationWid
                 ),
                 if (_timedOut) ...[
                   const SizedBox(height: 12),
-                  Text(
-                    context.l10n.processingTakingLonger,
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13, height: 1.3),
-                  ),
+                  if (!_failed)
+                    Text(
+                      context.l10n.processingTakingLonger,
+                      style: TextStyle(color: Colors.grey.shade400, fontSize: 13, height: 1.3),
+                    ),
                   const SizedBox(height: 10),
                   Align(
                     alignment: Alignment.centerLeft,

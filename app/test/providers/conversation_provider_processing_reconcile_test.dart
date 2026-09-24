@@ -50,7 +50,9 @@ void main() {
     expect(provider.processingConversations, isEmpty);
   });
 
-  test('refresh clears the processing card when lifecycle failed', () async {
+  test('refresh keeps a failed conversation as a retry card', () async {
+    // A failed conversation must stay visible: the card is the only surface
+    // that lets the user retry or delete the recording that failed to process.
     final provider = ConversationProvider(
       conversationListFetcher: () async => (items: <ServerConversation>[], ok: true),
       conversationLifecycleFetcher: (_) async =>
@@ -62,7 +64,8 @@ void main() {
 
     await provider.forceRefreshConversations();
 
-    expect(provider.processingConversations, isEmpty);
+    expect(provider.processingConversations.map((conversation) => conversation.id), ['c1']);
+    expect(provider.processingConversations.single.status, ConversationStatus.failed);
   });
 
   test('locked lifecycle detail is terminal and clears the processing card', () async {

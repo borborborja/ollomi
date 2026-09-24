@@ -26,12 +26,16 @@ import 'package:omi/utils/wal_sync_upload.dart';
 /// already finalized. Reporting it floods crash reporting with noise.
 bool isBenignInProgressConversationCreateStatus(int statusCode) => statusCode == 404;
 
-Future<CreateConversationResponse?> processInProgressConversation() async {
+Future<CreateConversationResponse?> processInProgressConversation({String? conversationId}) async {
+  // Naming the live conversation lets the server finalize exactly it. An
+  // unnamed request still means "process the in-progress conversation".
+  final body =
+      conversationId == null || conversationId.isEmpty ? <String, dynamic>{} : {'conversation_id': conversationId};
   var response = await makeApiCall(
     url: '${Env.apiBaseUrl}v1/conversations',
     headers: {},
     method: 'POST',
-    body: jsonEncode({}),
+    body: jsonEncode(body),
   );
   if (response == null) return null;
   Logger.debug('createConversationServer: ${response.body}');

@@ -14,12 +14,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-
 # Infrastructure credentials and paths are controlled by Compose, never by a
 # running web process. Every other Settings field can be overridden in the DB.
-INFRASTRUCTURE_FIELDS = {
-    "database_url", "redis_url", "data_dir", "secret_key", "typesense_url", "typesense_key"
-}
+INFRASTRUCTURE_FIELDS = {"database_url", "redis_url", "data_dir", "secret_key", "typesense_url", "typesense_key"}
 RESTART_FIELDS = {"seed_local_whisper", "seed_local_ollama", "stt_url", "ollama_url"}
 logger = logging.getLogger(__name__)
 
@@ -53,6 +50,9 @@ class Settings(BaseSettings):
     allow_private_http: bool = True
     audio_retention_days: int = 0  # 0 keeps original audio until explicit deletion
     job_lease_seconds: int = 900
+    # Media/enrichment jobs are retried by `recover` up to this many attempts
+    # before their conversation is marked failed instead of staying processing.
+    job_retry_attempts: int = 3
     mcp_enabled: bool = False
     mcp_public_url: str = ""
     mcp_access_minutes: int = 15
@@ -72,6 +72,8 @@ class Settings(BaseSettings):
             raise ValueError("OLLOMI_SECRET_KEY must contain at least 32 characters")
         if not 0 <= self.stt_silence_rms <= 32768:
             raise ValueError("OLLOMI_STT_SILENCE_RMS must be between 0 and 32768")
+        if not 1 <= self.job_retry_attempts <= 10:
+            raise ValueError("OLLOMI_JOB_RETRY_ATTEMPTS must be between 1 and 10")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         (self.data_dir / "files").mkdir(exist_ok=True)
         if self.mcp_enabled:
@@ -155,9 +157,7 @@ def _effective_settings(epoch: int) -> Settings:
     base = environment_settings()
     try:
         with _override_engine(base.database_url).connect() as connection:
-            rows = connection.execute(
-                text("SELECT key, value FROM instance WHERE key LIKE 'setting:%'")
-            ).all()
+            rows = connection.execute(text("SELECT key, value FROM instance WHERE key LIKE 'setting:%'")).all()
     except (OperationalError, ProgrammingError) as error:
         # Configuration can be inspected before migrations or while the DB is
         # unavailable. Requests needing durable state fail at their own DB call.
