@@ -1313,8 +1313,24 @@ void main() {
 
       expect(result, isTrue);
       expect(SharedPreferencesUtil().backgroundModeEnabled, isTrue);
-      // Batch mode is off by default, so nativeBleStreamingEnabled should be true
+      // Idle: the native streamer stays disarmed until a recording runs.
+      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
+      provider.dispose();
+    });
+
+    test('native Omi background audio is armed only while a recording is active', () async {
+      final provider = CaptureProvider();
+      provider.updateRecordingDevice(_device(id: 'AA:BB:CC:DD:EE:FF', type: DeviceType.omi));
+      await provider.setBackgroundModeEnabled(true);
+      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
+
+      provider.updateRecordingState(RecordingState.deviceRecord);
+      await pumpEventQueue();
       expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isTrue);
+
+      provider.updateRecordingState(RecordingState.stop);
+      await pumpEventQueue();
+      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
       provider.dispose();
     });
 
@@ -1342,7 +1358,8 @@ void main() {
 
       expect(result, isTrue);
       expect(SharedPreferencesUtil().backgroundModeEnabled, isTrue);
-      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isTrue);
+      // Idle: the streamer is released even though the foreground socket is ready.
+      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
       expect(SharedPreferencesUtil().getBool('nativeBleForegroundReady'), isTrue);
       provider.dispose();
     });
@@ -1355,7 +1372,8 @@ void main() {
 
       expect(result, isTrue);
       expect(SharedPreferencesUtil().backgroundModeEnabled, isTrue);
-      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isTrue);
+      // Idle: the native streamer stays disarmed until a recording runs.
+      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
       provider.dispose();
     });
 
@@ -1367,7 +1385,8 @@ void main() {
 
       expect(result, isTrue);
       expect(SharedPreferencesUtil().backgroundModeEnabled, isTrue);
-      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isTrue);
+      // Idle: the native streamer stays disarmed until a recording runs.
+      expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
       provider.dispose();
     });
 
@@ -1506,6 +1525,8 @@ void main() {
     test('enable background, then enable batch: streaming should be false', () async {
       final provider = CaptureProvider();
       provider.updateRecordingDevice(_device(id: 'AA:BB:CC:DD:EE:FF', type: DeviceType.omi));
+      provider.updateRecordingState(RecordingState.deviceRecord);
+      await pumpEventQueue();
 
       await provider.setBackgroundModeEnabled(true);
       expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isTrue);

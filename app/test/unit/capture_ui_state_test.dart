@@ -56,6 +56,28 @@ void main() {
     ConnectivityPlatform.instance = _OfflineConnectivityPlatform();
   });
 
+  test('background streaming is armed only while a recording is active', () async {
+    SharedPreferencesUtil().batchModeEnabled = false;
+    SharedPreferencesUtil().backgroundModeEnabled = true;
+    await SharedPreferencesUtil().saveBool('nativeBleStreamingEnabled', false);
+    final provider = CaptureProvider();
+    addTearDown(provider.dispose);
+    provider.updateRecordingDevice(BtDevice(id: 'AA:BB:CC:DD:EE:FF', name: 'Omi', type: DeviceType.omi, rssi: -40));
+
+    // Idle: a connected device with Background Mode on must stay disarmed.
+    await pumpEventQueue();
+    expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
+
+    provider.updateRecordingState(RecordingState.deviceRecord);
+    await pumpEventQueue();
+    expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isTrue);
+
+    provider.updateRecordingState(RecordingState.stop);
+    await pumpEventQueue();
+    expect(SharedPreferencesUtil().getBool('nativeBleStreamingEnabled'), isFalse);
+    SharedPreferencesUtil().backgroundModeEnabled = false;
+  });
+
   test('decodes CV1 service status and exposes truthful capture stages', () {
     final provider = CaptureProvider();
     addTearDown(provider.dispose);

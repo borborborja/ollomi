@@ -192,6 +192,7 @@ jobs:
             test/unit/known_device_policy_test.dart \
             test/unit/background_capture_guard_test.dart \
             test/unit/native_mic_recorder_service_test.dart \
+            test/unit/notification_event_filter_test.dart \
             test/widgets/connect_device_get_omi_test.dart \
             test/widgets/authenticated_product_scope_test.dart \
             test/widgets/record_options_sheet_icon_test.dart \
