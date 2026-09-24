@@ -103,7 +103,8 @@ void main() {
 
     receive({'status': 'audio_received', 'source': 'omi', 'audio_level': 0.35});
     expect(provider.captureUiState.stage, CaptureUiStage.receivingAudio);
-    expect(provider.captureUiState.audioLevel, 0.35);
+    // The meter applies its perceptual curve before the UI reads the level.
+    expect(provider.captureUiState.audioLevel, CaptureController.normalizeAudioLevel(0.35));
     expect(provider.captureUiState.serverSource, 'omi');
 
     receive({'status': 'transcribing', 'source': 'omi'});
