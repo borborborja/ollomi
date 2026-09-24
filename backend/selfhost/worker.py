@@ -8,7 +8,7 @@ import tempfile
 from datetime import timedelta
 
 from celery import Celery
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from selfhost.audio import probe_audio, storage_path, transcribe_file
 from selfhost.config import settings
@@ -279,12 +279,29 @@ def finish_conversation(job, segments):
                 }
         live.status, live.progress, live.lease_token = "completed", 100, None
         live.result = {"conversation_id": row.id}
-        emit(
-            db,
-            job.user_id,
-            "conversation_completed",
-            {"id": row.id, "title": result["title"], "job_id": job.id},
+        # One conversation, one completion event: each audio part finishes on
+        # its own job, and explicit reprocessing must not re-notify. Only the
+        # last pending part emits, and only when the conversation actually
+        # heard speech — empty sessions must not surface as notifications.
+        pending_parts = db.scalar(
+            select(func.count())
+            .select_from(Job)
+            .where(
+                Job.kind == "audio",
+                Job.id != job.id,
+                Job.status.in_(["queued", "running"]),
+                Job.payload["conversation_id"].as_string() == row.id,
+            )
         )
+        has_speech = any((segment.get("text") or "").strip() for segment in segments)
+        if not pending_parts and has_speech and not row.data.get("completion_notified"):
+            row.data = {**row.data, "completion_notified": True}
+            emit(
+                db,
+                job.user_id,
+                "conversation_completed",
+                {"id": row.id, "title": result["title"], "job_id": job.id},
+            )
 
 
 def merge_audio_part(data, file_id, segments, duration):
@@ -483,6 +500,25 @@ def recover():
         )
         for job in expired:
             job.status, job.lease_token = "queued", None
+        # Abandoned listen sessions leave their conversation in_progress with no
+        # audio at all (a client that connected and vanished). Delete those so
+        # they cannot resurface as empty conversations or notifications.
+        stale = list(
+            db.scalars(
+                select(Record)
+                .where(
+                    Record.kind == "conversation",
+                    Record.data["status"].as_string() == "in_progress",
+                    Record.updated_at < now() - timedelta(hours=12),
+                )
+                .with_for_update(skip_locked=True)
+            )
+        )
+        for row in stale:
+            data = row.data or {}
+            if data.get("file_ids") or data.get("audio_files") or data.get("transcript_segments") or data.get("photos"):
+                continue
+            db.delete(row)
         ids = list(db.scalars(select(Job.id).where(Job.status == "queued").order_by(Job.created_at).limit(100)))
     for job_id in ids:
         run_job.delay(job_id)
