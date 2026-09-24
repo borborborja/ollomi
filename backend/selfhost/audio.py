@@ -100,6 +100,25 @@ def enqueue_audio(
         else:
             db.add(row)
         file_row.data = {**file_row.data, "conversation_id": row.id}
+        # Publish the original part for immediate playback: the app shows a draft
+        # conversation as soon as capture stops, and the signed-url endpoint only
+        # exposes parts listed here. `process_audio` replaces this entry with the
+        # probed duration once transcription runs.
+        row.data = {
+            **row.data,
+            "audio_files": [
+                *[a for a in row.data.get("audio_files", []) if a.get("id") != file_id],
+                {
+                    "id": file_id,
+                    "uid": uid,
+                    "conversation_id": row.id,
+                    "duration": 0,
+                    "chunk_timestamps": [0.0],
+                    "provider": "local",
+                    "started_at": row.data.get("started_at"),
+                },
+            ],
+        }
         # Snapshot the user's choice when audio is admitted. A later settings
         # change must not rewrite the retention contract of a queued or running
         # recording.
