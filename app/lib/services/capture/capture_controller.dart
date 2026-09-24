@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_provider_utilities/flutter_provider_utilities.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:omi/backend/http/api/conversations.dart';
@@ -264,8 +265,17 @@ class CaptureController extends ChangeNotifier
 
   static Future<void> _startAndroidLocationForegroundTask() async {
     if (!Platform.isAndroid) return;
+    // The task is a location foreground service: without the permission the OS
+    // rejects the start, so only run it when location is actually available.
+    final permission = await Geolocator.checkPermission();
+    if (permission != LocationPermission.always && permission != LocationPermission.whileInUse) return;
     await ForegroundUtil.initializeForegroundService();
     await ForegroundUtil.startForegroundTask();
+  }
+
+  static Future<void> _stopAndroidLocationForegroundTask() async {
+    if (!Platform.isAndroid) return;
+    await ForegroundUtil.stopForegroundTask();
   }
 
   // True while the audio session is interrupted (phone call, Siri, alarm).
@@ -1467,13 +1477,20 @@ class CaptureController extends ChangeNotifier
   /// background streaming lands with the native drain engine follow-up.
   bool get hasNativeBackgroundStreamRoute => hasNativeBleAudioRoute && _recordingDevice?.type != DeviceType.limitless;
 
+  /// Background Mode arms the native streamer only for a recording that is
+  /// actually running: the pref survives an app close so a live session keeps
+  /// streaming, but an idle app with a connected device must never open server
+  /// sessions on its own (that yielded empty "no speech" conversations).
   bool get _shouldEnableNativeBackgroundStreaming =>
       !SharedPreferencesUtil().batchModeEnabled &&
       hasNativeBackgroundStreamRoute &&
-      SharedPreferencesUtil().backgroundModeEnabled;
+      SharedPreferencesUtil().backgroundModeEnabled &&
+      isCaptureActive;
 
   Future<void> _reconcileNativeBackgroundStreamingPolicy() async {
-    await SharedPreferencesUtil().saveBool('nativeBleStreamingEnabled', _shouldEnableNativeBackgroundStreaming);
+    final enabled = _shouldEnableNativeBackgroundStreaming;
+    if (SharedPreferencesUtil().getBool('nativeBleStreamingEnabled') == enabled) return;
+    await SharedPreferencesUtil().saveBool('nativeBleStreamingEnabled', enabled);
   }
 
   /// Enable or disable Background Mode through CaptureProvider so the provider
@@ -1670,7 +1687,14 @@ class CaptureController extends ChangeNotifier
     recordingState = state;
     if (state == RecordingState.record) {
       unawaited(_warnAboutBatteryOptimizationsOnce());
+      // The location foreground task exists to serve an active capture; it must
+      // not show a notification while the app merely sits idle.
+      unawaited(_startAndroidLocationForegroundTask());
+    } else if (state == RecordingState.stop) {
+      unawaited(_stopAndroidLocationForegroundTask());
     }
+    // Background Mode's native streamer is armed/released with the session.
+    unawaited(_reconcileNativeBackgroundStreamingPolicy());
     notifyListeners();
   }
 

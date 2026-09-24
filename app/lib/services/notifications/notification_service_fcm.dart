@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:omi/backend/http/shared.dart';
 import 'package:omi/backend/schema/message.dart';
 import 'package:omi/services/auth_service.dart';
+import 'package:omi/services/notifications/notification_event_filter.dart';
 import 'package:omi/services/notifications/notification_interface.dart';
 import 'package:omi/utils/notification_channel_strings.dart';
 
@@ -50,17 +51,26 @@ class LocalNotificationService implements NotificationInterface {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = 'ollomi.events.$owner';
+      final notifiedKey = 'ollomi.events.notified.$owner';
       final cursor = prefs.getInt(key) ?? 0;
+      final notified = (prefs.getStringList(notifiedKey) ?? const <String>[]).toSet();
       final response = await makeApiCall(url: '${auth.serverUrl}v1/events?after=$cursor', headers: {}, method: 'GET', body: '');
       if (response == null || response.statusCode != 200 || owner != '${auth.instanceId}:${auth.currentUser?.uid}') return;
       final result = jsonDecode(response.body);
       for (final event in result['events']) {
-        if (['action_item_reminder', 'conversation_completed'].contains(event['type'])) {
-          await showNotification(id: event['id'] % 2147483647, title: 'Ollomi',
-            body: event['data']['title'] ?? '', payload: {'conversation_id': event['data']['id']});
-        }
+        final type = event['type'] as String? ?? '';
+        if (!['action_item_reminder', 'conversation_completed'].contains(type)) continue;
+        final data = (event['data'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+        if (!NotificationEventFilter.shouldNotify(type: type, data: data, notifiedConversationIds: notified)) continue;
+        await showNotification(id: event['id'] % 2147483647, title: 'Ollomi',
+          body: data['title'] ?? '', payload: {'conversation_id': data['id']});
+        if (type == 'conversation_completed') notified.add(data['id'] as String);
       }
       await prefs.setInt(key, result['cursor']);
+      if (notified.isNotEmpty) {
+        final ids = notified.toList();
+        await prefs.setStringList(notifiedKey, ids.length > 200 ? ids.sublist(ids.length - 200) : ids);
+      }
     } catch (_) {
       // Preserve the cursor until delivery succeeds.
     } finally { _polling = false; }

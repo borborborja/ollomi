@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -396,20 +395,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, Ticker
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Android needs a foreground service to keep capture/location work alive.
-      // On iOS this plugin boots a second Flutter engine; conversation location
-      // is captured directly at recording start and first transcript instead.
-      if (Platform.isAndroid) {
-        final permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
-          await ForegroundUtil.initializeForegroundService();
-          await ForegroundUtil.startForegroundTask();
-        }
-      } else if (Platform.isIOS) {
-        // Stop a headless foreground-task engine persisted by an older build.
-        // Native BLE/audio background modes continue to own active capture.
-        await ForegroundUtil.stopForegroundTask();
-      }
+      // The location foreground task is started by CaptureProvider when a
+      // capture begins. Stop any task persisted by an older build (Android) or
+      // a headless engine (iOS) so an idle app never shows its notification.
+      await ForegroundUtil.stopForegroundTask();
       if (mounted) {
         await Provider.of<HomeProvider>(context, listen: false).setUserPeople();
       }
