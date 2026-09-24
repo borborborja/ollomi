@@ -42,6 +42,35 @@ class _RecordingCaptureProvider extends CaptureProvider {
     stopCalls++;
   }
 }
+
+class _ConnectedDeviceProvider extends _DisconnectedDeviceProvider {
+  _ConnectedDeviceProvider(this._device);
+
+  final BtDevice _device;
+
+  @override
+  BtDevice? get connectedDevice => _device;
+}
+
+class _SourceTrackingCaptureProvider extends CaptureProvider {
+  BtDevice? deviceStarted;
+  bool phoneStarted = false;
+
+  // Keeps the phone-mic start path from pushing the capturing page in tests.
+  @override
+  bool get isPhoneMicBatchRecording => true;
+
+  @override
+  Future<void> streamDeviceRecording({BtDevice? device}) async {
+    deviceStarted = device;
+  }
+
+  @override
+  Future<void> streamRecording() async {
+    phoneStarted = true;
+  }
+}
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -49,12 +78,16 @@ void main() {
     await SharedPreferencesUtil.init();
   });
 
-  Future<void> pumpActiveButton(WidgetTester tester, CaptureProvider captureProvider) async {
+  Future<void> pumpActiveButton(
+    WidgetTester tester,
+    CaptureProvider captureProvider, {
+    DeviceProvider? deviceProvider,
+  }) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider<CaptureProvider>.value(value: captureProvider),
-          ChangeNotifierProvider<DeviceProvider>.value(value: _DisconnectedDeviceProvider()),
+          ChangeNotifierProvider<DeviceProvider>.value(value: deviceProvider ?? _DisconnectedDeviceProvider()),
         ],
         child: MaterialApp(
           localizationsDelegates: const [
@@ -80,6 +113,34 @@ void main() {
     expect(find.byKey(const Key('home-record-button-surface')), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byIcon(Icons.stop_rounded), findsNothing);
+  });
+
+  testWidgets('idle tap records from the connected device', (tester) async {
+    SharedPreferencesUtil().continuousCaptureEnabled = false;
+    final captureProvider = _SourceTrackingCaptureProvider();
+    addTearDown(captureProvider.dispose);
+    final device = BtDevice(id: 'omi-1', name: 'Omi', type: DeviceType.omi, rssi: -40);
+    await pumpActiveButton(tester, captureProvider, deviceProvider: _ConnectedDeviceProvider(device));
+
+    await tester.tap(find.byKey(const Key('home-record-button-surface')));
+    await tester.pump();
+
+    expect(captureProvider.deviceStarted?.id, device.id);
+    expect(captureProvider.phoneStarted, isFalse);
+  });
+
+  testWidgets('idle tap falls back to the phone mic without a device', (tester) async {
+    SharedPreferencesUtil().continuousCaptureEnabled = false;
+    SharedPreferencesUtil().phoneBatchAuto = false;
+    final captureProvider = _SourceTrackingCaptureProvider();
+    addTearDown(captureProvider.dispose);
+    await pumpActiveButton(tester, captureProvider);
+
+    await tester.tap(find.byKey(const Key('home-record-button-surface')));
+    await tester.pump();
+
+    expect(captureProvider.phoneStarted, isTrue);
+    expect(captureProvider.deviceStarted, isNull);
   });
 
   testWidgets('recording turns the button into a finish action for every legacy behavior', (tester) async {

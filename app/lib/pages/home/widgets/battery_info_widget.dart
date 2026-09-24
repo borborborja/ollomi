@@ -212,9 +212,10 @@ class _BatteryInfoWidgetState extends State<BatteryInfoWidget> {
   }
 }
 
-/// Circular phone-mic record button shown to the right of the home chat bar.
-/// Tap starts a one-off capture; while one is running it turns into a red
-/// finish button, and long-press (idle) opens the record options sheet.
+/// Circular record button shown to the right of the home chat bar. Tap starts a
+/// one-off capture — from the connected device when there is one, otherwise the
+/// phone mic. While one is running it turns into a red finish button, and
+/// long-press (idle) opens the record options sheet.
 class HomeRecordButton extends StatefulWidget {
   const HomeRecordButton({super.key});
 
@@ -325,6 +326,7 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
 
   @override
   Widget build(BuildContext context) {
+    final connectedDevice = context.watch<DeviceProvider>().connectedDevice;
     return Consumer<CaptureProvider>(
       builder: (context, captureProvider, _) {
         // Continuous mode is owned by the top-bar switch: the one-off button
@@ -342,6 +344,11 @@ class _HomeRecordButtonState extends State<HomeRecordButton> {
               // Same contract as the capture bar's finish action.
               HapticFeedback.mediumImpact();
               captureProvider.stopCurrentCapture();
+            } else if (connectedDevice != null) {
+              // Recording from the connected device is the expectation when the
+              // user is wearing an Omi; the long-press sheet still offers the
+              // phone mic and the other sources.
+              _startDeviceRecording(context, connectedDevice);
             } else {
               _startRecording(context);
             }

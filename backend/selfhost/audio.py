@@ -275,9 +275,13 @@ def transcribe_file(profile, path, language="auto", diarize=True, vocabulary=Non
             "response_format": response_format,
             **options,
         }
-        # Whisper-style endpoints accept a prompt as recognition context.
-        if vocabulary and not any(key in data for key in ("prompt", "initial_prompt")):
-            data["prompt"] = ", ".join(vocabulary)
+        # Whisper-family endpoints treat `prompt` as recognition context, but a
+        # model that hears noise/music emits the prompt verbatim (the
+        # "Elegiroscopi.com" / "EGIRGORSOPI" class of artefacts). The user's
+        # vocabulary is therefore never injected here: it reaches providers only
+        # through their native biasing APIs (Deepgram keywords, AssemblyAI
+        # word_boost, Gemini custom_vocabulary) or an explicit admin-configured
+        # prompt/hotwords in provider OPTIONS.
         if language != "auto":
             data["language"] = language
         if not candidate.get("external"):
@@ -493,7 +497,7 @@ def transcribe_file(profile, path, language="auto", diarize=True, vocabulary=Non
                 "speaker": None,
             }
         ]
-    segments = filter_silent_hallucinations(segments, path, settings().stt_silence_rms)
+    segments = filter_silent_hallucinations(segments, path, settings().stt_silence_rms, vocabulary=vocabulary)
     return [
         {
             "id": ident(),
