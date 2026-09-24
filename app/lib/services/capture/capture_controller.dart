@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:omi/utils/platform/platform_manager.dart';
 import 'package:flutter/foundation.dart';
@@ -173,8 +174,18 @@ class CaptureController extends ChangeNotifier
   List<MessageEvent> get transcriptionServiceStatuses => _transcriptionServiceStatuses;
   MessageServiceStatusEvent? _terminalTranscriptionFailure;
   MessageServiceStatusEvent? get terminalTranscriptionFailure => _terminalTranscriptionFailure;
-  double? _backendAudioLevel;
   String? _backendAudioSource;
+
+  // Smoothed level for the capture meter. Instant attack follows a
+  // measurement; a light ticker releases it between them so the 1 Hz server
+  // level for BLE devices still moves naturally.
+  double? _displayAudioLevel;
+  double _meterLevel = 0.0;
+  Timer? _audioLevelMeterTimer;
+  DateTime? _lastAudioLevelPushAt;
+  static const double _audioLevelMeterFloor = 0.012;
+  static const double _audioLevelReleasePerTick = 0.78;
+  static const Duration _audioLevelPushInterval = Duration(milliseconds: 80);
 
   // When custom STT is configured, its polling socket keeps
   // buffering audio locally and retrying instead of tearing the transcription
@@ -330,6 +341,7 @@ class CaptureController extends ChangeNotifier
     _phoneMicWalActive = true;
     await ServiceManager.instance().phoneMic.start(
           onByteReceived: (bytes) {
+            _pushLocalPcmLevel(bytes);
             final frames = _activeSource?.processBytes(bytes) ?? [];
             for (final frame in frames) {
               _wal.getSyncs().phone.onFrameCaptured(frame);
@@ -628,7 +640,7 @@ class CaptureController extends ChangeNotifier
         stage: CaptureUiStage.transcriptionUnavailable,
         source: source,
         deviceName: deviceName,
-        audioLevel: _backendAudioLevel,
+        audioLevel: _displayAudioLevel,
         serverSource: _backendAudioSource,
       );
     }
@@ -637,7 +649,7 @@ class CaptureController extends ChangeNotifier
         stage: CaptureUiStage.reconnecting,
         source: source,
         deviceName: deviceName,
-        audioLevel: _backendAudioLevel,
+        audioLevel: _displayAudioLevel,
         serverSource: _backendAudioSource,
       );
     }
@@ -656,10 +668,91 @@ class CaptureController extends ChangeNotifier
       stage: stage,
       source: source,
       deviceName: deviceName,
-      audioLevel: _backendAudioLevel,
+      audioLevel: _displayAudioLevel,
       serverSource: _backendAudioSource,
     );
   }
+
+  /// Perceptual curve on a raw RMS sample so speech looks lively and quiet
+  /// room tone stays low.
+  @visibleForTesting
+  static double normalizeAudioLevel(double raw) {
+    return math.sqrt(raw.clamp(0.0, 1.0));
+  }
+
+  /// RMS of a PCM16 mono little-endian buffer, normalized to 0..1.
+  @visibleForTesting
+  static double pcm16Level(List<int> bytes) {
+    if (bytes.length < 2) return 0;
+    var sum = 0.0;
+    var count = 0;
+    for (var i = 0; i + 1 < bytes.length; i += 2) {
+      var sample = bytes[i] | (bytes[i + 1] << 8);
+      if (sample >= 0x8000) sample -= 0x10000;
+      sum += sample * sample;
+      count++;
+    }
+    if (count == 0) return 0;
+    return (math.sqrt(sum / count) / 32768.0).clamp(0.0, 1.0);
+  }
+
+  void _pushLocalPcmLevel(List<int> bytes) {
+    if (!isCaptureActive || _isPaused || _micInterrupted) return;
+    _pushAudioLevel(pcm16Level(bytes));
+  }
+
+  /// Feed a raw level (0..1) into the meter. New peaks apply immediately;
+  /// notifications are throttled so a 100 Hz mic stream does not rebuild the UI
+  /// at the same rate.
+  void _pushAudioLevel(double raw) {
+    final target = normalizeAudioLevel(raw);
+    if (target > _meterLevel) {
+      _meterLevel = target;
+    }
+    _ensureAudioLevelMeterTicker();
+    final now = DateTime.now();
+    final last = _lastAudioLevelPushAt;
+    if (last != null && now.difference(last) < _audioLevelPushInterval && _displayAudioLevel != null) {
+      return;
+    }
+    _lastAudioLevelPushAt = now;
+    _displayAudioLevel = _meterLevel;
+    notifyListeners();
+  }
+
+  void _ensureAudioLevelMeterTicker() {
+    if (_audioLevelMeterTimer?.isActive ?? false) return;
+    _audioLevelMeterTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
+      final next = _meterLevel * _audioLevelReleasePerTick;
+      if (next <= _audioLevelMeterFloor) {
+        _meterLevel = 0.0;
+        _audioLevelMeterTimer?.cancel();
+        _audioLevelMeterTimer = null;
+        if (_displayAudioLevel != 0.0) {
+          _displayAudioLevel = 0.0;
+          notifyListeners();
+        }
+        return;
+      }
+      _meterLevel = next;
+      _displayAudioLevel = next;
+      notifyListeners();
+    });
+  }
+
+  void _resetAudioLevelMeter() {
+    _audioLevelMeterTimer?.cancel();
+    _audioLevelMeterTimer = null;
+    _lastAudioLevelPushAt = null;
+    _meterLevel = 0.0;
+    _displayAudioLevel = null;
+  }
+
+  @visibleForTesting
+  double? get displayAudioLevelForTesting => _displayAudioLevel;
+
+  @visibleForTesting
+  void pushAudioLevelForTesting(double level) => _pushAudioLevel(level);
 
   void setHasTranscripts(bool value) {
     hasTranscripts = value;
@@ -1203,6 +1296,12 @@ class CaptureController extends ChangeNotifier
         // Track bytes received from BLE
         _metrics.addBleBytes(snapshot.length);
 
+        // PCM devices expose the raw samples locally; encoded codecs (Opus,
+        // LC3) fall back to the server's decoded level instead.
+        if (codec == BleAudioCodec.pcm16 && snapshot.length > BleDeviceSource.headerSize) {
+          _pushLocalPcmLevel(snapshot.sublist(BleDeviceSource.headerSize));
+        }
+
         // Local storage syncs. In batch mode the native layer owns writing the
         // .bin files, so the Dart WAL writer must stay off to avoid double-writes.
         var checkWalSupported = !SharedPreferencesUtil().batchModeEnabled &&
@@ -1622,7 +1721,7 @@ class CaptureController extends ChangeNotifier
     hasTranscripts = false;
     _transcriptionServiceStatuses = [];
     _terminalTranscriptionFailure = null;
-    _backendAudioLevel = null;
+    _resetAudioLevelMeter();
     _backendAudioSource = null;
     suggestionsBySegmentId = {};
     taggingSegmentIds = [];
@@ -1839,6 +1938,7 @@ class CaptureController extends ChangeNotifier
     try {
       await ServiceManager.instance().phoneMic.start(
             onByteReceived: (bytes) {
+              _pushLocalPcmLevel(bytes);
               // Process through AudioSource for frame splitting and sync key generation
               final frames = _activeSource?.processBytes(bytes) ?? [];
 
@@ -2171,7 +2271,7 @@ class CaptureController extends ChangeNotifier
   void onClosed([int? closeCode]) {
     _transcriptionServiceStatuses = [];
     _transcriptServiceReady = false;
-    _backendAudioLevel = null;
+    _resetAudioLevelMeter();
 
     if (closeCode == 4002) {
       externalActions.markAsOutOfCreditsAndRefresh();
@@ -2299,7 +2399,7 @@ class CaptureController extends ChangeNotifier
   void onError(Object err) {
     _transcriptionServiceStatuses = [];
     _transcriptServiceReady = false;
-    _backendAudioLevel = null;
+    _resetAudioLevelMeter();
 
     notifyListeners();
     _startKeepAliveServices();
@@ -2587,10 +2687,12 @@ class CaptureController extends ChangeNotifier
         _terminalTranscriptionFailure = event;
       } else if (event.status == 'ready') {
         _terminalTranscriptionFailure = null;
-        _backendAudioLevel = null;
+        _resetAudioLevelMeter();
       }
 
-      if (event.audioLevel != null) _backendAudioLevel = event.audioLevel;
+      if (event.audioLevel != null) {
+        _pushAudioLevel(event.audioLevel!);
+      }
       if (event.source != null) _backendAudioSource = event.source;
 
       _transcriptionServiceStatuses.add(event);

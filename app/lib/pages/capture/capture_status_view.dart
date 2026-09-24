@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:omi/pages/capture/widgets/capture_level_meter.dart';
 import 'package:omi/services/capture/capture_controller.dart';
 import 'package:omi/utils/l10n_extensions.dart';
 
@@ -94,18 +95,9 @@ class CaptureStatusView extends StatelessWidget {
             style: const TextStyle(color: Color(0xFFB5B5BA), fontSize: 14),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: 156,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                key: const Key('capture-server-audio-level'),
-                minHeight: 6,
-                value: level,
-                backgroundColor: const Color(0xFF35343B),
-                color: dotColor,
-              ),
-            ),
+          CaptureLevelMeter(
+            key: const Key('capture-server-audio-level'),
+            level: level,
           ),
         ],
       ),

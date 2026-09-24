@@ -15,6 +15,7 @@ import 'package:omi/backend/schema/conversation.dart';
 import 'package:omi/models/pending_conversation_draft.dart';
 import 'package:omi/pages/conversation_capturing/page.dart';
 import 'package:omi/pages/conversations/widgets/draft_audio_playback.dart';
+import 'package:omi/pages/capture/widgets/capture_level_meter.dart';
 import 'package:omi/pages/capture/widgets/widgets.dart';
 import 'package:omi/pages/capture/capture_status_view.dart';
 import 'package:omi/services/capture/capture_controller.dart';
@@ -308,10 +309,25 @@ class _ConversationCaptureWidgetState extends State<ConversationCaptureWidget> {
             : const RecordingStatusIndicator();
       }
     }
+    // The meter reinforces that audio is flowing while the capture runs; it is
+    // hidden for paused, buffering and failed pipelines where the status text
+    // carries the message.
+    final isPausedForMeter = captureProvider.recordingState == RecordingState.pause ||
+        captureProvider.isPaused ||
+        _isPhoneMicPaused ||
+        captureProvider.recordingState == RecordingState.interrupted;
+    final showLevelMeter = (isUsingPhoneMic || isHavingRecordingDevice) &&
+        !isPausedForMeter &&
+        captureProvider.terminalTranscriptionFailure == null &&
+        captureProvider.customSttBufferingDuration == null;
     Widget right = stateText.isNotEmpty || statusIndicator != null
         ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (showLevelMeter) ...[
+                CaptureLevelMeter(level: captureState.audioLevel ?? 0, compact: true),
+                const SizedBox(width: 8),
+              ],
               Text(
                 stateText,
                 style: TextStyle(color: Colors.grey.shade400, fontSize: 14),

@@ -7,6 +7,7 @@ import 'package:omi/backend/preferences.dart';
 import 'package:omi/backend/schema/bt_device/bt_device.dart';
 import 'package:omi/pages/capture/connect.dart';
 import 'package:omi/pages/capture/capture_status_view.dart';
+import 'package:omi/pages/capture/widgets/capture_level_meter.dart';
 import 'package:omi/pages/conversation_capturing/page.dart';
 import 'package:omi/providers/capture_provider.dart';
 import 'package:omi/providers/connectivity_provider.dart';
@@ -171,9 +172,8 @@ class _HomeCaptureBarState extends State<HomeCaptureBar> {
             color: const Color(0xFF1C1C1E),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isRecording || continuous
-                  ? const Color(0xFFFE5D50).withValues(alpha: 0.5)
-                  : const Color(0xFF2A2A2E),
+              color:
+                  isRecording || continuous ? const Color(0xFFFE5D50).withValues(alpha: 0.5) : const Color(0xFF2A2A2E),
             ),
           ),
           child: Row(
@@ -212,6 +212,10 @@ class _HomeCaptureBarState extends State<HomeCaptureBar> {
                                 style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
                               ),
                             ),
+                          ],
+                          if (isRecording && !muted) ...[
+                            const SizedBox(width: 8),
+                            CaptureLevelMeter(level: state.audioLevel ?? 0, compact: true),
                           ],
                         ],
                       ),
