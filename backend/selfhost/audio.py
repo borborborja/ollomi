@@ -514,24 +514,6 @@ def transcribe_file(profile, path, language="auto", diarize=True, vocabulary=Non
     ]
 
 
-def discard_empty_conversation(user_id, conversation_id):
-    """Delete a listen-created conversation that never received a single sample.
-
-    The record is created when the socket opens so the app can show an
-    in-progress conversation; a session that closes without any audio must not
-    linger as an empty "no speech" conversation.
-    """
-    with transaction() as db:
-        row = db.get(Record, conversation_id)
-        if row is None or row.user_id != user_id or row.kind != "conversation":
-            return False
-        data = row.data or {}
-        if data.get("file_ids") or data.get("audio_files") or data.get("transcript_segments") or data.get("photos"):
-            return False
-        db.delete(row)
-        return True
-
-
 @router.websocket("/v4/listen")
 async def listen(socket: WebSocket):
     token = socket.headers.get("authorization", "").removeprefix("Bearer ")
@@ -719,9 +701,6 @@ async def listen(socket: WebSocket):
                 pass
         else:
             segment.path.unlink(missing_ok=True)
-            # No audio ever arrived: drop the in-progress record so the session
-            # cannot complete later as an empty conversation.
-            await run_in_threadpool(discard_empty_conversation, user.id, segment.conversation_id)
 
     async def open_segment(conversation_id):
         # A rolled-over segment is a new conversation: it must own a record

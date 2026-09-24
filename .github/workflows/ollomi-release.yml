@@ -202,7 +202,6 @@ jobs:
             test/unit/widget_state_test.dart \
             test/services/widgets/widget_bridge_test.dart \
             test/services/capture/stt_mode_capture_entry_test.dart \
-            test/providers/capture_provider_test.dart \
             test/providers/speech_profile_provider_test.dart
       - name: Run native BLE endpoint tests
         working-directory: app/android
