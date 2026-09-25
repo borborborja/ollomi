@@ -218,6 +218,7 @@ jobs:
             --tests 'com.friend.ios.widgets.WidgetStateTest' \
             --tests 'com.friend.ios.widgets.WidgetActionsTest' \
             --tests 'com.friend.ios.widgets.WidgetTextTest' \
+            --tests 'com.friend.ios.widgets.WidgetLayoutTest' \
             --tests 'com.friend.ios.background.CaptureWakeLockTest' \
             --no-daemon
       - name: Compile the complete debug APK
