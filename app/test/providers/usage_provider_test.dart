@@ -28,56 +28,51 @@ UserSubscriptionResponse _subscriptionOn(PlanType plan, {required int used, requ
 }
 
 void main() {
+  // The self-hosted fork removed billing: there is no paid plan surface, no
+  // transcription credit limit and no payment gate on phone calls (see
+  // `selfhost_payment_policy_test.dart`). These tests pin that policy instead of
+  // the upstream Omi tier matrix, so a reintroduced plan gate fails here.
   group('UsageProvider.clearUserData', () {
     test('resets subscription state so the next login cannot inherit the previous account plan', () {
       final provider = UsageProvider();
       provider.debugSetSubscription(_proSubscription());
       expect(provider.subscription, isNotNull);
-      expect(provider.canAccessPhoneCalls, isTrue);
 
       var notified = false;
       provider.addListener(() => notified = true);
       provider.clearUserData();
 
       expect(provider.subscription, isNull);
-      expect(provider.canAccessPhoneCalls, isFalse);
       expect(provider.isOutOfCredits, isFalse);
       expect(provider.error, isNull);
       expect(notified, isTrue);
     });
   });
 
-  group('UsageProvider credit gating across tiers', () {
-    test('Plus is metered: running out of transcription seconds blocks capture', () {
-      // Plus is a paid plan but capped at 1500 min/month, so it must NOT be
-      // treated as unlimited the way Neo/Operator/Architect/Unlimited are.
+  group('UsageProvider is unmetered on a self-hosted server', () {
+    test('no plan ever runs out of credits', () {
       final provider = UsageProvider();
-      provider.debugSetSubscription(_subscriptionOn(PlanType.plus, used: 90000, limit: 90000));
-      expect(provider.isOutOfCredits, isTrue);
-
-      provider.debugSetSubscription(_subscriptionOn(PlanType.plus, used: 100, limit: 90000));
-      expect(provider.isOutOfCredits, isFalse);
-    });
-
-    test('Unlimited (v2) never runs out of credits', () {
-      final provider = UsageProvider();
-      provider.debugSetSubscription(_subscriptionOn(PlanType.unlimitedV2, used: 999999, limit: 0));
-      expect(provider.isOutOfCredits, isFalse);
-    });
-
-    test('paid mobile tiers unlock paid-only features', () {
-      final provider = UsageProvider();
-      for (final plan in [PlanType.plus, PlanType.unlimitedV2]) {
-        provider.debugSetSubscription(_subscriptionOn(plan, used: 0, limit: 0));
-        expect(provider.canAccessPhoneCalls, isTrue, reason: '${plan.name} is paid');
+      for (final plan in [
+        PlanType.plus,
+        PlanType.unlimited,
+        PlanType.unlimitedV2,
+        PlanType.unknown('future_plan_123'),
+      ]) {
+        provider.debugSetSubscription(_subscriptionOn(plan, used: 90000, limit: 90000));
+        expect(provider.isOutOfCredits, isFalse, reason: '${plan.name} must stay unmetered');
       }
     });
 
-    test('an unknown plan does not unlock paid-only features', () {
+    test('phone calls are available regardless of plan', () {
       final provider = UsageProvider();
-      provider.debugSetSubscription(_subscriptionOn(PlanType.unknown('future_plan_123'), used: 0, limit: 0));
+      for (final plan in [PlanType.plus, PlanType.unlimitedV2, PlanType.unknown('future_plan_123')]) {
+        provider.debugSetSubscription(_subscriptionOn(plan, used: 0, limit: 0));
+        expect(provider.canAccessPhoneCalls, isTrue, reason: '${plan.name} must not be gated');
+      }
+    });
 
-      expect(provider.canAccessPhoneCalls, isFalse);
+    test('the subscription UI stays hidden', () {
+      expect(UsageProvider().showSubscriptionUI, isFalse);
     });
   });
 }

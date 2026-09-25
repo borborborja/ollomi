@@ -62,15 +62,15 @@ Widget _app(DeviceProvider provider, CaptureProvider capture) {
       ChangeNotifierProvider<DeviceProvider>.value(value: provider),
       ChangeNotifierProvider<CaptureProvider>.value(value: capture),
     ],
-    child: MaterialApp(
-      localizationsDelegates: const [
+    child: const MaterialApp(
+      localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const DevicesPage(),
+      home: DevicesPage(),
     ),
   );
 }

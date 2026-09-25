@@ -89,15 +89,15 @@ void main() {
           ChangeNotifierProvider<CaptureProvider>.value(value: captureProvider),
           ChangeNotifierProvider<DeviceProvider>.value(value: deviceProvider ?? _DisconnectedDeviceProvider()),
         ],
-        child: MaterialApp(
-          localizationsDelegates: const [
+        child: const MaterialApp(
+          localizationsDelegates: [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: HomeRecordButton()),
+          home: Scaffold(body: HomeRecordButton()),
         ),
       ),
     );
