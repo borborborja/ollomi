@@ -10006,12 +10006,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordingOnConnectOneOff => 'تسجيل لمرة واحدة';
 
   @override
-  String get connectNow => 'اتصل الآن';
-
-  @override
-  String get forgetDevice => 'انسَ الجهاز';
-
-  @override
   String get forgetDeviceConfirm => 'إزالة هذا الجهاز من القائمة؟ سيُفقد الاسم المخصص والإعدادات.';
 
   @override

@@ -3263,8 +3263,6 @@
     "recordingOnConnect": "En connectar",
     "recordingOnConnectNone": "Res",
     "recordingOnConnectOneOff": "Gravació puntual",
-    "connectNow": "Connecta ara",
-    "forgetDevice": "Oblida el dispositiu",
     "forgetDeviceConfirm": "Vols treure aquest dispositiu de la llista? Es perdrà el nom personalitzat i la seva configuració.",
     "backgroundModeRequired": "El mode en segon pla està desactivat. La reconnexió automàtica amb l'app tancada en depèn.",
     "priorityOrderHint": "Arrossega per ordenar la prioritat de connexió.",

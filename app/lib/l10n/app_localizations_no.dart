@@ -10064,12 +10064,6 @@ class AppLocalizationsNo extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Engangsopptak';
 
   @override
-  String get connectNow => 'Koble til nå';
-
-  @override
-  String get forgetDevice => 'Glem enhet';
-
-  @override
   String get forgetDeviceConfirm => 'Fjerne denne enheten fra listen? Navn og innstillinger glemmes.';
 
   @override
@@ -10079,8 +10073,10 @@ class AppLocalizationsNo extends AppLocalizations {
   String get priorityOrderHint => 'Dra for å angi prioritetsrekkefølge.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Tillat at Ollomi kjører i bakgrunnen slik at opptaket fortsetter med skjermen av.';
+  String get backgroundCaptureBatteryWarning =>
+      'Tillat at Ollomi kjører i bakgrunnen slik at opptaket fortsetter med skjermen av.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Bakgrunnsopptak er ikke tilgjengelig. Hold Ollomi åpent mens du tar opp.';
+  String get phoneMicBackgroundUnavailable =>
+      'Bakgrunnsopptak er ikke tilgjengelig. Hold Ollomi åpent mens du tar opp.';
 }

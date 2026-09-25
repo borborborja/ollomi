@@ -10139,23 +10139,20 @@ class AppLocalizationsEl extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Μεμονωμένη εγγραφή';
 
   @override
-  String get connectNow => 'Σύνδεση τώρα';
-
-  @override
-  String get forgetDevice => 'Διαγραφή συσκευής';
-
-  @override
   String get forgetDeviceConfirm => 'Αφαίρεση της συσκευής από τη λίστα; Το όνομα και οι ρυθμίσεις θα χαθούν.';
 
   @override
-  String get backgroundModeRequired => 'Η λειτουργία υποβάθρου είναι ανενεργή. Η αυτόματη επανασύνδεση με κλειστή εφαρμογή εξαρτάται από αυτήν.';
+  String get backgroundModeRequired =>
+      'Η λειτουργία υποβάθρου είναι ανενεργή. Η αυτόματη επανασύνδεση με κλειστή εφαρμογή εξαρτάται από αυτήν.';
 
   @override
   String get priorityOrderHint => 'Σύρετε για σειρά προτεραιότητας.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Επίτρεψε στο Ollomi να λειτουργεί στο παρασκήνιο ώστε η εγγραφή να συνεχίζεται με σβηστή οθόνη.';
+  String get backgroundCaptureBatteryWarning =>
+      'Επίτρεψε στο Ollomi να λειτουργεί στο παρασκήνιο ώστε η εγγραφή να συνεχίζεται με σβηστή οθόνη.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Η εγγραφή στο παρασκήνιο δεν είναι διαθέσιμη. Κράτησε το Ollomi ανοιχτό κατά την εγγραφή.';
+  String get phoneMicBackgroundUnavailable =>
+      'Η εγγραφή στο παρασκήνιο δεν είναι διαθέσιμη. Κράτησε το Ollomi ανοιχτό κατά την εγγραφή.';
 }

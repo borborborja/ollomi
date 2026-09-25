@@ -9894,12 +9894,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recordingOnConnectOneOff => '単発録音';
 
   @override
-  String get connectNow => '今すぐ接続';
-
-  @override
-  String get forgetDevice => 'デバイスを削除';
-
-  @override
   String get forgetDeviceConfirm => 'このデバイスを一覧から削除しますか？カスタム名と設定も失われます。';
 
   @override

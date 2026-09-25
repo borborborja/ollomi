@@ -3285,8 +3285,6 @@
     "recordingOnConnect": "Bij verbinden",
     "recordingOnConnectNone": "Niets",
     "recordingOnConnectOneOff": "Eenmalige opname",
-    "connectNow": "Nu verbinden",
-    "forgetDevice": "Apparaat vergeten",
     "forgetDeviceConfirm": "Dit apparaat uit de lijst verwijderen? Naam en instellingen gaan verloren.",
     "backgroundModeRequired": "De achtergrondmodus staat uit. Automatisch opnieuw verbinden met gesloten app hangt daarvan af.",
     "priorityOrderHint": "Sleep om de prioriteitsorde te wijzigen.",

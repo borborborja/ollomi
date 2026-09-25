@@ -10047,7 +10047,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deviceAliasTitle => 'Nombre personalizado';
 
   @override
-  String get deviceAliasDescription => 'Se muestra en la aplicación en lugar del nombre predeterminado del dispositivo.';
+  String get deviceAliasDescription =>
+      'Se muestra en la aplicación en lugar del nombre predeterminado del dispositivo.';
 
   @override
   String get deviceAliasHint => 'Omi CV1';
@@ -10092,23 +10093,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Grabación puntual';
 
   @override
-  String get connectNow => 'Conectar ahora';
+  String get forgetDeviceConfirm =>
+      '¿Quitar este dispositivo de la lista? Se perderán su nombre personalizado y su configuración.';
 
   @override
-  String get forgetDevice => 'Olvidar dispositivo';
-
-  @override
-  String get forgetDeviceConfirm => '¿Quitar este dispositivo de la lista? Se perderán su nombre personalizado y su configuración.';
-
-  @override
-  String get backgroundModeRequired => 'El modo en segundo plano está desactivado. La reconexión automática con la app cerrada depende de él.';
+  String get backgroundModeRequired =>
+      'El modo en segundo plano está desactivado. La reconexión automática con la app cerrada depende de él.';
 
   @override
   String get priorityOrderHint => 'Arrastra para ordenar la prioridad de conexión.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Permite que Ollomi se ejecute en segundo plano para que la grabación siga funcionando con la pantalla apagada.';
+  String get backgroundCaptureBatteryWarning =>
+      'Permite que Ollomi se ejecute en segundo plano para que la grabación siga funcionando con la pantalla apagada.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'La grabación en segundo plano no está disponible. Mantén Ollomi abierto mientras grabas.';
+  String get phoneMicBackgroundUnavailable =>
+      'La grabación en segundo plano no está disponible. Mantén Ollomi abierto mientras grabas.';
 }

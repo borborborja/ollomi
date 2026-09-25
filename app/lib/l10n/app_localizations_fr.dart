@@ -10131,7 +10131,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get newConversation => 'Nouvelle conversation';
 
   @override
-  String get newConversationDescription => 'Continue l\'enregistrement et enregistre cette partie comme sa propre conversation';
+  String get newConversationDescription =>
+      'Continue l\'enregistrement et enregistre cette partie comme sa propre conversation';
 
   @override
   String get stopContinuousRecording => 'Arrêter l\'enregistrement continu';
@@ -10155,23 +10156,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Enregistrement ponctuel';
 
   @override
-  String get connectNow => 'Connecter maintenant';
+  String get forgetDeviceConfirm =>
+      'Retirer cet appareil de la liste ? Son nom personnalisé et ses réglages seront oubliés.';
 
   @override
-  String get forgetDevice => 'Oublier l\'appareil';
-
-  @override
-  String get forgetDeviceConfirm => 'Retirer cet appareil de la liste ? Son nom personnalisé et ses réglages seront oubliés.';
-
-  @override
-  String get backgroundModeRequired => 'Le mode arrière-plan est désactivé. La reconnexion automatique app fermée en dépend.';
+  String get backgroundModeRequired =>
+      'Le mode arrière-plan est désactivé. La reconnexion automatique app fermée en dépend.';
 
   @override
   String get priorityOrderHint => 'Faites glisser pour définir l\'ordre de priorité.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Autorise Ollomi à fonctionner en arrière-plan pour que l\'enregistrement continue écran éteint.';
+  String get backgroundCaptureBatteryWarning =>
+      'Autorise Ollomi à fonctionner en arrière-plan pour que l\'enregistrement continue écran éteint.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'L\'enregistrement en arrière-plan n\'est pas disponible. Garde Ollomi ouvert pendant l\'enregistrement.';
+  String get phoneMicBackgroundUnavailable =>
+      'L\'enregistrement en arrière-plan n\'est pas disponible. Garde Ollomi ouvert pendant l\'enregistrement.';
 }

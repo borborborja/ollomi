@@ -3261,8 +3261,6 @@
     "recordingOnConnect": "عند الاتصال",
     "recordingOnConnectNone": "لا شيء",
     "recordingOnConnectOneOff": "تسجيل لمرة واحدة",
-    "connectNow": "اتصل الآن",
-    "forgetDevice": "انسَ الجهاز",
     "forgetDeviceConfirm": "إزالة هذا الجهاز من القائمة؟ سيُفقد الاسم المخصص والإعدادات.",
     "backgroundModeRequired": "وضع الخلفية معطّل. إعادة الاتصال التلقائي أثناء إغلاق التطبيق تعتمد عليه.",
     "priorityOrderHint": "اسحب لترتيب أولوية الاتصال.",

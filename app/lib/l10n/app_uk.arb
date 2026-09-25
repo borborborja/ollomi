@@ -3285,8 +3285,6 @@
     "recordingOnConnect": "При підключенні",
     "recordingOnConnectNone": "Нічого",
     "recordingOnConnectOneOff": "Разовий запис",
-    "connectNow": "Підключити зараз",
-    "forgetDevice": "Забути пристрій",
     "forgetDeviceConfirm": "Прибрати цей пристрій зі списку? Ім'я та налаштування буде втрачено.",
     "backgroundModeRequired": "Фоновий режим вимкнено. Автопідключення із закритим застосунком залежить від нього.",
     "priorityOrderHint": "Перетягніть, щоб задати пріоритет.",

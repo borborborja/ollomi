@@ -10150,23 +10150,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Einmalige Aufnahme';
 
   @override
-  String get connectNow => 'Jetzt verbinden';
-
-  @override
-  String get forgetDevice => 'Gerät entfernen';
-
-  @override
   String get forgetDeviceConfirm => 'Dieses Gerät aus der Liste entfernen? Name und Einstellungen gehen verloren.';
 
   @override
-  String get backgroundModeRequired => 'Der Hintergrundmodus ist aus. Die automatische Wiederverbindung bei geschlossener App hängt davon ab.';
+  String get backgroundModeRequired =>
+      'Der Hintergrundmodus ist aus. Die automatische Wiederverbindung bei geschlossener App hängt davon ab.';
 
   @override
   String get priorityOrderHint => 'Ziehen, um die Verbindungspriorität zu ordnen.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Erlaube Ollomi, im Hintergrund zu laufen, damit die Aufnahme bei ausgeschaltetem Bildschirm weiterläuft.';
+  String get backgroundCaptureBatteryWarning =>
+      'Erlaube Ollomi, im Hintergrund zu laufen, damit die Aufnahme bei ausgeschaltetem Bildschirm weiterläuft.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Hintergrundaufnahme ist nicht verfügbar. Halte Ollomi während der Aufnahme geöffnet.';
+  String get phoneMicBackgroundUnavailable =>
+      'Hintergrundaufnahme ist nicht verfügbar. Halte Ollomi während der Aufnahme geöffnet.';
 }

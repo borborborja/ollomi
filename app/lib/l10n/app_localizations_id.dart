@@ -10076,23 +10076,20 @@ class AppLocalizationsId extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Rekaman sekali';
 
   @override
-  String get connectNow => 'Sambungkan sekarang';
-
-  @override
-  String get forgetDevice => 'Lupakan perangkat';
-
-  @override
   String get forgetDeviceConfirm => 'Hapus perangkat ini dari daftar? Nama dan pengaturannya akan dilupakan.';
 
   @override
-  String get backgroundModeRequired => 'Mode latar belakang mati. Penyambungan ulang otomatis saat app tertutup bergantung padanya.';
+  String get backgroundModeRequired =>
+      'Mode latar belakang mati. Penyambungan ulang otomatis saat app tertutup bergantung padanya.';
 
   @override
   String get priorityOrderHint => 'Seret untuk mengatur prioritas.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Izinkan Ollomi berjalan di latar belakang agar rekaman tetap berjalan saat layar mati.';
+  String get backgroundCaptureBatteryWarning =>
+      'Izinkan Ollomi berjalan di latar belakang agar rekaman tetap berjalan saat layar mati.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Perekaman latar belakang tidak tersedia. Biarkan Ollomi terbuka saat merekam.';
+  String get phoneMicBackgroundUnavailable =>
+      'Perekaman latar belakang tidak tersedia. Biarkan Ollomi terbuka saat merekam.';
 }

@@ -10068,23 +10068,20 @@ class AppLocalizationsFi extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Kertatallennus';
 
   @override
-  String get connectNow => 'Yhdistä nyt';
-
-  @override
-  String get forgetDevice => 'Unohda laite';
-
-  @override
   String get forgetDeviceConfirm => 'Poistetaanko laite luettelosta? Nimi ja asetukset unohdetaan.';
 
   @override
-  String get backgroundModeRequired => 'Taustatila on pois päältä. Automaattinen uudelleenyhdistäminen suljetulla sovelluksella riippuu siitä.';
+  String get backgroundModeRequired =>
+      'Taustatila on pois päältä. Automaattinen uudelleenyhdistäminen suljetulla sovelluksella riippuu siitä.';
 
   @override
   String get priorityOrderHint => 'Järjestä prioriteetti vetämällä.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Salli Ollomin toimia taustalla, jotta tallennus jatkuu näytön ollessa suljettuna.';
+  String get backgroundCaptureBatteryWarning =>
+      'Salli Ollomin toimia taustalla, jotta tallennus jatkuu näytön ollessa suljettuna.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Taustatallennus ei ole käytettävissä. Pidä Ollomi avoinna tallennuksen ajan.';
+  String get phoneMicBackgroundUnavailable =>
+      'Taustatallennus ei ole käytettävissä. Pidä Ollomi avoinna tallennuksen ajan.';
 }

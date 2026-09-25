@@ -10094,23 +10094,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Eenmalige opname';
 
   @override
-  String get connectNow => 'Nu verbinden';
-
-  @override
-  String get forgetDevice => 'Apparaat vergeten';
-
-  @override
   String get forgetDeviceConfirm => 'Dit apparaat uit de lijst verwijderen? Naam en instellingen gaan verloren.';
 
   @override
-  String get backgroundModeRequired => 'De achtergrondmodus staat uit. Automatisch opnieuw verbinden met gesloten app hangt daarvan af.';
+  String get backgroundModeRequired =>
+      'De achtergrondmodus staat uit. Automatisch opnieuw verbinden met gesloten app hangt daarvan af.';
 
   @override
   String get priorityOrderHint => 'Sleep om de prioriteitsorde te wijzigen.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Sta Ollomi toe om op de achtergrond te draaien zodat opnemen blijft werken met het scherm uit.';
+  String get backgroundCaptureBatteryWarning =>
+      'Sta Ollomi toe om op de achtergrond te draaien zodat opnemen blijft werken met het scherm uit.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Achtergrondopname is niet beschikbaar. Houd Ollomi open tijdens het opnemen.';
+  String get phoneMicBackgroundUnavailable =>
+      'Achtergrondopname is niet beschikbaar. Houd Ollomi open tijdens het opnemen.';
 }

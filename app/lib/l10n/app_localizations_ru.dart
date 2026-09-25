@@ -10103,22 +10103,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Разовая запись';
 
   @override
-  String get connectNow => 'Подключить сейчас';
-
-  @override
-  String get forgetDevice => 'Забыть устройство';
-
-  @override
   String get forgetDeviceConfirm => 'Убрать это устройство из списка? Имя и настройки будут удалены.';
 
   @override
-  String get backgroundModeRequired => 'Фоновый режим выключен. Автоподключение при закрытом приложении зависит от него.';
+  String get backgroundModeRequired =>
+      'Фоновый режим выключен. Автоподключение при закрытом приложении зависит от него.';
 
   @override
   String get priorityOrderHint => 'Перетащите, чтобы задать приоритет.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Разрешите Ollomi работать в фоне, чтобы запись продолжалась при выключенном экране.';
+  String get backgroundCaptureBatteryWarning =>
+      'Разрешите Ollomi работать в фоне, чтобы запись продолжалась при выключенном экране.';
 
   @override
   String get phoneMicBackgroundUnavailable => 'Фоновая запись недоступна. Держите Ollomi открытым во время записи.';

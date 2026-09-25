@@ -3285,8 +3285,6 @@
     "recordingOnConnect": "Yhdistettäessä",
     "recordingOnConnectNone": "Ei mitään",
     "recordingOnConnectOneOff": "Kertatallennus",
-    "connectNow": "Yhdistä nyt",
-    "forgetDevice": "Unohda laite",
     "forgetDeviceConfirm": "Poistetaanko laite luettelosta? Nimi ja asetukset unohdetaan.",
     "backgroundModeRequired": "Taustatila on pois päältä. Automaattinen uudelleenyhdistäminen suljetulla sovelluksella riippuu siitä.",
     "priorityOrderHint": "Järjestä prioriteetti vetämällä.",

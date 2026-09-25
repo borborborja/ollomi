@@ -10050,23 +10050,20 @@ class AppLocalizationsDa extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Engangsoptagelse';
 
   @override
-  String get connectNow => 'Forbind nu';
-
-  @override
-  String get forgetDevice => 'Glem enhed';
-
-  @override
   String get forgetDeviceConfirm => 'Fjern denne enhed fra listen? Navn og indstillinger glemmes.';
 
   @override
-  String get backgroundModeRequired => 'Baggrundstilstand er slukket. Automatisk genforbindelse med lukket app afhænger af det.';
+  String get backgroundModeRequired =>
+      'Baggrundstilstand er slukket. Automatisk genforbindelse med lukket app afhænger af det.';
 
   @override
   String get priorityOrderHint => 'Træk for at angive prioritetsrækkefølge.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Tillad, at Ollomi kører i baggrunden, så optagelsen fortsætter med slukket skærm.';
+  String get backgroundCaptureBatteryWarning =>
+      'Tillad, at Ollomi kører i baggrunden, så optagelsen fortsætter med slukket skærm.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Optagelse i baggrunden er ikke tilgængelig. Hold Ollomi åbent under optagelsen.';
+  String get phoneMicBackgroundUnavailable =>
+      'Optagelse i baggrunden er ikke tilgængelig. Hold Ollomi åbent under optagelsen.';
 }

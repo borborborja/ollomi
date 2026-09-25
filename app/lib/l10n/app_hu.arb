@@ -3381,8 +3381,6 @@
     "recordingOnConnect": "Csatlakozáskor",
     "recordingOnConnectNone": "Semmi",
     "recordingOnConnectOneOff": "Egyszeri felvétel",
-    "connectNow": "Csatlakozás most",
-    "forgetDevice": "Eszköz elfelejtése",
     "forgetDeviceConfirm": "Eltávolítod ezt az eszközt a listáról? A név és a beállítások elvesznek.",
     "backgroundModeRequired": "A háttérmód ki van kapcsolva. Az automatikus újracsatlakozás zárt alkalmazásnál ettől függ.",
     "priorityOrderHint": "Húzd a prioritási sorrend beállításához.",

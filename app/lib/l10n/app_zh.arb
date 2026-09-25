@@ -3307,8 +3307,6 @@
     "recordingOnConnect": "连接时",
     "recordingOnConnectNone": "不操作",
     "recordingOnConnectOneOff": "单次录音",
-    "connectNow": "立即连接",
-    "forgetDevice": "忘记设备",
     "forgetDeviceConfirm": "从列表中移除此设备？自定义名称和设置将被遗忘。",
     "backgroundModeRequired": "后台模式已关闭。应用关闭时的自动重连依赖它。",
     "priorityOrderHint": "拖动以设置连接优先级。",

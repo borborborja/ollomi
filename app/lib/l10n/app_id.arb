@@ -3327,8 +3327,6 @@
     "recordingOnConnect": "Saat tersambung",
     "recordingOnConnectNone": "Tidak ada",
     "recordingOnConnectOneOff": "Rekaman sekali",
-    "connectNow": "Sambungkan sekarang",
-    "forgetDevice": "Lupakan perangkat",
     "forgetDeviceConfirm": "Hapus perangkat ini dari daftar? Nama dan pengaturannya akan dilupakan.",
     "backgroundModeRequired": "Mode latar belakang mati. Penyambungan ulang otomatis saat app tertutup bergantung padanya.",
     "priorityOrderHint": "Seret untuk mengatur prioritas.",

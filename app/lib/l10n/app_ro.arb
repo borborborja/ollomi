@@ -3285,8 +3285,6 @@
     "recordingOnConnect": "La conectare",
     "recordingOnConnectNone": "Nimic",
     "recordingOnConnectOneOff": "Înregistrare punctuală",
-    "connectNow": "Conectează acum",
-    "forgetDevice": "Uită dispozitivul",
     "forgetDeviceConfirm": "Elimini acest dispozitiv din listă? Numele și setările vor fi uitate.",
     "backgroundModeRequired": "Modul de fundal este oprit. Reconectarea automată cu aplicația închisă depinde de el.",
     "priorityOrderHint": "Trage pentru a ordona prioritatea.",

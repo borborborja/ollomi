@@ -10076,23 +10076,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Gravação pontual';
 
   @override
-  String get connectNow => 'Ligar agora';
+  String get forgetDeviceConfirm =>
+      'Remover este dispositivo da lista? O nome personalizado e as configurações serão esquecidos.';
 
   @override
-  String get forgetDevice => 'Esquecer dispositivo';
-
-  @override
-  String get forgetDeviceConfirm => 'Remover este dispositivo da lista? O nome personalizado e as configurações serão esquecidos.';
-
-  @override
-  String get backgroundModeRequired => 'O modo em segundo plano está desligado. A religação automática com a app fechada depende dele.';
+  String get backgroundModeRequired =>
+      'O modo em segundo plano está desligado. A religação automática com a app fechada depende dele.';
 
   @override
   String get priorityOrderHint => 'Arrasta para definir a ordem de prioridade.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Permite que o Ollomi seja executado em segundo plano para que a gravação continue com o ecrã desligado.';
+  String get backgroundCaptureBatteryWarning =>
+      'Permite que o Ollomi seja executado em segundo plano para que a gravação continue com o ecrã desligado.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'A gravação em segundo plano não está disponível. Mantém o Ollomi aberto durante a gravação.';
+  String get phoneMicBackgroundUnavailable =>
+      'A gravação em segundo plano não está disponível. Mantém o Ollomi aberto durante a gravação.';
 }
