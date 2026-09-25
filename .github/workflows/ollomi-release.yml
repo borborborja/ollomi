@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
       # Some manifest checks shell out to repo scripts that require uv; without it the lane dies on the first check.
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
       - name: Run shared CI contract checks
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
