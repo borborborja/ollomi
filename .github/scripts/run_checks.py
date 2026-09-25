@@ -56,7 +56,6 @@ class Exemption:
 class Manifest:
     checks: tuple[Check, ...]
     exempt: tuple[Exemption, ...]
-    retired_triggers: tuple[Exemption, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -120,11 +119,7 @@ def load_manifest(path: Path) -> Manifest:
     exempt = tuple(
         Exemption(path=str(item.get("path", "")), reason=str(item.get("reason", ""))) for item in raw.get("exempt", [])
     )
-    retired_triggers = tuple(
-        Exemption(path=str(item.get("path", "")), reason=str(item.get("reason", "")))
-        for item in raw.get("retired_triggers", [])
-    )
-    return Manifest(checks=checks, exempt=exempt, retired_triggers=retired_triggers)
+    return Manifest(checks=checks, exempt=exempt)
 
 
 def load_manifest_from_text(text: str) -> Manifest:
@@ -172,11 +167,6 @@ def manifest_changed_check_ids(root: Path, base: str, head: str, *, include_work
 def validate_manifest(manifest: Manifest, root: Path) -> list[str]:
     errors: list[str] = []
     ids = [check.id for check in manifest.checks]
-    retired_trigger_paths = [item.path for item in manifest.retired_triggers]
-    retired_trigger_set = set(retired_trigger_paths)
-    duplicate_retired = sorted({path for path in retired_trigger_paths if retired_trigger_paths.count(path) > 1})
-    if duplicate_retired:
-        errors.append(f"duplicate retired trigger paths: {', '.join(duplicate_retired)}")
     duplicates = sorted({check_id for check_id in ids if ids.count(check_id) > 1})
     if duplicates:
         errors.append(f"duplicate check ids: {', '.join(duplicates)}")
@@ -194,12 +184,7 @@ def validate_manifest(manifest: Manifest, root: Path) -> list[str]:
         for pattern in check.triggers:
             if not pattern or pattern.count("[") != pattern.count("]"):
                 errors.append(f"{check.id}: invalid trigger glob: {pattern!r}")
-            elif (
-                pattern != "all"
-                and not glob.has_magic(pattern)
-                and not (root / pattern).exists()
-                and pattern not in retired_trigger_set
-            ):
+            elif pattern != "all" and not glob.has_magic(pattern) and not (root / pattern).exists():
                 errors.append(f"{check.id}: explicit trigger path does not exist: {pattern}")
         if not check.lanes:
             errors.append(f"{check.id}: lanes must not be empty")
@@ -219,18 +204,6 @@ def validate_manifest(manifest: Manifest, root: Path) -> list[str]:
     for exemption in manifest.exempt:
         if not exemption.path or not exemption.reason:
             errors.append("exempt entries require non-empty path and reason")
-    referenced_triggers = {pattern for check in manifest.checks for pattern in check.triggers}
-    for retired in manifest.retired_triggers:
-        if not retired.path or not retired.reason:
-            errors.append("retired trigger entries require non-empty path and reason")
-        elif not retired.path.startswith(".github/workflows/"):
-            errors.append(f"retired trigger must be a workflow path: {retired.path}")
-        elif glob.has_magic(retired.path):
-            errors.append(f"retired trigger must be an explicit path: {retired.path}")
-        elif (root / retired.path).exists():
-            errors.append(f"retired trigger path exists and must be restored to ordinary validation: {retired.path}")
-        elif retired.path not in referenced_triggers:
-            errors.append(f"retired trigger path is not referenced by any check: {retired.path}")
     return errors
 
 

@@ -190,26 +190,7 @@ class ManifestContractTests(unittest.TestCase):
             validate_manifest(invalid, REPO_ROOT),
         )
 
-    def test_named_retired_workflow_trigger_is_allowed_but_stays_audited(self) -> None:
-        manifest = load_manifest(MANIFEST_PATH)
-        missing = ".github/workflows/upstream-only.yml"
-        first = manifest.checks[0]
-        check = Check(first.id, first.command, (*first.triggers, missing), first.lanes, first.reason)
-        retired = Exemption(missing, "Upstream-only workflow is not shipped by this fork.")
-        candidate = Manifest((check, *manifest.checks[1:]), manifest.exempt, (*manifest.retired_triggers, retired))
 
-        self.assertFalse(any(missing in error for error in validate_manifest(candidate, REPO_ROOT)))
-
-    def test_live_workflow_cannot_remain_in_retired_trigger_inventory(self) -> None:
-        manifest = load_manifest(MANIFEST_PATH)
-        live = ".github/workflows/ollomi-release.yml"
-        retired = Exemption(live, "stale retirement")
-        candidate = Manifest(manifest.checks, manifest.exempt, (*manifest.retired_triggers, retired))
-
-        self.assertIn(
-            f"retired trigger path exists and must be restored to ordinary validation: {live}",
-            validate_manifest(candidate, REPO_ROOT),
-        )
 
     def test_workflow_checks_are_registered_or_exempt(self) -> None:
         manifest = load_manifest(MANIFEST_PATH)
