@@ -1,0 +1,45 @@
+name: Repo Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: repo-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  repo-checks:
+    name: Run deterministic checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run manifest CI lane
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git log -1 --format=%B HEAD > /tmp/pr-commit-body.txt
+          printf 'Pull request #%s (#%s)\n\n' "$PR_NUMBER" "$PR_NUMBER" > /tmp/pr-resolution-input.txt
+          cat /tmp/pr-commit-body.txt >> /tmp/pr-resolution-input.txt
+          python3 .github/scripts/pr_metadata.py \
+            --repository "${{ github.repository }}" \
+            --pr-number "$PR_NUMBER" \
+            --from-commit-body-file /tmp/pr-resolution-input.txt \
+            --output /tmp/live-pr-body.txt
+          cat /tmp/pr-commit-body.txt > /tmp/pr-body.txt
+          printf '\n\n' >> /tmp/pr-body.txt
+          cat /tmp/live-pr-body.txt >> /tmp/pr-body.txt
+          python3 .github/scripts/run_checks.py --lane ci \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
+            --pr-body-file /tmp/pr-body.txt
