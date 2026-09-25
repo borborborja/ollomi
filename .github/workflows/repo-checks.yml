@@ -27,6 +27,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           git log -1 --format=%B HEAD > /tmp/pr-commit-body.txt
           printf 'Pull request #%s (#%s)\n\n' "$PR_NUMBER" "$PR_NUMBER" > /tmp/pr-resolution-input.txt
@@ -39,7 +40,13 @@ jobs:
           cat /tmp/pr-commit-body.txt > /tmp/pr-body.txt
           printf '\n\n' >> /tmp/pr-body.txt
           cat /tmp/live-pr-body.txt >> /tmp/pr-body.txt
+          # Resolve the diff base live from this checkout, never from the event
+          # payload: a metadata-only re-trigger (edited/labeled) does not refresh
+          # github.event.pull_request.base.sha while the base branch advances
+          # (FC-stale-event-payload-diff-base).
+          git fetch --no-tags origin \
+            "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           python3 .github/scripts/run_checks.py --lane ci \
-            --base "${{ github.event.pull_request.base.sha }}" \
+            --base "origin/${BASE_REF}" \
             --head "${{ github.event.pull_request.head.sha }}" \
             --pr-body-file /tmp/pr-body.txt
