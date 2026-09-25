@@ -728,50 +728,36 @@ class SelectionTests(unittest.TestCase):
             self.assertIn(str(body.resolve()), result.stdout)
             self.assertNotIn("No PR metadata file is available", result.stdout)
 
-    def test_repo_checks_routes_metadata_events_to_the_narrow_preflight(self) -> None:
-        """Metadata-only PR updates must not restart the full hygiene suite."""
-        workflow = (REPO_ROOT / ".github/workflows/repo-checks.yml").read_text(encoding="utf-8")
-        metadata_job = workflow.split("  metadata-preflight:\n", 1)[1].split("\n  changes:\n", 1)[0]
-        changes_job = workflow.split("  changes:\n", 1)[1].split("\n  hygiene:\n", 1)[0]
-        hygiene_job = workflow.split("  hygiene:\n", 1)[1].split("\n  formatting:\n", 1)[0]
+    def test_ollomi_release_gates_pull_request_images_on_product_tests(self) -> None:
+        """The fork has one release workflow, so every PR uses its full product gates."""
+        workflow = (REPO_ROOT / ".github/workflows/ollomi-release.yml").read_text(encoding="utf-8")
+        pull_request_trigger = workflow.split("  pull_request:\n", 1)[1].split("  push:\n", 1)[0]
+        container_images_job = workflow.split("  container-images:\n", 1)[1].split("\n  android-apk:\n", 1)[0]
 
-        for event in ("edited", "labeled", "unlabeled"):
-            self.assertIn(event, metadata_job)
-            self.assertIn(event, changes_job)
-            self.assertIn(event, hygiene_job)
-        self.assertIn("scripts/pr-preflight", metadata_job)
-        # Static tripwire only: confirms the workflow text wires --base to the
-        # live ref rather than the stale event-payload SHA. It does not exercise
-        # changed_files() itself — see
-        # test_stale_event_payload_base_widens_diff_scope_past_the_live_base for
-        # the behavioral regression backing FC-stale-event-payload-diff-base.
-        self.assertNotIn("github.event.pull_request.base.sha", metadata_job)
-        self.assertIn('--base "origin/${{ github.base_ref }}"', metadata_job)
-        self.assertIn("scripts/pr-preflight --metadata-only", metadata_job)
-        self.assertNotIn("--metadata-only", hygiene_job)
-        self.assertIn("github.event_name != 'pull_request'", changes_job)
-        self.assertIn("github.event_name != 'pull_request'", hygiene_job)
-        # #12935: metadata checks took 0.70s; code checks consumed the remaining
-        # 140s. Only Hygiene needs the code suites' dependency toolchains.
-        for tool in ("astral-sh/setup-uv@", "actions/setup-java@", "oven-sh/setup-bun@"):
-            self.assertNotIn(tool, metadata_job)
-            self.assertIn(tool, hygiene_job)
-        self.assertIn("java-version: '21'", hygiene_job)
-        self.assertLess(
-            hygiene_job.index("Set up Java for manifest-selected Firestore checks"),
-            hygiene_job.index("Run shared PR contract preflight"),
-        )
+        # Ollomi does not ship upstream's metadata-preflight/changes/hygiene
+        # topology. Its single fork workflow must fail closed by running both
+        # product suites before any release image can be built or published.
+        self.assertIn("branches: [main]", pull_request_trigger)
+        self.assertIn("needs: [backend-tests, android-tests]", container_images_job)
+        self.assertIn("python3 backend/scripts/runtime_image_contracts.py smoke", container_images_job)
 
-    def test_issue_sync_action_is_pinned(self) -> None:
-        workflow = (REPO_ROOT / ".github/workflows/main.yml").read_text(encoding="utf-8")
+    def test_ollomi_workflow_topology_excludes_the_upstream_issue_sync_bot(self) -> None:
+        """Adding an issue-sync workflow requires an explicit fork contract update."""
+        workflow_paths = tuple(sorted(REPO_ROOT.glob(".github/workflows/*.yml")))
 
-        self.assertIn("paritytech/github-issue-sync@34a24348bf2f2a73924e322f43d6132e0c276b5f", workflow)
-        self.assertNotIn("paritytech/github-issue-sync@master", workflow)
+        # Ollomi never shipped upstream's main.yml or its issue-sync bot. Pin
+        # the actual topology so a bot cannot appear on a mutable ref (or at
+        # all) without this fail-closed contract being deliberately revised.
+        self.assertEqual([path.name for path in workflow_paths], ["ollomi-release.yml"])
+        for path in workflow_paths:
+            workflow = path.read_text(encoding="utf-8")
+            self.assertNotIn("paritytech/github-issue-sync@", workflow)
 
     def test_standard_actions_no_longer_use_node_20_majors(self) -> None:
         deprecated_references = (
             "actions/checkout@v3",
             "actions/checkout@v4",
+            "actions/setup-java@v4",
             "actions/setup-python@v5",
             "actions/setup-node@v3",
             "actions/setup-node@v4",
@@ -793,11 +779,14 @@ class SelectionTests(unittest.TestCase):
             "google-github-actions/deploy-cloudrun@v2",
             "docker/build-push-action@v6",
             "docker/setup-buildx-action@v3",
+            "docker/login-action@v3",
+            "docker/metadata-action@v5",
             "azure/setup-helm@v3",
             "gradle/actions/setup-gradle@v4",
             "pnpm/action-setup@v4",
             "opentofu/setup-opentofu@v1",
             "peter-evans/create-pull-request@v5",
+            "softprops/action-gh-release@v2",
             "astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78",
         )
         workflow_files = (*REPO_ROOT.glob(".github/workflows/*.yml"), *REPO_ROOT.glob(".github/actions/*/action.yml"))

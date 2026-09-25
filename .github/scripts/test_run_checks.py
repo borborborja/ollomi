@@ -23,6 +23,7 @@ from git_bash import bash_executable, bash_path, native_path_from_bash
 from run_checks import (
     VALID_PLATFORMS,
     Check,
+    Exemption,
     Manifest,
     command_for_check,
     command_for_host,
@@ -189,6 +190,27 @@ class ManifestContractTests(unittest.TestCase):
             validate_manifest(invalid, REPO_ROOT),
         )
 
+    def test_named_retired_workflow_trigger_is_allowed_but_stays_audited(self) -> None:
+        manifest = load_manifest(MANIFEST_PATH)
+        missing = ".github/workflows/upstream-only.yml"
+        first = manifest.checks[0]
+        check = Check(first.id, first.command, (*first.triggers, missing), first.lanes, first.reason)
+        retired = Exemption(missing, "Upstream-only workflow is not shipped by this fork.")
+        candidate = Manifest((check, *manifest.checks[1:]), manifest.exempt, (*manifest.retired_triggers, retired))
+
+        self.assertFalse(any(missing in error for error in validate_manifest(candidate, REPO_ROOT)))
+
+    def test_live_workflow_cannot_remain_in_retired_trigger_inventory(self) -> None:
+        manifest = load_manifest(MANIFEST_PATH)
+        live = ".github/workflows/ollomi-release.yml"
+        retired = Exemption(live, "stale retirement")
+        candidate = Manifest(manifest.checks, manifest.exempt, (*manifest.retired_triggers, retired))
+
+        self.assertIn(
+            f"retired trigger path exists and must be restored to ordinary validation: {live}",
+            validate_manifest(candidate, REPO_ROOT),
+        )
+
     def test_workflow_checks_are_registered_or_exempt(self) -> None:
         manifest = load_manifest(MANIFEST_PATH)
         registered = registered_script_paths()
@@ -196,18 +218,19 @@ class ManifestContractTests(unittest.TestCase):
         missing = sorted(deterministic_workflow_references(WORKFLOWS_DIR) - registered - exempt)
         self.assertEqual(missing, [], f"workflow checks missing from manifest/exempt: {missing}")
 
-    def test_ci_lane_is_reachable_from_repo_checks(self) -> None:
-        workflow = (WORKFLOWS_DIR / "repo-checks.yml").read_text(encoding="utf-8")
-        self.assertRegex(workflow, r"run_checks\.py\s+--lane\s+ci")
-        # #9744: main pushes must pass a body through --pr-body-file (not
-        # --skip-pr-body-checks). #11835: the body must be the squash commit
-        # message PLUS the live merged PR body, because this repo squashes
-        # with the commit list rather than the PR description.
-        self.assertNotIn("--skip-pr-body-checks", workflow)
-        self.assertRegex(workflow, r"git log -1 --format=%B HEAD")
-        self.assertRegex(workflow, r"pr_metadata\.py")
-        self.assertRegex(workflow, r"--from-commit-body-file")
-        self.assertRegex(workflow, r"--pr-body-file")
+    def test_ci_lane_is_reachable_from_ollomi_release(self) -> None:
+        workflow = (WORKFLOWS_DIR / "ollomi-release.yml").read_text(encoding="utf-8")
+        repository_job = workflow.split("  repository-checks:\n", 1)[1].split("\n  backend-tests:\n", 1)[0]
+
+        # The fork has no upstream repo-checks.yml. Its only workflow must run
+        # the same manifest CI lane on pull requests with the current PR body
+        # and a live base ref, so metadata checks remain authoritative.
+        self.assertIn("github.event_name == 'pull_request'", repository_job)
+        self.assertRegex(repository_job, r"run_checks\.py\s+\\\n\s+--lane ci")
+        self.assertIn('origin/${{ github.base_ref }}', repository_job)
+        self.assertIn("github.event.pull_request.body", repository_job)
+        self.assertIn("--pr-body-file", repository_job)
+        self.assertNotIn("--skip-pr-body-checks", repository_job)
         manifest = load_manifest(MANIFEST_PATH)
         self.assertTrue(any("ci" in check.lanes for check in manifest.checks))
 

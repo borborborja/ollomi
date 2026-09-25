@@ -17,9 +17,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --uid 10001 --create-home voiceprint
 WORKDIR /srv
-COPY services/voiceprint/requirements.txt /tmp/requirements.txt
+COPY services/voiceprint/requirements.txt /srv/requirements.txt
 # PyTorch publishes its CPU wheels on this index; no CUDA runtime is installed.
-RUN pip install --extra-index-url https://download.pytorch.org/whl/cpu -r /tmp/requirements.txt \
+RUN pip install --extra-index-url https://download.pytorch.org/whl/cpu -r /srv/requirements.txt \
     && mkdir /models /opt/ollomi-voiceprint-model
 COPY services/voiceprint/app.py /srv/app.py
 # Bake the reviewed ECAPA revision into the image. Runtime uses this local
