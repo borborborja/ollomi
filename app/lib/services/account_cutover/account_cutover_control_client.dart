@@ -56,7 +56,7 @@ class AccountCutoverControlClient {
 
   Future<AccountCutoverFetchResult> _defaultFetch() async {
     final base = Env.apiBaseUrl;
-    if (base == null || base.isEmpty) {
+    if (base.isEmpty) {
       return const AccountCutoverFetchResult.transportFailure();
     }
     final url = '${base.endsWith('/') ? base.substring(0, base.length - 1) : base}/v1/account/cutover/control';

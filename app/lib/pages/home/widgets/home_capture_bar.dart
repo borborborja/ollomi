@@ -52,8 +52,7 @@ class _HomeCaptureBarState extends State<HomeCaptureBar> {
     HapticFeedback.lightImpact();
     final captureProvider = context.read<CaptureProvider>();
     if (captureProvider.isCaptureActive) {
-      SharedPreferencesUtil().continuousCaptureEnabled = true;
-      captureProvider.notifyListeners();
+      captureProvider.setContinuousCaptureEnabled(true);
       return;
     }
     await _showSourcePicker(context);

@@ -57,7 +57,7 @@ abstract class Env {
     bool releaseBuild = kReleaseMode,
   }) {
     final effectiveProfile = configuredProfile ?? (productionFamily ? AppEnvironmentProfile.production : profile);
-    final normalized = (configuredApiBaseUrl ?? apiBaseUrl ?? '').trim().replaceFirst(RegExp(r'/+$'), '');
+    final normalized = (configuredApiBaseUrl ?? apiBaseUrl).trim().replaceFirst(RegExp(r'/+$'), '');
     final uri = Uri.tryParse(normalized);
     if (uri == null || uri.host.isEmpty || (uri.scheme != 'http' && uri.scheme != 'https')) {
       throw StateError('Profile ${effectiveProfile.name} requires a valid HTTP(S) API endpoint.');

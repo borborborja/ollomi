@@ -168,7 +168,7 @@ String normalizeApiUrlForHostMatch(String url) {
 
 bool _isRequiredAuthCheck(String url) {
   final base = Env.apiBaseUrl;
-  if (base != null && base.isNotEmpty) {
+  if (base.isNotEmpty) {
     final normalizedUrl = normalizeApiUrlForHostMatch(url);
     final normalizedBase = normalizeApiUrlForHostMatch(base);
     if (normalizedBase.isNotEmpty && normalizedUrl.contains(normalizedBase)) {
