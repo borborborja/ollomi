@@ -3263,8 +3263,6 @@
     "recordingOnConnect": "Při připojení",
     "recordingOnConnectNone": "Nic",
     "recordingOnConnectOneOff": "Jednorázový záznam",
-    "connectNow": "Připojit nyní",
-    "forgetDevice": "Zapomenout zařízení",
     "forgetDeviceConfirm": "Odebrat toto zařízení ze seznamu? Název a nastavení budou zapomenuty.",
     "backgroundModeRequired": "Režim na pozadí je vypnutý. Automatické opětovné připojení se zavřenou aplikací na něm závisí.",
     "priorityOrderHint": "Přetažením nastavíte prioritu připojení.",

@@ -10114,23 +10114,20 @@ class AppLocalizationsRo extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Înregistrare punctuală';
 
   @override
-  String get connectNow => 'Conectează acum';
-
-  @override
-  String get forgetDevice => 'Uită dispozitivul';
-
-  @override
   String get forgetDeviceConfirm => 'Elimini acest dispozitiv din listă? Numele și setările vor fi uitate.';
 
   @override
-  String get backgroundModeRequired => 'Modul de fundal este oprit. Reconectarea automată cu aplicația închisă depinde de el.';
+  String get backgroundModeRequired =>
+      'Modul de fundal este oprit. Reconectarea automată cu aplicația închisă depinde de el.';
 
   @override
   String get priorityOrderHint => 'Trage pentru a ordona prioritatea.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Permite ca Ollomi să ruleze în fundal pentru ca înregistrarea să continue cu ecranul stins.';
+  String get backgroundCaptureBatteryWarning =>
+      'Permite ca Ollomi să ruleze în fundal pentru ca înregistrarea să continue cu ecranul stins.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Înregistrarea în fundal nu este disponibilă. Ține Ollomi deschis în timpul înregistrării.';
+  String get phoneMicBackgroundUnavailable =>
+      'Înregistrarea în fundal nu este disponibilă. Ține Ollomi deschis în timpul înregistrării.';
 }

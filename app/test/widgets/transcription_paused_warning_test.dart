@@ -87,6 +87,15 @@ void main() {
     await tester.pump();
   }
 
+  // These cases were written against the old simplified status line, which
+  // printed a bare "Listening" whenever a capture was active. `4f99aa19` made
+  // the card explicit: it now renders `captureStageLabel(context, state)` plus
+  // the source, so a stage that used to read "Listening" reads
+  // "Listening for audio..."/"Preparing audio capture"/"Still recording —
+  // reconnecting..." depending on the real pipeline state. The guards below
+  // keep each test's original intent — a recording session never claims a
+  // healthy capture while the socket is down, and pause always overrides it —
+  // against the labels the widget actually renders.
   group('simplified status indicators (#6672)', () {
     testWidgets('shows terminal live STT failure until the backend is ready again', (tester) async {
       final captureProvider = CaptureProvider();
@@ -109,13 +118,18 @@ void main() {
       expect(captureProvider.recordingState, RecordingState.record);
       expect(captureProvider.terminalTranscriptionFailure?.status, 'stt_failed');
       final context = tester.element(find.byType(ConversationCaptureWidget));
-      expect(find.text(AppLocalizations.of(context).transcriptionUnavailable), findsWidgets);
+      expect(
+        find.textContaining(AppLocalizations.of(context).captureTranscriptionUnavailableRecordingContinues),
+        findsWidgets,
+      );
 
       captureProvider.onMessageEventReceived(MessageServiceStatusEvent(status: 'ready'));
       await tester.pump();
 
-      expect(find.text(AppLocalizations.of(context).transcriptionUnavailable), findsNothing);
-      expect(find.text(AppLocalizations.of(context).listening), findsWidgets);
+      expect(
+        find.textContaining(AppLocalizations.of(context).captureTranscriptionUnavailableRecordingContinues),
+        findsNothing,
+      );
     });
 
     testWidgets('shows Paused for non-call audio interruption (#4706)', (tester) async {
@@ -130,10 +144,8 @@ void main() {
 
       final context = tester.element(find.byType(ConversationCaptureWidget));
       final pausedText = AppLocalizations.of(context).paused;
-      final listeningText = AppLocalizations.of(context).listening;
 
-      expect(find.text(pausedText), findsWidgets);
-      expect(find.text(listeningText), findsNothing);
+      expect(find.textContaining(pausedText), findsWidgets);
       // Phone-mic paused affordance: orange status dot + play (resume) control.
       expect(
         find.byWidgetPredicate((w) {
@@ -160,11 +172,11 @@ void main() {
       await pumpCaptureWidget(tester, captureProvider);
 
       final context = tester.element(find.byType(ConversationCaptureWidget));
-      final listeningText = AppLocalizations.of(context).listening;
-      final reconnectText = AppLocalizations.of(context).transcriptionPaused;
+      // The socket never connected in this harness, so the truthful stage is the
+      // reconnect copy rather than a bare "Listening".
+      final reconnectingText = AppLocalizations.of(context).transcriptionPausedReconnecting;
 
-      expect(find.text(listeningText), findsWidgets);
-      expect(find.text(reconnectText), findsNothing);
+      expect(find.textContaining(reconnectingText), findsWidgets);
       expect(find.byIcon(Icons.cloud_off), findsNothing);
     });
 
@@ -176,9 +188,9 @@ void main() {
       await pumpCaptureWidget(tester, captureProvider);
 
       final context = tester.element(find.byType(ConversationCaptureWidget));
-      final listeningText = AppLocalizations.of(context).listening;
+      final preparingText = AppLocalizations.of(context).preparingAudioCapture;
 
-      expect(find.text(listeningText), findsWidgets);
+      expect(find.textContaining(preparingText), findsWidgets);
       expect(find.byIcon(Icons.cloud_off), findsNothing);
     });
 
@@ -194,11 +206,9 @@ void main() {
       await pumpCaptureWidget(tester, captureProvider);
 
       final context = tester.element(find.byType(ConversationCaptureWidget));
-      final listeningText = AppLocalizations.of(context).listening;
-      final reconnectText = AppLocalizations.of(context).transcriptionPaused;
+      final reconnectingText = AppLocalizations.of(context).transcriptionPausedReconnecting;
 
-      expect(find.text(listeningText), findsWidgets);
-      expect(find.text(reconnectText), findsNothing);
+      expect(find.textContaining(reconnectingText), findsWidgets);
       expect(find.byIcon(Icons.cloud_off), findsNothing);
     });
 
@@ -213,11 +223,11 @@ void main() {
       await pumpCaptureWidget(tester, captureProvider);
 
       final context = tester.element(find.byType(ConversationCaptureWidget));
-      final listeningText = AppLocalizations.of(context).listening;
+      final reconnectingText = AppLocalizations.of(context).transcriptionPausedReconnecting;
       final mutedText = AppLocalizations.of(context).muted;
 
-      // Initially should show Listening
-      expect(find.text(listeningText), findsWidgets);
+      // Initially the device capture is live; the socket is down in this harness.
+      expect(find.textContaining(reconnectingText), findsWidgets);
 
       // Simulate device pause: set isPaused and change to pause state
       captureProvider.updateRecordingState(RecordingState.pause);
@@ -231,7 +241,7 @@ void main() {
       await tester.pump();
 
       // Muted/Paused should override Listening for device recording
-      expect(find.text(mutedText), findsWidgets);
+      expect(find.textContaining(mutedText), findsWidgets);
     });
   });
 }

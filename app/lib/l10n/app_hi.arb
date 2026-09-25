@@ -3286,8 +3286,6 @@
     "recordingOnConnect": "कनेक्ट होने पर",
     "recordingOnConnectNone": "कुछ नहीं",
     "recordingOnConnectOneOff": "एकबारगी रिकॉर्डिंग",
-    "connectNow": "अभी कनेक्ट करें",
-    "forgetDevice": "डिवाइस भूलें",
     "forgetDeviceConfirm": "इस डिवाइस को सूची से हटाएँ? नाम और सेटिंग्स भुला दी जाएँगी।",
     "backgroundModeRequired": "बैकग्राउंड मोड बंद है। ऐप बंद होने पर स्वतः पुनः कनेक्ट इस पर निर्भर है।",
     "priorityOrderHint": "प्राथमिकता क्रम के लिए खींचें।",

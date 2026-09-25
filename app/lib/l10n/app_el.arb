@@ -3285,8 +3285,6 @@
     "recordingOnConnect": "Κατά τη σύνδεση",
     "recordingOnConnectNone": "Τίποτα",
     "recordingOnConnectOneOff": "Μεμονωμένη εγγραφή",
-    "connectNow": "Σύνδεση τώρα",
-    "forgetDevice": "Διαγραφή συσκευής",
     "forgetDeviceConfirm": "Αφαίρεση της συσκευής από τη λίστα; Το όνομα και οι ρυθμίσεις θα χαθούν.",
     "backgroundModeRequired": "Η λειτουργία υποβάθρου είναι ανενεργή. Η αυτόματη επανασύνδεση με κλειστή εφαρμογή εξαρτάται από αυτήν.",
     "priorityOrderHint": "Σύρετε για σειρά προτεραιότητας.",

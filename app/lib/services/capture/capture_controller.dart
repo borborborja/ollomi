@@ -1804,8 +1804,9 @@ class CaptureController extends ChangeNotifier
     if (!Platform.isAndroid) return;
     if (SharedPreferencesUtil().backgroundCaptureBatteryPromptShown) return;
     if (await ForegroundUtil().isIgnoringBatteryOptimizations) return;
+    // The battery check above awaits; the tree can be torn down meanwhile.
     final context = globalNavigatorKey.currentState?.context;
-    if (context == null) return;
+    if (context == null || !context.mounted) return;
     SharedPreferencesUtil().backgroundCaptureBatteryPromptShown = true;
     AppSnackbar.showActionSnackbar(
       context.l10n.backgroundCaptureBatteryWarning,
@@ -2207,6 +2208,12 @@ class CaptureController extends ChangeNotifier
   }
 
   bool get continuousCaptureEnabled => SharedPreferencesUtil().continuousCaptureEnabled;
+
+  void setContinuousCaptureEnabled(bool value) {
+    if (continuousCaptureEnabled == value) return;
+    SharedPreferencesUtil().continuousCaptureEnabled = value;
+    notifyListeners();
+  }
 
   /// Starts (or resumes) the long-running capture behind continuous mode.
   /// `device == null` records from the phone microphone. When a capture is

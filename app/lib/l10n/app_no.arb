@@ -3285,8 +3285,6 @@
     "recordingOnConnect": "Ved tilkobling",
     "recordingOnConnectNone": "Ingenting",
     "recordingOnConnectOneOff": "Engangsopptak",
-    "connectNow": "Koble til nå",
-    "forgetDevice": "Glem enhet",
     "forgetDeviceConfirm": "Fjerne denne enheten fra listen? Navn og innstillinger glemmes.",
     "backgroundModeRequired": "Bakgrunnsmodus er av. Automatisk gjenkobling med lukket app avhenger av det.",
     "priorityOrderHint": "Dra for å angi prioritetsrekkefølge.",

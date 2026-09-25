@@ -10108,23 +10108,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Egyszeri felvétel';
 
   @override
-  String get connectNow => 'Csatlakozás most';
-
-  @override
-  String get forgetDevice => 'Eszköz elfelejtése';
-
-  @override
   String get forgetDeviceConfirm => 'Eltávolítod ezt az eszközt a listáról? A név és a beállítások elvesznek.';
 
   @override
-  String get backgroundModeRequired => 'A háttérmód ki van kapcsolva. Az automatikus újracsatlakozás zárt alkalmazásnál ettől függ.';
+  String get backgroundModeRequired =>
+      'A háttérmód ki van kapcsolva. Az automatikus újracsatlakozás zárt alkalmazásnál ettől függ.';
 
   @override
   String get priorityOrderHint => 'Húzd a prioritási sorrend beállításához.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Engedélyezd, hogy az Ollomi a háttérben fusson, így a felvétel kikapcsolt képernyővel is folytatódik.';
+  String get backgroundCaptureBatteryWarning =>
+      'Engedélyezd, hogy az Ollomi a háttérben fusson, így a felvétel kikapcsolt képernyővel is folytatódik.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'A háttérfelvétel nem érhető el. Tartsd nyitva az Ollomit felvétel közben.';
+  String get phoneMicBackgroundUnavailable =>
+      'A háttérfelvétel nem érhető el. Tartsd nyitva az Ollomit felvétel közben.';
 }

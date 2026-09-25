@@ -138,7 +138,7 @@ class AddAppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setIsPaid(bool _paid) {
+  void setIsPaid(bool paid) {
     // Ollomi keeps apps free; pricing is an upstream Omi marketplace feature.
     priceController.clear();
     selectePaymentPlan = null;

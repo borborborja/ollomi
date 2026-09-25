@@ -151,7 +151,7 @@ class TranscriptSegmentSocketService implements IPureSocketListener {
     }
 
     String url =
-        Env.apiBaseUrl!.replaceFirst('https://', 'wss://').replaceFirst('http://', 'ws://') + 'v4/listen$params';
+        Env.apiBaseUrl.replaceFirst('https://', 'wss://').replaceFirst('http://', 'ws://') + 'v4/listen$params';
 
     _socket = PureSocket(
       url,
@@ -192,7 +192,7 @@ class TranscriptSegmentSocketService implements IPureSocketListener {
     if (!ok) {
       Logger.debug("Can not connect to websocket");
       await DebugLogManager.logWarning('transcription_socket_connect_failed', {
-        'url': Env.apiBaseUrl?.replaceAll('https', 'wss') ?? 'null',
+        'url': Env.apiBaseUrl.replaceAll('https', 'wss'),
         'sample_rate': sampleRate,
         'codec': codec.toString(),
         'language': language,

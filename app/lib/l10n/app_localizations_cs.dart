@@ -10066,23 +10066,20 @@ class AppLocalizationsCs extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Jednorázový záznam';
 
   @override
-  String get connectNow => 'Připojit nyní';
-
-  @override
-  String get forgetDevice => 'Zapomenout zařízení';
-
-  @override
   String get forgetDeviceConfirm => 'Odebrat toto zařízení ze seznamu? Název a nastavení budou zapomenuty.';
 
   @override
-  String get backgroundModeRequired => 'Režim na pozadí je vypnutý. Automatické opětovné připojení se zavřenou aplikací na něm závisí.';
+  String get backgroundModeRequired =>
+      'Režim na pozadí je vypnutý. Automatické opětovné připojení se zavřenou aplikací na něm závisí.';
 
   @override
   String get priorityOrderHint => 'Přetažením nastavíte prioritu připojení.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Povol Ollomi běžet na pozadí, aby nahrávání fungovalo i s vypnutou obrazovkou.';
+  String get backgroundCaptureBatteryWarning =>
+      'Povol Ollomi běžet na pozadí, aby nahrávání fungovalo i s vypnutou obrazovkou.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'Nahrávání na pozadí není dostupné. Během nahrávání nech Ollomi otevřené.';
+  String get phoneMicBackgroundUnavailable =>
+      'Nahrávání na pozadí není dostupné. Během nahrávání nech Ollomi otevřené.';
 }

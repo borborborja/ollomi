@@ -18651,46 +18651,118 @@ abstract class AppLocalizations {
   /// **'Choose between the phone microphone and the connected device.'**
   String get activeCaptureButtonSwitchSourceDescription;
 
+  /// Title of the local device custom name editor row.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom name'**
   String get deviceAliasTitle;
 
+  /// Explains that the custom name is shown across the app instead of the default device name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown across the app instead of the device\'s default name.'**
   String get deviceAliasDescription;
 
+  /// Example placeholder shown in the custom device name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Omi CV1'**
   String get deviceAliasHint;
 
+  /// Confirmation shown after saving a custom device name.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name updated'**
   String get deviceAliasSaved;
 
+  /// Label for the continuous recording switch on the home screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuous recording'**
   String get continuousRecording;
 
+  /// Title of the sheet that asks which source records continuously.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the continuous recording source'**
   String get continuousRecordingSource;
 
+  /// Badge marking the recommended continuous recording source.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
   String get recommended;
 
+  /// Label of the button that starts a new conversation while continuing to record.
+  ///
+  /// In en, this message translates to:
+  /// **'New conversation'**
   String get newConversation;
 
+  /// Explains that splitting keeps recording and saves the previous part.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps recording and saves this part as its own conversation'**
   String get newConversationDescription;
 
+  /// Action to turn continuous recording off.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop continuous recording'**
   String get stopContinuousRecording;
 
+  /// Status shown when the configured Ollomi server cannot be reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Ollomi server unreachable'**
   String get serverUnreachable;
 
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
   String get devices;
 
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect automatically'**
   String get autoConnect;
 
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'When connected'**
   String get recordingOnConnect;
 
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'Do nothing'**
   String get recordingOnConnectNone;
 
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time recording'**
   String get recordingOnConnectOneOff;
 
-  String get connectNow;
-
-  String get forgetDevice;
-
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this device from the known list? Its custom name and settings will be forgotten.'**
   String get forgetDeviceConfirm;
 
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'Background mode is off. Automatic reconnection while the app is closed needs it.'**
   String get backgroundModeRequired;
 
+  /// Known-devices screen string.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to set the connection priority order.'**
   String get priorityOrderHint;
 
   /// Android battery-optimization nudge shown once when a recording starts.

@@ -9985,12 +9985,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get recordingOnConnectOneOff => 'הקלטה חד-פעמית';
 
   @override
-  String get connectNow => 'התחבר עכשיו';
-
-  @override
-  String get forgetDevice => 'שכח מכשיר';
-
-  @override
   String get forgetDeviceConfirm => 'להסיר מכשיר זה מהרשימה? השם וההגדרות יישכחו.';
 
   @override

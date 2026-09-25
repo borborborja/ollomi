@@ -9875,12 +9875,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordingOnConnectOneOff => '单次录音';
 
   @override
-  String get connectNow => '立即连接';
-
-  @override
-  String get forgetDevice => '忘记设备';
-
-  @override
   String get forgetDeviceConfirm => '从列表中移除此设备？自定义名称和设置将被遗忘。';
 
   @override

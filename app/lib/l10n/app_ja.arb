@@ -3261,8 +3261,6 @@
     "recordingOnConnect": "接続時",
     "recordingOnConnectNone": "何もしない",
     "recordingOnConnectOneOff": "単発録音",
-    "connectNow": "今すぐ接続",
-    "forgetDevice": "デバイスを削除",
     "forgetDeviceConfirm": "このデバイスを一覧から削除しますか？カスタム名と設定も失われます。",
     "backgroundModeRequired": "バックグラウンドモードがオフです。アプリ終了時の自動再接続には必要です。",
     "priorityOrderHint": "ドラッグして接続の優先順位を設定します。",

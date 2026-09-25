@@ -10078,22 +10078,19 @@ class AppLocalizationsUr extends AppLocalizations {
   String get recordingOnConnectOneOff => 'One-time recording';
 
   @override
-  String get connectNow => 'Connect now';
+  String get forgetDeviceConfirm =>
+      'Remove this device from the known list? Its custom name and settings will be forgotten.';
 
   @override
-  String get forgetDevice => 'Forget device';
-
-  @override
-  String get forgetDeviceConfirm => 'Remove this device from the known list? Its custom name and settings will be forgotten.';
-
-  @override
-  String get backgroundModeRequired => 'Background mode is off. Automatic reconnection while the app is closed needs it.';
+  String get backgroundModeRequired =>
+      'Background mode is off. Automatic reconnection while the app is closed needs it.';
 
   @override
   String get priorityOrderHint => 'Drag to set the connection priority order.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'اسکرین بند ہونے پر بھی ریکارڈنگ جاری رکھنے کے لیے Ollomi کو پس منظر میں چلانے کی اجازت دیں۔';
+  String get backgroundCaptureBatteryWarning =>
+      'اسکرین بند ہونے پر بھی ریکارڈنگ جاری رکھنے کے لیے Ollomi کو پس منظر میں چلانے کی اجازت دیں۔';
 
   @override
   String get phoneMicBackgroundUnavailable => 'پس منظر میں ریکارڈنگ دستیاب نہیں۔ ریکارڈنگ کے دوران Ollomi کھلا رکھیں۔';

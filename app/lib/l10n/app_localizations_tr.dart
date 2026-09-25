@@ -10078,22 +10078,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Tek seferlik kayıt';
 
   @override
-  String get connectNow => 'Şimdi bağlan';
-
-  @override
-  String get forgetDevice => 'Cihazı unut';
-
-  @override
   String get forgetDeviceConfirm => 'Bu cihaz listeden çıkarılsın mı? Özel ad ve ayarlar unutulur.';
 
   @override
-  String get backgroundModeRequired => 'Arka plan modu kapalı. Uygulama kapalıyken otomatik yeniden bağlanma buna bağlıdır.';
+  String get backgroundModeRequired =>
+      'Arka plan modu kapalı. Uygulama kapalıyken otomatik yeniden bağlanma buna bağlıdır.';
 
   @override
   String get priorityOrderHint => 'Bağlantı önceliğini sıralamak için sürükleyin.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Ekran kapalıyken kaydın devam etmesi için Ollomi\'nin arka planda çalışmasına izin ver.';
+  String get backgroundCaptureBatteryWarning =>
+      'Ekran kapalıyken kaydın devam etmesi için Ollomi\'nin arka planda çalışmasına izin ver.';
 
   @override
   String get phoneMicBackgroundUnavailable => 'Arka plan kaydı kullanılamıyor. Kayıt sırasında Ollomi\'yi açık tut.';

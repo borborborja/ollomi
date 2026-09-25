@@ -295,5 +295,7 @@ pnpm-workspace.yaml
 .env
 selfhost-data/
 artifacts/
+# Agent session state (plans, drafts, run-continuation). Never source.
+.omo/
 
 /app/build

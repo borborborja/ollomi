@@ -405,18 +405,31 @@ class _ConversationCaptureWidgetState extends State<ConversationCaptureWidget> {
 
     // When recording is active, show the unified UI design
     if (isDeviceRecording || isPhoneRecording) {
+      // The status copy is longer than the old bare "Listening" (for example
+      // "Live transcription unavailable — audio is still being recorded"), so
+      // the tag must ellipsize instead of overflowing the card on a phone. The
+      // trailing controls keep their intrinsic width; the tag gets what is left.
+      final double trailingControlsWidth =
+          (provider.isConversationMarkedForStarring ? 86.0 : 0.0) + (hasPhotos ? 60.0 : 0.0) + (hasPhotos ? 0.0 : 28.0);
+      final double statusTagMaxWidth =
+          (MediaQuery.sizeOf(context).width - 70 - trailingControlsWidth - 12).clamp(96.0, 360.0);
       Widget statusRow = Row(
         children: [
           // Left: Status tag
           Container(
+            constraints: BoxConstraints(maxWidth: statusTagMaxWidth),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(color: const Color(0xFF35343B), borderRadius: BorderRadius.circular(20)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '$statusText · ${captureSourceLabel(context, captureState)}',
-                  style: const TextStyle(color: Color(0xFFC9CBCF), fontSize: 14, fontWeight: FontWeight.w500),
+                Flexible(
+                  child: Text(
+                    '$statusText · ${captureSourceLabel(context, captureState)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Color(0xFFC9CBCF), fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
                 ),
                 const SizedBox(width: 6),
                 Container(

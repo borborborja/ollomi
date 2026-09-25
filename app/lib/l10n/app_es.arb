@@ -3286,8 +3286,6 @@
     "recordingOnConnect": "Al conectar",
     "recordingOnConnectNone": "Nada",
     "recordingOnConnectOneOff": "Grabación puntual",
-    "connectNow": "Conectar ahora",
-    "forgetDevice": "Olvidar dispositivo",
     "forgetDeviceConfirm": "¿Quitar este dispositivo de la lista? Se perderán su nombre personalizado y su configuración.",
     "backgroundModeRequired": "El modo en segundo plano está desactivado. La reconexión automática con la app cerrada depende de él.",
     "priorityOrderHint": "Arrastra para ordenar la prioridad de conexión.",

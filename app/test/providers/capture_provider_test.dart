@@ -330,6 +330,23 @@ void main() {
   // Existing tests (preserved verbatim from the original file)          //
   // ------------------------------------------------------------------ //
 
+  test('continuous capture preference notifies only when its value changes', () {
+    SharedPreferencesUtil().continuousCaptureEnabled = false;
+    final provider = CaptureProvider();
+    var notificationCount = 0;
+    provider.addListener(() => notificationCount++);
+
+    provider.setContinuousCaptureEnabled(true);
+
+    expect(SharedPreferencesUtil().continuousCaptureEnabled, isTrue);
+    expect(notificationCount, 1);
+
+    provider.setContinuousCaptureEnabled(true);
+
+    expect(notificationCount, 1);
+    provider.dispose();
+  });
+
   test('removes segments and related state on deletion event', () {
     final provider = CaptureProvider();
     final first = _segment('a', 'one');
@@ -963,7 +980,8 @@ void main() {
         MessageServiceStatusEvent(status: 'audio_received', source: 'omi', audioLevel: 0.35),
       );
       expect(provider.captureUiState.stage, CaptureUiStage.receivingAudio);
-      expect(provider.captureUiState.audioLevel, 0.35);
+      // The meter applies its perceptual curve before the UI reads the level.
+      expect(provider.captureUiState.audioLevel, CaptureController.normalizeAudioLevel(0.35));
       expect(provider.captureUiState.serverSource, 'omi');
 
       provider.onMessageEventReceived(MessageServiceStatusEvent(status: 'transcribing', source: 'omi'));
@@ -1472,7 +1490,10 @@ void main() {
 
     test('does not schedule a websocket retry when capture is idle', () {
       fakeAsync((async) {
-        final provider = CaptureProvider();
+        // The null-socket provider keeps the retry gate under test without
+        // reaching the real socket pool, which needs platform state no unit
+        // test initializes (headers, device id, connectivity).
+        final provider = _NullSocketCaptureProvider();
         final timersBefore = async.pendingTimers.length;
 
         provider.changeAudioRecordProfile(audioCodec: BleAudioCodec.lc3FS1030);

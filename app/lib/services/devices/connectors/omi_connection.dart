@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
-
 import 'package:version/version.dart';
 
 import 'package:omi/backend/schema/bt_device/bt_device.dart';

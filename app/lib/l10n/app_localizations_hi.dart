@@ -10045,12 +10045,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get recordingOnConnectOneOff => 'एकबारगी रिकॉर्डिंग';
 
   @override
-  String get connectNow => 'अभी कनेक्ट करें';
-
-  @override
-  String get forgetDevice => 'डिवाइस भूलें';
-
-  @override
   String get forgetDeviceConfirm => 'इस डिवाइस को सूची से हटाएँ? नाम और सेटिंग्स भुला दी जाएँगी।';
 
   @override
@@ -10060,8 +10054,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get priorityOrderHint => 'प्राथमिकता क्रम के लिए खींचें।';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'स्क्रीन बंद होने पर भी रिकॉर्डिंग जारी रखने के लिए Ollomi को बैकग्राउंड में चलने दें।';
+  String get backgroundCaptureBatteryWarning =>
+      'स्क्रीन बंद होने पर भी रिकॉर्डिंग जारी रखने के लिए Ollomi को बैकग्राउंड में चलने दें।';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'बैकग्राउंड रिकॉर्डिंग उपलब्ध नहीं है। रिकॉर्ड करते समय Ollomi खुला रखें।';
+  String get phoneMicBackgroundUnavailable =>
+      'बैकग्राउंड रिकॉर्डिंग उपलब्ध नहीं है। रिकॉर्ड करते समय Ollomi खुला रखें।';
 }

@@ -10126,23 +10126,21 @@ class AppLocalizationsCa extends AppLocalizations {
   String get recordingOnConnectOneOff => 'Gravació puntual';
 
   @override
-  String get connectNow => 'Connecta ara';
+  String get forgetDeviceConfirm =>
+      'Vols treure aquest dispositiu de la llista? Es perdrà el nom personalitzat i la seva configuració.';
 
   @override
-  String get forgetDevice => 'Oblida el dispositiu';
-
-  @override
-  String get forgetDeviceConfirm => 'Vols treure aquest dispositiu de la llista? Es perdrà el nom personalitzat i la seva configuració.';
-
-  @override
-  String get backgroundModeRequired => 'El mode en segon pla està desactivat. La reconnexió automàtica amb l\'app tancada en depèn.';
+  String get backgroundModeRequired =>
+      'El mode en segon pla està desactivat. La reconnexió automàtica amb l\'app tancada en depèn.';
 
   @override
   String get priorityOrderHint => 'Arrossega per ordenar la prioritat de connexió.';
 
   @override
-  String get backgroundCaptureBatteryWarning => 'Permet que l\'Ollomi s\'executi en segon pla perquè la gravació segueixi funcionant amb la pantalla apagada.';
+  String get backgroundCaptureBatteryWarning =>
+      'Permet que l\'Ollomi s\'executi en segon pla perquè la gravació segueixi funcionant amb la pantalla apagada.';
 
   @override
-  String get phoneMicBackgroundUnavailable => 'La gravació en segon pla no està disponible. Mantén l\'Ollomi obert mentre graves.';
+  String get phoneMicBackgroundUnavailable =>
+      'La gravació en segon pla no està disponible. Mantén l\'Ollomi obert mentre graves.';
 }

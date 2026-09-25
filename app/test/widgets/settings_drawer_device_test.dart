@@ -17,15 +17,15 @@ class _StubDeviceProvider extends ChangeNotifier implements DeviceProvider {
 Widget _app(DeviceProvider provider) {
   return ChangeNotifierProvider<DeviceProvider>.value(
     value: provider,
-    child: MaterialApp(
-      localizationsDelegates: const [
+    child: const MaterialApp(
+      localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(body: SettingsDrawer()),
+      home: Scaffold(body: SettingsDrawer()),
     ),
   );
 }
