@@ -5,8 +5,7 @@
   "canonical_prevention": "Gate the client release lane on a production probe of the required route (status, response shape, and trust boundary) before minting an immutable release tag; keep the deploy-before-ship note next to the client dependency.",
   "canonical_prevention_artifact": [
     ".github/scripts/probe_windows_update_feed.py",
-    ".github/scripts/test_probe_windows_update_feed.py",
-    ".github/workflows/desktop_windows_release.yml"
+    ".github/scripts/test_probe_windows_update_feed.py"
   ],
   "evidence_prs": [10610],
   "scope_hints": [
