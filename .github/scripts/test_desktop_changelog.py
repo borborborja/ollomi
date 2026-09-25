@@ -69,6 +69,10 @@ class ChangelogRequirementTests(unittest.TestCase):
     def test_internal_release_controls_are_exempt_but_product_source_is_not(self) -> None:
         for path in (
             "desktop/macos/docs/release.md",
+            # Agent-facing guides never ship inside the app; the top-level guide
+            # was already exempt, and its nested counterpart must be too.
+            "desktop/macos/AGENTS.md",
+            "desktop/macos/agent/AGENTS.md",
             # CI-only flow validation and its shared source inventory do not
             # alter the desktop application users receive.
             "desktop/macos/scripts/desktop-flow-lint.py",
