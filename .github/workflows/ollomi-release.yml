@@ -169,44 +169,18 @@ jobs:
         working-directory: app
         run: |
           flutter pub get
-          flutter test \
-            test/unit/audio_source_test.dart \
-            test/unit/audio_timeline_mapper_test.dart \
-            test/unit/native_bluetooth_discovery_test.dart \
-            test/unit/batch_recording_test.dart \
-            test/unit/rayban_meta_source_mapping_test.dart \
-            test/unit/service_manager_device_start_test.dart \
-            test/unit/local_auth_test.dart \
-            test/unit/env_test.dart \
-            test/unit/selfhost_payment_policy_test.dart \
-            test/unit/stt_mode_resolver_test.dart \
-            test/unit/pure_socket_auth_test.dart \
-            test/unit/account_cutover_gate_test.dart \
-            test/unit/active_capture_button_behavior_test.dart \
-            test/unit/capture_ui_state_test.dart \
-            test/unit/share_links_test.dart \
-            test/unit/multipart_401_retry_test.dart \
-            test/unit/transient_network_error_test.dart \
-            test/unit/device_alias_test.dart \
-            test/unit/continuous_capture_test.dart \
-            test/unit/known_device_policy_test.dart \
-            test/unit/background_capture_guard_test.dart \
-            test/unit/native_mic_recorder_service_test.dart \
-            test/unit/notification_event_filter_test.dart \
-            test/widgets/connect_device_get_omi_test.dart \
-            test/widgets/processing_timeout_widget_test.dart \
-            test/widgets/authenticated_product_scope_test.dart \
-            test/widgets/record_options_sheet_icon_test.dart \
-            test/widgets/device_alias_editor_test.dart \
-            test/widgets/settings_drawer_device_test.dart \
-            test/widgets/devices_page_test.dart \
-            test/unit/widget_state_test.dart \
-            test/unit/live_capture_transcript_restore_test.dart \
-            test/unit/capture_level_meter_test.dart \
-            test/services/widgets/widget_bridge_test.dart \
-            test/services/capture/stt_mode_capture_entry_test.dart \
-            test/providers/conversation_provider_processing_reconcile_test.dart \
-            test/providers/speech_profile_provider_test.dart
+          # Run the whole hermetic suite, not a hand-maintained subset. The
+          # previous 37-file allowlist let twelve red tests and a duplicate-key
+          # l10n regression merge to main while this job stayed green
+          # (FC-merged-past-red-analyzer-ratchet).
+          flutter test --concurrency=2
+      - name: Run the Dart analyzer ratchet
+        working-directory: app
+        run: |
+          # Analyzer ERRORs are never baselined, and WARNING/INFO occurrences
+          # may not grow above app/analysis_baseline.json. This gate existed but
+          # was wired into no lane, so main carried five analyzer errors.
+          bash scripts/analyze_ratchet.sh
       - name: Run native BLE endpoint tests
         working-directory: app/android
         run: |

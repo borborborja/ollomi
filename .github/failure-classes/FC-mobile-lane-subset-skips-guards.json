@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "FC-mobile-lane-subset-skips-guards",
+  "violated_contract": "A component's CI lane must run the component's real test suite and its static gates, not a hand-maintained subset. A subset reports green while every excluded suite rots: five analyzer ERRORs, twelve failing Flutter tests (one of them a file that no longer compiled) and a duplicate-ARB-key regression that silently served untranslated English to 24 locales all merged to main behind a green `android-tests` job.",
+  "canonical_prevention": "Run `flutter test --concurrency=2` (the whole hermetic suite) and `app/scripts/analyze_ratchet.sh` in the Android lane, so a new test file or analyzer rule is covered by default instead of having to be appended to a list.",
+  "canonical_prevention_artifact": [
+    ".github/workflows/ollomi-release.yml",
+    "app/scripts/analyze_ratchet.sh",
+    "app/analysis_baseline.json"
+  ],
+  "evidence_prs": [],
+  "scope_hints": [
+    ".github/workflows/ollomi-release.yml",
+    "app/test/**",
+    "app/scripts/analyze_ratchet.sh"
+  ],
+  "status": "open"
+}
