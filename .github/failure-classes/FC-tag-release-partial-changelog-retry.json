@@ -5,7 +5,8 @@
   "canonical_prevention": "Resolve changelog sync commits with a pure helper that prefers main-reachable consolidate commits for the planned source and version, clean the worktree before reuse checkout, and skip opening a second changelog PR when merge evidence is already on main.",
   "canonical_prevention_artifact": [
     ".github/scripts/resolve-desktop-changelog-sync.py",
-    ".github/scripts/test_resolve_desktop_changelog_sync.py"
+    ".github/scripts/test_resolve_desktop_changelog_sync.py",
+    ".github/workflows/desktop_auto_release.yml"
   ],
   "evidence_prs": [10787],
   "scope_hints": [
