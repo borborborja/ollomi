@@ -4,7 +4,7 @@ Component guide for `omi/firmware/`. General engineering rules: root `AGENTS.md`
 
 ## Release Workflow
 
-Firmware releases are manual via `.github/workflows/firmware_release.yml`:
+Upstream releases firmware with its `firmware_release.yml` workflow, which is **not present in this fork**. The release steps (when that workflow is available) are:
 
 1. Bump `CONFIG_BT_DIS_FW_REV_STR` in `omi/firmware/omi/omi.conf` first.
 2. `gh workflow run firmware_release.yml -f publish=publish -f changelog="..." -f minimum_app_version_code=...` (omit `publish` for a build-only QA run).

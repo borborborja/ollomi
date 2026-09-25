@@ -13,14 +13,7 @@ For difficult SwiftUI/AppKit runtime bugs—stale views, lost input, layout loop
   exact path with `./scripts/omi-ctl log-path` rather than reading a shared dev log.
 
 ### Release Health (Sentry)
-Check errors in the latest (or specific) release using the **sentry-release skill**:
-```bash
-./scripts/sentry-release.sh              # new issues in latest version (default)
-./scripts/sentry-release.sh --version X  # specific version
-./scripts/sentry-release.sh --all        # include carryover issues
-./scripts/sentry-release.sh --quota      # billing/quota status
-```
-Run the script with `--help` for the full option list.
+Check errors in the latest (or specific) release in the Sentry dashboard (the upstream helper script is absent here).
 
 ### User Issue Investigation
 When debugging issues for a specific user, check Sentry dashboard for crashes and PostHog for events.
@@ -306,7 +299,7 @@ This creates `/Applications/omi-fix-rewind.app` with bundle ID `com.omi.omi-fix-
 
 ### Run Variants & Parallel Worktrees
 - `./run.sh --yolo` — quick start against the dev backend, no local services. `OMI_SKIP_BACKEND=1` — app only, remote backend via `OMI_DESKTOP_API_URL`. `OMI_SKIP_TUNNEL=1` — no Cloudflare tunnel.
-- **Parallel worktrees auto-isolate.** `scripts/dev-instance.sh` derives a unique instance from each linked git worktree, so `run.sh` (and `backend/scripts/dev-serve.sh`) pick per-worktree ports (desktop 10201+, Python 8080+, automation 47777+) and bundle name (`omi-<worktree>`). Kills are pidfile-scoped, and a taken port fails loud instead of clobbering. The primary checkout is unchanged (`Omi Dev`, 10201/8080/47777). Override any of `OMI_INSTANCE` / `PORT` / `PYTHON_PORT` / `OMI_AUTOMATION_PORT` / `OMI_APP_NAME` to opt out.
+- **Parallel worktrees auto-isolate.** `../../scripts/dev-instance.sh` (at the repo root) derives a unique instance from each linked git worktree, so `run.sh` (and `backend/scripts/dev-serve.sh`) pick per-worktree ports (desktop 10201+, Python 8080+, automation 47777+) and bundle name (`omi-<worktree>`). Kills are pidfile-scoped, and a taken port fails loud instead of clobbering. The primary checkout is unchanged (`Omi Dev`, 10201/8080/47777). Override any of `OMI_INSTANCE` / `PORT` / `PYTHON_PORT` / `OMI_AUTOMATION_PORT` / `OMI_APP_NAME` to opt out.
 - `Omi Dev` is the canonical shared development profile (reusable permissions, default auth seed source; settings authority only on machines without production "Omi" installed). To rebuild the real Omi Dev (`com.omi.desktop-dev`) from a linked worktree, pass the explicit override `OMI_APP_NAME="Omi Dev" ./run.sh` — auto-isolation would otherwise derive an `omi-<worktree>` named bundle, and the explicit name resolves back to the shared dev bundle id.
 - Local Python backend (per-worktree port): `cd backend && ./scripts/dev-serve.sh`.
 

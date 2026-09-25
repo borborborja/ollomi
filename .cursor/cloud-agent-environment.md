@@ -17,7 +17,7 @@ cd backend && source .venv/bin/activate
 bash testing/e2e/run.sh -q --tb=short
 ```
 
-This is the best way to validate backend changes end-to-end on this VM (real routers, auth, encryption, middleware against the fakes). It is the same harness CI runs (`.github/workflows/backend-hermetic-e2e.yml`), so that workflow's latest run is the current pass/skip baseline. Add new hermetic scenarios under `backend/testing/e2e/`; fixtures and the `client`/`auth_headers` fixtures live in `backend/testing/e2e/conftest.py` (dev auth is `Authorization: Bearer dev-token` → uid `123`).
+This is the best way to validate backend changes end-to-end on this VM (real routers, auth, encryption, middleware against the fakes). It is the same harness the upstream `backend-hermetic-e2e.yml` CI workflow runs; that workflow is not present in this fork, so treat a local green run as the baseline. Add new hermetic scenarios under `backend/testing/e2e/`; fixtures and the `client`/`auth_headers` fixtures live in `backend/testing/e2e/conftest.py` (dev auth is `Authorization: Bearer dev-token` → uid `123`).
 
 ## Unit tests
 

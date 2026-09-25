@@ -27,17 +27,24 @@ from pathlib import Path
 
 # path -> (max_lines, max_bytes). Ratchet down; never up.
 BUDGETS: dict[str, tuple[int, int]] = {
-    "AGENTS.md": (180, 18_000),
+    "AGENTS.md": (151, 17_996),
     ".github/AGENTS.md": (45, 4_500),
-    "app/AGENTS.md": (170, 11_500),
-    "backend/AGENTS.md": (350, 39_000),
+    "app/AGENTS.md": (158, 11_422),
+    "backend/AGENTS.md": (307, 38_954),
+    "backend/selfhost/AGENTS.md": (45, 3_958),
+    "desktop/context-for-claude/AGENTS.md": (42, 3_407),
     # main grew this with Codemagic release-pipeline detail after the budget was
     # first set from a stale base; recalibrated to current main + headroom.
-    "desktop/macos/AGENTS.md": (560, 47_000),
-    "desktop/windows/AGENTS.md": (127, 6_950),
+    "desktop/macos/AGENTS.md": (532, 46_702),
+    "desktop/macos/agent/AGENTS.md": (41, 2_581),
+    "desktop/windows/AGENTS.md": (106, 5_762),
     "omi/firmware/AGENTS.md": (30, 1_500),
+    "omiGlass/AGENTS.md": (23, 1_736),
+    "plugins/AGENTS.md": (56, 2_948),
+    "sdks/AGENTS.md": (45, 2_548),
     "web/admin/AGENTS.md": (25, 1_500),
     "web/app/AGENTS.md": (55, 2_400),
+    "web/frontend/AGENTS.md": (45, 1_590),
     "docs/AGENTS.md": (34, 1_309),
 }
 

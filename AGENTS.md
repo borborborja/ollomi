@@ -18,6 +18,14 @@ These rules apply to every AI agent working in this repository. This file is **h
 | Desktop Windows/Linux (`desktop/windows/`) | `desktop/windows/AGENTS.md` — pnpm pin, build/test, CI shape, Linux/Wayland dev env, release pipeline |
 | Web app (`web/app/`) | `web/app/AGENTS.md` — setup, quality gates, tests, desktop-parity limits |
 | Firmware (`omi/firmware/`) | `omi/firmware/AGENTS.md` — release workflow |
+| Self-host runtime (`backend/selfhost/`) | `backend/selfhost/AGENTS.md` |
+| SDKs (`sdks/`) | `sdks/AGENTS.md` |
+| Plugins (`plugins/`) | `plugins/AGENTS.md` |
+| Web frontend (`web/frontend/`) | `web/frontend/AGENTS.md` |
+| OmiGlass (`omiGlass/`) | `omiGlass/AGENTS.md` |
+| Claude context app (`desktop/context-for-claude/`) | `desktop/context-for-claude/AGENTS.md` |
+| macOS agent runtime (`desktop/macos/agent/`) | `desktop/macos/agent/AGENTS.md` |
+| Shared Rust crate (`desktop/shared-rust/`) | desktop-host fallback/QoS types |
 | Product behavior | `PRODUCT.md` + `product/invariants/` — locked invariants and guard tests |
 | A rule shared across app/macOS/Windows (buckets, day grouping, wire decode) | `contracts/parity/README.md` — shared fixtures, per-platform conformance suites, divergence register |
 | Fallback/fail-open branches | `.github/agent-docs/fallback-telemetry.md` — when to call `record_fallback` |
@@ -65,7 +73,7 @@ The unit of work is the violated contract, not only the line where the symptom a
 
 - Never kill, stop, or restart the production macOS apps (`/Applications/Omi.app` / `Omi Beta.app`, bundle ids `com.omi.computer-macos` and `com.omi.computer-macos.beta`). Dev commands target only dev or `omi-*` named test bundles.
 - **Nothing lands on `main` until the user explicitly says so.** Land through PRs only (regular merge, never squash); never push directly to `main`; never push or open PRs unless explicitly asked — commit locally on a feature branch by default. A prior approval never carries over to later changes.
-- **Exception — Ollomi artifact publishing is autonomous once requested.** In the `borborborja/ollomi` fork, a request to publish Docker images, an APK, or a release authorizes the agent to create and push a feature branch, open and regularly merge its PR, create the next patch release, wait for the `Publish Ollomi` workflow, repair failures, and verify the public GHCR images and release assets without asking again. This exception never authorizes a direct push to `main` or an upstream `BasedHardware/omi` release.
+- **Exception — Ollomi artifact publishing is autonomous once requested.** A publish request authorizes branching, PR, merge, release, and asset verification without asking again. Full rules: `.github/agent-docs/ollomi-publishing.md`.
 - **Exception — reverts merge right away.** A user request to revert a merged PR/commit is itself the approval to open and merge the revert PR.
 - **Exception — verified + peer-approved changes may auto-merge.** If you actually exercised the real user-facing path **and** an independent agent review approved it, you may open and merge without a separate go-ahead — except for risky, wide-blast-radius, or hard-to-reverse changes (migrations, release/CI pipeline, schema, access control, data deletion), which always need explicit user sign-off.
 - **Prefer testing locally first.** Default to a local build + run (desktop: named bundle) to verify a change before proposing to land it.
@@ -130,18 +138,8 @@ Click at coordinates: `cliclick c:X,Y`. Mac screenshots: `screencapture -x /tmp/
 
 ## Deploys & Release Pipelines
 
-- Desktop (hourly candidate → signed-smoke Beta → manual Stable): `desktop/macos/AGENTS.md` → Release Pipeline.
-- Backend: `gcp_backend.yml` is main stack (`environment`, `release_sha`, `release_version`, `mode`, `deploy_targets`; no `branch`). Prod `release_sha` needs first-attempt Release Eligibility. desktop-backend: `desktop_backend_prod.yml` (`release_sha`, confirm `deploy-desktop-backend-prod`, reason).
+- **This fork ships through `.github/workflows/ollomi-release.yml`** (`Publish Ollomi`): GHCR images (`ollomi-api`, `ollomi-stt`, `ollomi-voiceprint`), the signed APK, and the backend bundle. Upstream desktop/backend deploy surfaces and their break-glass hatches are reference only here: `.github/agent-docs/deploy-surfaces.md`.
 - Firmware (Omi CV1): `omi/firmware/AGENTS.md`.
-
-**Every gated surface has a break-glass hatch. A broken gate is never a reason to be stuck.** Each records a tracking issue; repeated use means the gate is the defect.
-
-| Blocked on | Hatch |
-|---|---|
-| Desktop candidate won't cut (`Desktop Swift Build & Tests` red/flaky) | `desktop_auto_release.yml` with `release_mode=break_glass` |
-| Backend deploy has no Release Eligibility proof | `gcp_backend.yml` with `skip_eligibility_proof=true`, `break_glass_confirm=deploy-without-proof`, `break_glass_reason` |
-
-Hatches relax *evidence* requirements only. They never relax that code is merged to `main` first, and never reach stable/prod pointers without their own explicit confirm.
 
 ## Documentation Maintenance
 
