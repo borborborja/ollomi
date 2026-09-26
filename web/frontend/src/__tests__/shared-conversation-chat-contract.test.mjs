@@ -20,10 +20,9 @@ const deployActionSource = readFileSync(
   new URL('../../../../.github/actions/deploy-public-build/action.yml', import.meta.url),
   'utf8',
 );
-const frontendWorkflowSource = readFileSync(
-  new URL('../../../../.github/workflows/gcp_frontend.yml', import.meta.url),
-  'utf8',
-);
+// This fork ships no upstream gcp_frontend.yml: `.github/workflows/` contains
+// only `ollomi-release.yml`, so there is no frontend deploy workflow contract
+// to assert here. The deploy action and the checked-in contract still are.
 
 describe('public shared conversation chat frontend safety contract', () => {
   it('removes every direct OpenAI credential and request path', () => {
@@ -95,19 +94,6 @@ describe('public shared conversation chat frontend safety contract', () => {
     assert.equal(frontend.deployment.runtime_secrets.DD_API_KEY, 'DD_API_KEY:latest');
     assert.match(deployActionSource, /service_account/);
     assert.match(deployActionSource, /runtime_env_vars/);
-    assert.match(
-      frontendWorkflowSource,
-      /PUBLIC_SHARED_CONVERSATION_CHAT_FRONTEND_INVOKER_SA/,
-    );
-    assert.match(
-      frontendWorkflowSource,
-      /PUBLIC_SHARED_CONVERSATION_CHAT_FRONTEND_AUDIENCE/,
-    );
-    assert.doesNotMatch(
-      frontendWorkflowSource,
-      /test -n "\$PUBLIC_SHARED_CONVERSATION_CHAT_FRONTEND_INVOKER_SA"/,
-    );
-    assert.match(frontendWorkflowSource, /iam\\.gserviceaccount\\.com/);
   });
 
   it('passes only conversation id, bounded history, and the current question to the action', () => {
