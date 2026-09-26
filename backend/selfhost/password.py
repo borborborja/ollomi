@@ -14,10 +14,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import delete, select, update
 
 from selfhost import mail
-from selfhost.accounts import normalize_email
+from selfhost.accounts import normalize_email, validate_password
 from selfhost.config import settings
 from selfhost.db import PasswordReset, User, now, transaction
-from selfhost.security import digest
+from selfhost.security import aware, digest, passwords, revoke_credentials
 
 router = APIRouter()
 
@@ -28,6 +28,11 @@ class Input(BaseModel):
 
 class ForgotInput(Input):
     email: str = Field(min_length=3, max_length=254)
+
+
+class ResetInput(Input):
+    token: str = Field(min_length=1, max_length=512)
+    password: str = Field(min_length=1, max_length=512)
 
 
 def _env_owned(user) -> bool:
@@ -80,4 +85,32 @@ def forgot(body: ForgotInput, request: Request, background: BackgroundTasks):
     if link is not None:
         # Capture only plain strings; never the request-scoped DB session.
         background.add_task(mail.send_password_reset_email, to, link, language)
+    return {"status": "ok"}
+
+
+@router.post("/v1/auth/password/reset")
+def reset(body: ResetInput, request: Request):
+    from selfhost.rate_limit import limit
+
+    limit("pwreset-reset:" + (request.client.host if request.client else "unknown"), 10, 900)
+    with transaction() as db:
+        row = db.scalar(
+            select(PasswordReset)
+            .where(PasswordReset.token_hash == digest(body.token), PasswordReset.used_at.is_(None))
+            .with_for_update()
+        )
+        # Generic error for unknown, expired or already-consumed tokens.
+        if row is None or aware(row.expires_at) <= now():
+            raise HTTPException(400, "Invalid or expired reset token")
+        # Consume the token first so two concurrent resets cannot both succeed.
+        row.used_at = now()
+        user = db.get(User, row.user_id)
+        if user is None or not user.enabled or _env_owned(user):
+            raise HTTPException(400, "Invalid or expired reset token")
+        try:
+            validate_password(body.password)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        user.password_hash = passwords.hash(body.password)
+        revoke_credentials(db, user.id)
     return {"status": "ok"}
