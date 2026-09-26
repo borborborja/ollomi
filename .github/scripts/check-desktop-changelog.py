@@ -17,6 +17,9 @@ NONE_KIND = "none"
 EXEMPT_DESKTOP_PATHS = {
     "desktop/macos/CHANGELOG.json",
     "desktop/macos/AGENTS.md",
+    # Nested agent guide for the macOS agent runtime: agent-facing docs that
+    # never ship inside the app, same class as the top-level guide above.
+    "desktop/macos/agent/AGENTS.md",
     "desktop/macos/docs/release.md",
     # CI-only flow-validation script and its shared action-source inventory do
     # not alter the desktop application a user receives.

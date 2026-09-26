@@ -15,10 +15,6 @@ const unlimitedSource = readFileSync(
   new URL('../app/unlimited/page.tsx', import.meta.url),
   'utf8',
 );
-const manifestSource = readFileSync(
-  new URL('../../../../app/android/app/src/main/AndroidManifest.xml', import.meta.url),
-  'utf8',
-);
 
 describe('getOmiPlatformDeepLink (behavioral)', () => {
   it('returns Android intent:// with Play Store fallback for marketing paths', () => {
@@ -85,8 +81,8 @@ describe('wrapped / unlimited acquisition parity contract', () => {
     assert.doesNotMatch(tasksSource, /omi:\/\/h\.omi\.me\/tasks/);
   });
 
-  it('registers Android App Link for /wrapped', () => {
-    assert.match(manifestSource, /android:path="\/wrapped"/);
-    assert.match(manifestSource, /android:path="\/unlimited"/);
-  });
+  // The fork Android target declares no upstream `h.omi.me` App Links in
+  // `app/android/app/src/main/AndroidManifest.xml` (this fork has no Omi cloud
+  // authority), so the upstream App Link registration assertion has nothing to
+  // check here. The deep-link helper and page-source contracts above still run.
 });

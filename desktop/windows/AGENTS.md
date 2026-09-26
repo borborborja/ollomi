@@ -9,9 +9,10 @@ and feature overview.
 
 ## Package manager: pnpm, not npm
 
-This directory is pnpm-managed (`pnpm-lock.yaml`, `pnpm-workspace.yaml`) and CI
-installs exclusively with `pnpm install --frozen-lockfile`
-(`.github/workflows/desktop-windows-ci.yml`, `desktop_windows_release.yml`).
+This directory is pnpm-managed (`pnpm-lock.yaml`, `pnpm-workspace.yaml`) and
+installs exclusively with `pnpm install --frozen-lockfile`. The upstream
+desktop-windows CI and release workflows are absent in this fork; Windows/Linux
+ships via `.github/workflows/ollomi-release.yml` ("Publish Ollomi").
 Running `npm install` here corrupts `package.json`/`pnpm-lock.yaml`/
 `pnpm-workspace.yaml` (npm doesn't understand pnpm-workspace semantics) and
 produces a stray, untracked `package-lock.json` — if you see unexplained diffs
@@ -56,17 +57,11 @@ for this alone. **Node pin:** `>=22.19.0 <23` (`.nvmrc`; 24+ fails pretest).
 
 ## CI
 
-`.github/workflows/desktop-windows-ci.yml` — three jobs, triggered on
-`desktop/windows/**` changes:
-- **checks** (ubuntu): `pnpm typecheck`, `pnpm lint` (blocking), `pnpm test`.
-- **build-windows** (real `windows-latest` runner): builds the native `.NET`
-  OCR/UI-automation helpers, rebuilds `better-sqlite3`, runs
-  `pnpm build:unpack`. Verifies packaging succeeds; does **not** launch or
-  smoke-test the packaged binary at runtime.
-- **build-linux** (ubuntu): builds the Linux variant, then actually launches
-  it under `xvfb-run` and runs targeted integration tests (OCR helper, Wayland
-  degradation) against the real running app — more runtime coverage than the
-  Windows job gets today.
+The upstream `desktop-windows-ci.yml` workflow (checks, build-windows,
+build-linux jobs) is absent in this fork. Windows and Linux desktop builds
+ship via `.github/workflows/ollomi-release.yml` ("Publish Ollomi"), which
+publishes GHCR images and a signed APK on `v*` tags. Run `pnpm typecheck`,
+`pnpm lint`, and `pnpm test` locally before pushing.
 
 ## Release Pipeline
 
