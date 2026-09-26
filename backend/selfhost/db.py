@@ -100,6 +100,16 @@ class McpOauthToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=ident)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
 class Record(Base):
     __tablename__ = "records"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=ident)
