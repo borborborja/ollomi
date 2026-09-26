@@ -105,6 +105,26 @@ class ValidationTests(unittest.TestCase):
             baseline = write(root, ".github/lifecycle-header-baseline.txt", "")
             self.assertEqual(validate(root, [permanent, one_time], baseline), [])
 
+    def test_inaccessible_symlink_in_a_venv_does_not_crash_the_census(self) -> None:
+        # A local virtualenv can contain symlinks into an unreadable prefix
+        # (e.g. /root), where is_file() raises PermissionError. The census must
+        # filter by designated path name before it stats anything, so a broken
+        # venv cannot crash the whole-repo walk.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blocked = root / "blocked"
+            blocked.mkdir()
+            (blocked / "python3").write_text("", encoding="utf-8")
+            venv_bin = root / "backend" / ".venv-test" / "bin"
+            venv_bin.mkdir(parents=True)
+            (venv_bin / "python3").symlink_to(blocked / "python3")
+            blocked.chmod(0o000)
+            try:
+                baseline = write(root, ".github/lifecycle-header-baseline.txt", "")
+                self.assertEqual(validate(root, [], baseline), [])
+            finally:
+                blocked.chmod(0o755)
+
 
 if __name__ == "__main__":
     unittest.main()

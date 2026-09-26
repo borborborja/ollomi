@@ -100,10 +100,18 @@ def load_baseline(path: Path) -> tuple[set[str], list[str]]:
 
 def iter_designated_files(root: Path):
     for path in root.joinpath("backend").rglob("*"):
-        if path.is_file() and not any(part in SKIP_DIRECTORY_NAMES for part in path.relative_to(root).parts):
-            relative_path = path.relative_to(root).as_posix()
-            if is_designated_path(relative_path):
-                yield relative_path, path
+        relative_path = path.relative_to(root).as_posix()
+        # Filter by name before stat()ing anything. A local virtualenv can hold
+        # symlinks into an unreadable prefix (for example /root), where
+        # is_file() raises PermissionError. A designated path never lives in a
+        # venv, so the cheap string check keeps a broken local venv from
+        # crashing the whole-repo census.
+        if not is_designated_path(relative_path):
+            continue
+        if any(part in SKIP_DIRECTORY_NAMES for part in path.relative_to(root).parts):
+            continue
+        if path.is_file():
+            yield relative_path, path
 
 
 def validate(root: Path, changed_paths: list[str], baseline_path: Path) -> list[str]:
