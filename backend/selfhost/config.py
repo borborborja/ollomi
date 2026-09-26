@@ -6,6 +6,7 @@ import os
 import time
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlsplit
 
 from cryptography.fernet import Fernet
@@ -16,7 +17,22 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 
 # Infrastructure credentials and paths are controlled by Compose, never by a
 # running web process. Every other Settings field can be overridden in the DB.
-INFRASTRUCTURE_FIELDS = {"database_url", "redis_url", "data_dir", "secret_key", "typesense_url", "typesense_key"}
+INFRASTRUCTURE_FIELDS = {
+    "database_url",
+    "redis_url",
+    "data_dir",
+    "secret_key",
+    "typesense_url",
+    "typesense_key",
+    "smtp_host",
+    "smtp_port",
+    "smtp_security",
+    "smtp_username",
+    "smtp_password",
+    "smtp_from",
+    "smtp_reply_to",
+    "smtp_timeout",
+}
 RESTART_FIELDS = {"seed_local_whisper", "seed_local_ollama", "stt_url", "ollama_url"}
 logger = logging.getLogger(__name__)
 
@@ -66,6 +82,19 @@ class Settings(BaseSettings):
     # The public OSM endpoint needs no key. A local OSM tile server can replace
     # it without changing the Android app.
     map_tile_url: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    # Outbound mail for password recovery. Empty smtp_host disables email
+    # delivery entirely (forgot-password returns 503). These are env-only so
+    # a web admin can never silently reroute or capture reset links.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_security: Literal["starttls", "ssl", "none"] = "starttls"
+    smtp_username: str = ""
+    smtp_password: SecretStr = SecretStr("")
+    smtp_from: str = ""
+    smtp_reply_to: str = ""
+    smtp_timeout: int = 10
+    # One-use password-reset tokens expire after this many minutes.
+    password_reset_ttl_minutes: int = 30
 
     def validate_runtime(self):
         if len(self.secret_key.get_secret_value()) < 32:
@@ -123,6 +152,19 @@ class Settings(BaseSettings):
             or parsed.fragment
         ):
             raise ValueError("OLLOMI_MAP_TILE_URL must be an HTTP(S) tile URL without credentials or query")
+        if self.smtp_host:
+            if not self.smtp_from:
+                raise ValueError("OLLOMI_SMTP_FROM must be set when OLLOMI_SMTP_HOST is configured")
+            if not 1 <= self.smtp_port <= 65535:
+                raise ValueError("OLLOMI_SMTP_PORT must be between 1 and 65535")
+            if not 1 <= self.smtp_timeout <= 30:
+                raise ValueError("OLLOMI_SMTP_TIMEOUT must be between 1 and 30")
+            has_username = bool(self.smtp_username)
+            has_password = bool(self.smtp_password.get_secret_value())
+            if has_username != has_password:
+                raise ValueError("OLLOMI_SMTP_USERNAME and OLLOMI_SMTP_PASSWORD must be set together")
+        if not 5 <= self.password_reset_ttl_minutes <= 1440:
+            raise ValueError("OLLOMI_PASSWORD_RESET_TTL_MINUTES must be between 5 and 1440")
 
 
 @lru_cache
