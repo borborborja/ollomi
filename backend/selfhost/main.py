@@ -8,6 +8,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.staticfiles import StaticFiles
 
 from selfhost import (
+    password,
     admin,
     admin_config,
     audio,
@@ -64,6 +65,7 @@ for router in (
     search.router,
     records.router,
     knowledge_graph.router,
+    password.router,
     static_map.router,
 ):
     app.include_router(router)
