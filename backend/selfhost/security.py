@@ -9,10 +9,10 @@ from argon2.exceptions import VerificationError
 from cryptography.fernet import Fernet
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from selfhost.config import settings
-from selfhost.db import Session, User, now, transaction
+from selfhost.db import McpApiKey, McpOauthToken, Session, User, now, transaction
 
 passwords = PasswordHasher()
 bearer = HTTPBearer(auto_error=False)
@@ -129,6 +129,19 @@ def verify_password(value, encoded):
         return passwords.verify(encoded, value)
     except VerificationError:
         return False
+
+
+def revoke_credentials(db, user_id, *, keep_session_id=None):
+    """Revoke all sessions and MCP credentials for a user.
+
+    When keep_session_id is given, that single Session row is left untouched.
+    """
+    session_query = update(Session).where(Session.user_id == user_id).values(revoked=True)
+    if keep_session_id is not None:
+        session_query = session_query.where(Session.id != keep_session_id)
+    db.execute(session_query)
+    db.execute(update(McpOauthToken).where(McpOauthToken.user_id == user_id).values(revoked=True))
+    db.execute(update(McpApiKey).where(McpApiKey.user_id == user_id).values(revoked=True))
 
 
 def rotate(refresh):

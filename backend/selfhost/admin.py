@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select, update
 
 from selfhost.config import settings
-from selfhost.db import AIProfile, Job, McpApiKey, McpOauthToken, Session, User, emit, transaction
+from selfhost.db import AIProfile, Job, Session, User, emit, transaction
 from selfhost.profiles import (
     PROVIDER_DEFAULTS,
     PROVIDER_PURPOSES,
@@ -24,6 +24,7 @@ from selfhost.security import (
     current_user,
     digest,
     passwords,
+    revoke_credentials,
     rotate,
     seal,
     tokens,
@@ -174,9 +175,7 @@ def update_user(user_id: str, body: UserUpdate, admin=Depends(administrator)):
         if body.password:
             row.password_hash = passwords.hash(body.password)
         if body.password or body.enabled is False:
-            db.execute(update(Session).where(Session.user_id == user_id).values(revoked=True))
-            db.execute(update(McpOauthToken).where(McpOauthToken.user_id == user_id).values(revoked=True))
-            db.execute(update(McpApiKey).where(McpApiKey.user_id == user_id).values(revoked=True))
+            revoke_credentials(db, user_id)
         return user_wire(row)
 
 

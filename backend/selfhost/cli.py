@@ -5,14 +5,14 @@ import sys
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import select, text, update
+from sqlalchemy import select, text
 from pathlib import Path
 
 from selfhost.accounts import create_admin, normalize_email, validate_password
-from selfhost.db import Job, Session, User, transaction
+from selfhost.db import Job, User, transaction
 from selfhost.profiles import selected_profile
 from selfhost.search import purge_all_text_index
-from selfhost.security import passwords
+from selfhost.security import passwords, revoke_credentials
 
 
 def _read_password(args, parser):
@@ -101,7 +101,7 @@ def main(argv=None):
             if not user:
                 parser.error("Account not found")
             user.password_hash = passwords.hash(password)
-            db.execute(update(Session).where(Session.user_id == user.id).values(revoked=True))
+            revoke_credentials(db, user.id)
     print("Account updated")
 
 

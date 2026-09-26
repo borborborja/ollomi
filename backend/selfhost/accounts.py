@@ -3,10 +3,10 @@
 import logging
 import os
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 
-from selfhost.db import McpApiKey, McpOauthToken, Session, User
-from selfhost.security import passwords, verify_password
+from selfhost.db import User
+from selfhost.security import passwords, revoke_credentials, verify_password
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +62,7 @@ def seed_admin_from_env(db) -> bool:
         existing.enabled = True
         if changed:
             existing.password_hash = passwords.hash(password)
-            db.execute(update(Session).where(Session.user_id == existing.id).values(revoked=True))
-            db.execute(update(McpOauthToken).where(McpOauthToken.user_id == existing.id).values(revoked=True))
-            db.execute(update(McpApiKey).where(McpApiKey.user_id == existing.id).values(revoked=True))
+            revoke_credentials(db, existing.id)
             logger.info("Updated environment-owned Ollomi administrator credentials")
         return changed
     create_admin(db, email, password)
